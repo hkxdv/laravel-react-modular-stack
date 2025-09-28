@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\ProtectStaticAssets; // importar clase para usarla directamente sin alias
+
+// Rutas para activos protegidos
+Route::middleware([ProtectStaticAssets::class])->group(function () {
+    // Esta ruta servirá los archivos de una carpeta protegida y hará fallback a storage público si aplica
+    Route::get('/assets/{path}', function ($path) {
+        $protectedPath = storage_path('app/protected/assets/' . $path);
+        $publicPath = storage_path('app/public/' . $path);
+
+        $filePath = null;
+        if (file_exists($protectedPath)) {
+            $filePath = $protectedPath;
+        } elseif (file_exists($publicPath)) {
+            $filePath = $publicPath;
+        }
+
+        if (!$filePath) {
+            abort(404);
+        }
+
+        // Determinar el tipo MIME basado en la extensión
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+        ];
+
+        $detected = $mimeTypes[$extension] ?? (function_exists('mime_content_type') ? @mime_content_type($filePath) : null);
+        $contentType = $detected ?: 'application/octet-stream';
+
+        return response()->file($filePath, ['Content-Type' => $contentType]);
+    })->where('path', '.*');
+});
