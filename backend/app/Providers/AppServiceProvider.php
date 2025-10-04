@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Interfaces\ApiResponseFormatterInterface;
-use App\Interfaces\DynamicValidationServiceInterface;
-use App\Interfaces\MediaSecurityServiceInterface;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
 use App\Interfaces\ViewComposerInterface;
 use App\Services\ApiResponseService;
-use App\Services\DynamicValidationService;
 use App\Services\JsonbQueryService;
-use App\Services\MediaSecurityService;
 use App\Services\ModuleRegistryService;
 use App\Services\NavigationBuilderService;
 use App\Services\RouteFilterService;
@@ -60,7 +56,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ModuleRegistryService::class);
         $this->app->singleton(NavigationBuilderService::class);
         $this->app->singleton(RouteFilterService::class);
-
 
         // Bindings adicionales para interfaces
         $this->app->bind(ModuleRegistryInterface::class, ModuleRegistryService::class);

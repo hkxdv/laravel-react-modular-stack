@@ -9,7 +9,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 /**
  * Kernel de la consola de la aplicación.
- *
  */
 class Kernel extends ConsoleKernel
 {

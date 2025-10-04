@@ -15,8 +15,8 @@ interface StatsServiceInterface
     /**
      * Devuelve las estadísticas enriquecidas para el panel del módulo actual.
      *
-     * @param string $moduleSlug Slug del módulo para contextualizar el cálculo.
-     * @param Authenticatable|null $user Usuario autenticado (si aplica).
+     * @param  string  $moduleSlug  Slug del módulo para contextualizar el cálculo.
+     * @param  Authenticatable|null  $user  Usuario autenticado (si aplica).
      * @return EnhancedStat[]
      */
     public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array;

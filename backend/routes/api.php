@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\ApiAuthController;
-use App\Http\Controllers\Media\ProfileImageController;
 use Illuminate\Support\Facades\Route;
 
 /*

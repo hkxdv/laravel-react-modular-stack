@@ -83,7 +83,7 @@ trait CrossGuardPermissions
     public function hasRoleCross($roles): bool
     {
         $roles = is_array($roles) || $roles instanceof \Illuminate\Support\Collection ? $roles : [$roles];
-        $roleNames = collect($roles)->map(fn($role) => is_object($role) ? $role->name : $role)->sort()->implode('.');
+        $roleNames = collect($roles)->map(fn ($role) => is_object($role) ? $role->name : $role)->sort()->implode('.');
         $cacheKey = 'user.' . $this->id . '.roles.' . $roleNames;
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($roles) {

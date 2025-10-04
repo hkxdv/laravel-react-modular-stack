@@ -65,7 +65,6 @@ class Kernel extends HttpKernel
             'session.integrity:staff',
         ],
 
-
     ];
 
     /**

@@ -17,21 +17,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Ruta principal de bienvenida
-Route::get('/', fn() => inertia('public/welcome'))->name('welcome');
+Route::get('/', fn () => inertia('public/welcome'))->name('welcome');
 
 /**
  * Redirige la antigua ruta de registro a la página de inicio de sesión.
  * El registro de personal se maneja internamente.
  * GET /register
  */
-Route::get('/register', fn(): RedirectResponse => redirect()->route('login'))
+Route::get('/register', fn (): RedirectResponse => redirect()->route('login'))
     ->name('register.redirect');
 
 /**
  * Ruta para obtener la cookie CSRF, necesaria para clientes SPA como Vue/React.
  * GET /sanctum/csrf-cookie
  */
-Route::get('/sanctum/csrf-cookie', fn() => response()->noContent())
+Route::get('/sanctum/csrf-cookie', fn () => response()->noContent())
     ->name('sanctum.csrf-cookie');
 
 /*

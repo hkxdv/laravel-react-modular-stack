@@ -32,7 +32,7 @@ class ModuleRegistryService implements ModuleRegistryInterface
     {
         // Usar collecciones para aprovechar funciones de orden superior
         return collect(Module::allEnabled())
-            ->filter(fn(ModuleInstance $module) => $this->canUserAccessModule($user, $module))
+            ->filter(fn (ModuleInstance $module) => $this->canUserAccessModule($user, $module))
             ->all();
     }
 

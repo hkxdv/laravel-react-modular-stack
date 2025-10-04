@@ -90,7 +90,7 @@ class InternalDashboardController extends Controller
             $viewData = $this->viewComposerService->composeDashboardViewContext(
                 user: $user,
                 availableModules: $indexedModules,
-                permissionChecker: fn(string $permission) => $user->hasPermissionTo($permission),
+                permissionChecker: fn (string $permission) => $user->hasPermissionTo($permission),
                 request: $request
             );
 

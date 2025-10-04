@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\ProtectStaticAssets; // importar clase para usarla directamente sin alias
+use App\Http\Middleware\ProtectStaticAssets;
+use Illuminate\Support\Facades\Route; // importar clase para usarla directamente sin alias
 
 // Rutas para activos protegidos
 Route::middleware([ProtectStaticAssets::class])->group(function () {

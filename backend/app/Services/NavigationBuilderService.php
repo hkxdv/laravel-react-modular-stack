@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTO\ContextualNavItem;
+use App\DTO\PanelItem;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Nwidart\Modules\Laravel\Module;
-use App\DTO\PanelItem;
-use App\DTO\ContextualNavItem;
 
 /**
  * Servicio para la construcción de elementos de navegación del sistema.
@@ -156,6 +156,7 @@ class NavigationBuilderService implements NavigationBuilderInterface
                     'errors' => $errors,
                     'config' => $config,
                 ]);
+
                 // Ignorar ítems inválidos para no romper la vista
                 continue;
             }

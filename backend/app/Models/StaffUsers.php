@@ -91,7 +91,7 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
             ->logOnly(['name', 'email'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "El usuario ha sido {$this->getEventDescription($eventName)}");
+            ->setDescriptionForEvent(fn (string $eventName) => "El usuario ha sido {$this->getEventDescription($eventName)}");
     }
 
     /**
@@ -243,6 +243,7 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
     {
         return array_merge($this->toArray(), []);
     }
+
     /**
      * Atributos agregados al array/JSON automáticamente.
      * Esto permite exponer 'avatar' como un atributo computado.

@@ -6,8 +6,8 @@ namespace App\Services;
 
 use App\DTO\EnhancedStat;
 use App\Interfaces\StatsServiceInterface;
-use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 
 class AdminStatsService implements StatsServiceInterface
 {
@@ -16,7 +16,7 @@ class AdminStatsService implements StatsServiceInterface
     ) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array
     {

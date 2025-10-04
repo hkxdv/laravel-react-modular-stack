@@ -224,6 +224,7 @@ abstract class ModuleOrchestrationController extends Controller
             data: $data
         );
     }
+
     /**
      * Resuelve referencias en la configuración del módulo.
      * Utiliza el servicio de navegación para resolver referencias del tipo '$ref:path.to.component'.
@@ -299,7 +300,7 @@ abstract class ModuleOrchestrationController extends Controller
             moduleSlug: $this->moduleSlug,
             panelItemsConfig: $panelItemsConfig,
             contextualNavItemsConfig: $contextualNavItemsConfig,
-            permissionChecker: fn(string $permission) => $user->hasPermissionTo($permission),
+            permissionChecker: fn (string $permission) => $user->hasPermissionTo($permission),
             user: $user,
             functionalName: $functionalName,
             data: $viewData,
