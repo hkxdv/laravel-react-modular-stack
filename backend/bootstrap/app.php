@@ -191,11 +191,32 @@ if ($isProduction) {
     }
 }
 
-// Sobrescribir el método para cargar el archivo .env correcto
-$envFile = filter_var($_ENV['APP_RUNNING_IN_CONTAINER'] ?? false, FILTER_VALIDATE_BOOL)
-    ? '.env.docker'
-    : (($_ENV['APP_ENV'] ?? null) === 'production' ? '.env.production.local' : '.env.local');
+// Determinar archivo .env según contexto (contenedor, entorno, testing) con fallback a .env
+$runningInContainer = filter_var($_ENV['APP_RUNNING_IN_CONTAINER'] ?? false, FILTER_VALIDATE_BOOL);
+$appEnv = $_ENV['APP_ENV'] ?? null;
 
-$application->loadEnvironmentFrom($envFile);
+if ($runningInContainer) {
+    $envFile = '.env.docker';
+} elseif ($appEnv === 'production') {
+    $envFile = '.env.production.local';
+} elseif ($appEnv === 'testing') {
+    // En entorno de pruebas, usar .env por defecto para evitar warnings si .env.local no existe
+    $envFile = '.env';
+} else {
+    $envFile = '.env.local';
+}
+
+// Fallback a .env si el archivo elegido no existe
+$basePath = dirname(__DIR__);
+if (!file_exists($basePath . DIRECTORY_SEPARATOR . $envFile)) {
+    $envFile = '.env';
+}
+
+// En entorno de pruebas, no cargar archivo .env para evitar warnings si no existe
+if ($appEnv !== 'testing') {
+    if (file_exists($basePath . DIRECTORY_SEPARATOR . $envFile)) {
+        $application->loadEnvironmentFrom($envFile);
+    }
+}
 
 return $application;

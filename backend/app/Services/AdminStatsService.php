@@ -21,7 +21,8 @@ class AdminStatsService implements StatsServiceInterface
     public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array
     {
         // Totales básicos del dashboard Admin
-        $totals = $this->staffUserManager->getTotals();
+        $totalUsers = $this->staffUserManager->getTotalUsers();
+        $totalRoles = $this->staffUserManager->getTotalRoles();
 
         return [
             new EnhancedStat(
@@ -29,14 +30,14 @@ class AdminStatsService implements StatsServiceInterface
                 title: 'Usuarios',
                 description: 'Usuarios del sistema',
                 icon: 'users',
-                value: (int)($totals['users'] ?? 0),
+                value: (int) $totalUsers,
             ),
             new EnhancedStat(
                 key: 'total_roles',
                 title: 'Roles',
                 description: 'Roles disponibles',
                 icon: 'shield-check',
-                value: (int)($totals['roles'] ?? 0),
+                value: (int) $totalRoles,
             ),
         ];
     }
