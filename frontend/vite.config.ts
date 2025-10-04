@@ -5,12 +5,13 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
+  const ProcessEnv: NodeJS.ProcessEnv = process.env;
   const isProduction = mode === 'production';
-  const isDocker = process.env.APP_RUNNING_IN_CONTAINER === 'true';
+  const isDocker = ProcessEnv.APP_RUNNING_IN_CONTAINER === 'true';
   const host = isProduction || isDocker ? '0.0.0.0' : 'localhost';
 
   // Obtener la URL de la aplicación desde las variables de entorno para HMR
-  const appUrl = process.env.VITE_APP_URL ?? 'http://localhost:8080';
+  const appUrl = ProcessEnv.VITE_APP_URL ?? 'http://localhost:8080';
   // Extraer el hostname de la URL para usarlo en la configuración de HMR
   const appHostname = new URL(appUrl).hostname;
 
@@ -20,7 +21,7 @@ export default defineConfig(({ mode }) => {
       host,
       port: 5173,
       hmr: {
-        // En producción o cuando Vite sirve para Docker/LAN, usar el hostname de APP_URL
+        // En test-producción o cuando Vite sirve para Docker/LAN, usar el hostname de APP_URL
         host: isProduction || isDocker ? appHostname : 'localhost',
       },
       watch: {
