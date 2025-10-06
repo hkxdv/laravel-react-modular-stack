@@ -21,6 +21,7 @@ Homestead.yaml
 /.vercel
 !/.github
 /frontend/dist/
+dist/
 frontend/bun.lock
 node_modules/
 bun.lock
