@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Module01\App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Interfaces\StatsServiceInterface;
-use Modules\Module01\App\Services\Module01StatsService;
+use Illuminate\Support\ServiceProvider;
 use Modules\Module01\App\Http\Controllers\Module01BaseController;
 use Modules\Module01\App\Http\Controllers\Module01PanelController;
+use Modules\Module01\App\Services\Module01StatsService;
 
 /**
  * Provider principal del módulo Module01.
@@ -33,7 +33,7 @@ class Module01ServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
         $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
-        
+
         // Contextual binding para evitar colisiones globales del contrato StatsServiceInterface
         $this->app->when(Module01BaseController::class)
             ->needs(StatsServiceInterface::class)

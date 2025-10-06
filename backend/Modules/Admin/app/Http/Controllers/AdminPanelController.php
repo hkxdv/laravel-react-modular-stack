@@ -14,7 +14,6 @@ use Spatie\Activitylog\Models\Activity;
  */
 class AdminPanelController extends AdminBaseController
 {
-
     /**
      * Alias: muestra el panel del módulo de administración.
      */
@@ -68,7 +67,7 @@ class AdminPanelController extends AdminBaseController
     /**
      * Devuelve el nombre de ícono adecuado para el evento dado.
      *
-     * @param string|null $event Evento auditado (created, updated, deleted, etc.)
+     * @param  string|null  $event  Evento auditado (created, updated, deleted, etc.)
      * @return string Nombre del ícono según la semántica del evento
      */
     protected function getIconForEvent(?string $event): string
@@ -97,6 +96,7 @@ class AdminPanelController extends AdminBaseController
     {
         // Exponer las estadísticas del módulo como EnhancedStat[]
         $stats = $this->statsService->getPanelStats($this->getModuleSlug(), $this->getAuthenticatedUser());
+
         return $stats;
     }
 }

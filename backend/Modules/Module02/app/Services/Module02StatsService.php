@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Module02\App\Services;
 
-use App\Interfaces\StatsServiceInterface;
 use App\DTO\EnhancedStat;
+use App\Interfaces\StatsServiceInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 class Module02StatsService implements StatsServiceInterface
 {
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array
     {

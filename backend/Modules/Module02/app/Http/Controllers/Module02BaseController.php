@@ -7,8 +7,8 @@ namespace Modules\Module02\App\Http\Controllers;
 use App\Http\Controllers\ModuleOrchestrationController;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
-use App\Interfaces\ViewComposerInterface;
 use App\Interfaces\StatsServiceInterface;
+use App\Interfaces\ViewComposerInterface;
 
 /**
  * Controlador base para todos los controladores del Módulo 02.

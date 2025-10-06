@@ -7,20 +7,20 @@ declare(strict_types=1);
  * Configura la aplicación, incluyendo el enrutamiento, middleware, y manejo de excepciones.
  */
 
+use App\Exceptions\ErrorPageResponder;
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Cache\CacheManager;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
-use App\Exceptions\ErrorPageResponder;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use Spatie\Permission\Exceptions\UnauthorizedException;
-use Illuminate\Cache\CacheManager;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Translation\FileLoader as TranslationFileLoader;
 use Illuminate\Translation\Translator as TranslationTranslator;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 
 // Verificar si se debe mostrar errores detallados de Laravel en lugar de los personalizados de Inertia
 $showLaravelErrors = isset($_GET['show_laravel_errors']) || (bool) ($_ENV['SHOW_LARAVEL_ERRORS'] ?? false);
@@ -117,7 +117,7 @@ $application->usePublicPath(__DIR__ . '/../public');
 
 // Bind temprano para 'cache' y 'translator' para evitar fallos en registro de paquetes
 try {
-    if (! $application->bound('cache')) {
+    if (!$application->bound('cache')) {
         $application->singleton('cache', function ($app) {
             return new CacheManager($app);
         });
@@ -132,7 +132,7 @@ try {
 }
 
 try {
-    if (! $application->bound('translator')) {
+    if (!$application->bound('translator')) {
         $application->singleton('translator', function ($app) {
             $langPath = dirname(__DIR__) . '/resources/lang';
             $loader = new TranslationFileLoader(new Filesystem, $langPath);
@@ -140,6 +140,7 @@ try {
             $translator = new TranslationTranslator($loader, $locale);
             $fallback = ($app->has('config') && $app['config']->get('app.fallback_locale')) ? $app['config']->get('app.fallback_locale') : 'en';
             $translator->setFallback($fallback);
+
             return $translator;
         });
     }

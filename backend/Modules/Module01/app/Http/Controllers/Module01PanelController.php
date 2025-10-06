@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Module01\App\Http\Controllers;
 
+use App\DTO\EnhancedStat;
 use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
-use App\DTO\EnhancedStat;
 
 /**
  * Controlador principal del Módulo 01.
@@ -14,13 +14,11 @@ use App\DTO\EnhancedStat;
  */
 class Module01PanelController extends Module01BaseController
 {
-
-
     /**
      * Alias: muestra el panel del módulo 01 delegando en el controlador base.
      * Centraliza la lógica de render y reutiliza las estadísticas del módulo.
      *
-     * @param \Illuminate\Http\Request $request Solicitud HTTP entrante
+     * @param  \Illuminate\Http\Request  $request  Solicitud HTTP entrante
      * @return \Inertia\Response Respuesta Inertia con la vista del panel
      */
     public function showModulePanel(Request $request): InertiaResponse

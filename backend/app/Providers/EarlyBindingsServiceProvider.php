@@ -15,7 +15,7 @@ class EarlyBindingsServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Bind temprano para 'cache' para evitar fallos en procesos de arranque/descubrimiento
-        if (! $this->app->bound('cache')) {
+        if (!$this->app->bound('cache')) {
             $this->app->singleton('cache', function ($app) {
                 return new CacheManager($app);
             });
@@ -28,7 +28,7 @@ class EarlyBindingsServiceProvider extends ServiceProvider
         }
 
         // Bind mínimo de 'translator' para prevenir errores durante el descubrimiento de paquetes
-        if (! $this->app->bound('translator')) {
+        if (!$this->app->bound('translator')) {
             $this->app->singleton('translator', function ($app) {
                 $langPath = base_path('resources/lang');
                 $loader = new TranslationFileLoader(new Filesystem, $langPath);
@@ -36,6 +36,7 @@ class EarlyBindingsServiceProvider extends ServiceProvider
                 $translator = new TranslationTranslator($loader, $locale);
                 $fallback = ($app->has('config') && $app['config']->get('app.fallback_locale')) ? $app['config']->get('app.fallback_locale') : 'en';
                 $translator->setFallback($fallback);
+
                 return $translator;
             });
         }

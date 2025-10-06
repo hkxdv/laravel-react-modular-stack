@@ -51,6 +51,7 @@ class ErrorPageResponder
     public static function http(HttpException $e, Request $request)
     {
         $status = $e->getStatusCode();
+
         return self::inertiaErrorPage($status, self::friendlyMessage($status, $e->getMessage()), $request);
     }
 
@@ -59,6 +60,7 @@ class ErrorPageResponder
         if ($request->expectsJson()) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
+
         return null;
     }
 
@@ -72,6 +74,7 @@ class ErrorPageResponder
         if (!config('app.debug')) {
             return self::inertiaErrorPage(500, self::friendlyMessage(500), $request);
         }
+
         return null;
     }
 }

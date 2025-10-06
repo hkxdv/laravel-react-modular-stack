@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Module02\App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Modules\Module02\App\Providers\RouteServiceProvider;
 use App\Interfaces\StatsServiceInterface;
-use Modules\Module02\App\Services\Module02StatsService;
+use Illuminate\Support\ServiceProvider;
 use Modules\Module02\App\Http\Controllers\Module02BaseController;
 use Modules\Module02\App\Http\Controllers\Module02PanelController;
+use Modules\Module02\App\Services\Module02StatsService;
 
 class Module02ServiceProvider extends ServiceProvider
 {

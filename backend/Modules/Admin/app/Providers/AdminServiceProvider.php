@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Providers;
 
+use App\Interfaces\StatsServiceInterface;
+use App\Services\AdminStatsService;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Services\AdminStaffUserService;
-use App\Interfaces\StatsServiceInterface;
-use App\Services\AdminStatsService;
 
 /**
  * Provider principal del módulo Admin.
