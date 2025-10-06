@@ -43,11 +43,13 @@
   },
   "scripts": {
     "post-autoload-dump": [
-      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-      "@php artisan package:discover --ansi"
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"
     ],
     "post-root-package-install": [
       "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "package-discover": [
+      "@php artisan package:discover --ansi"
     ],
     "dev": [
       "Composer\\Config::disableProcessTimeout",
