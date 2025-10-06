@@ -60,9 +60,19 @@ const main = async () => {
     // 4. Instalar dependencias
     logSection("Instalación de Dependencias");
     progress.update(4, "Instalando dependencias");
-    runCommand("bun install", "Dependencias del workspace");
-    runCommand("bun run i:be", "Dependencias del backend");
-    runCommand("bun run i:fe", "Dependencias del frontend");
+    // Usa los scripts del workspace para instalar todo de forma consistente
+    runCommand("bun run i:all", "Instalación del workspace");
+
+    // Limpiar cachés antes de instalar dependencias
+    try {
+      // Ejecuta comandos de Artisan con .env.local usando el script 'local'
+      runCommand("bun run local config:clear", "Limpiando configuración");
+      runCommand("bun run local cache:clear", "Limpiando caché");
+    } catch (error) {
+      log("No se pudieron limpiar las cachés (normal en primera instalación)", "warning");
+    }
+
+    // Las dependencias específicas de backend/frontend ya están cubiertas por i:all
 
     // 5. Configurar base de datos (Laravel Artisan la creará automáticamente)
     progress.update(5, "Configurando base de datos");
@@ -71,11 +81,16 @@ const main = async () => {
     // 6. Ejecutar migraciones y seeders (no interactivos y forzados)
     logSection("Configuración de Base de Datos");
     progress.update(6, "Ejecutando migraciones");
+
+    // Ejecutar package:discover utilizando .env.local sin crear archivos temporales
     runCommand(
-      "php backend/artisan migrate --force --no-interaction",
-      "Migraciones de base de datos",
+      "dotenv -e .env.local -- composer --working-dir backend run-script package-discover",
+      "Descubrimiento de paquetes",
     );
-    runCommand("php backend/artisan db:seed --force --no-interaction", "Datos iniciales");
+
+    // Ejecutar migraciones y seeders con .env.local mediante el script 'local'
+    runCommand("bun run local migrate --force --no-interaction", "Migraciones de base de datos");
+    runCommand("bun run local db:seed --force --no-interaction", "Datos iniciales");
 
     // 7. Verificar y unificar ruta de base de datos SQLite
     progress.update(7, "Verificando ruta de base de datos");

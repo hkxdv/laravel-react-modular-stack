@@ -35,7 +35,7 @@ export const parseEnvFile = (path: string): Record<string, string> => {
 export const createEnvUsers = async (ask: (query: string) => Promise<string>): Promise<void> => {
   // Solicita y crea .env.users
   const name = (await ask("\x1b[37m→ Nombre (Admin): \x1b[0m")) || "Admin";
-  const email = (await ask("\x1b[37m→ Email (admin@example.com): \x1b[0m")) || "admin@example.com";
+  const email = (await ask("\x1b[37m→ Email (admin@domain.com): \x1b[0m")) || "admin@domain.com";
   const password = (await ask("\x1b[37m→ Contraseña (AdminPass123): \x1b[0m")) || "AdminPass123";
 
   const envUsersContent = `# Configuración de usuarios del sistema
