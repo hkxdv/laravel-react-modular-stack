@@ -15,7 +15,10 @@ Base modular y neutral en Laravel 12 + React/TypeScript con Inertia y Vite. Incl
 - Bun 1.2+
 - PHP 8.4+ y Composer
 - PostgreSQL (opcional)
+- Docker (opcional)
 - Git
+
+> Nota: Puedes usar el instalador compilado `dist/quick-install.exe` sin Bun para la instalación inicial, pero para el desarrollo y los scripts del proyecto necesitarás tener Bun instalado.
 
 ## Arquitectura (resumen)
 
@@ -30,10 +33,8 @@ Base modular y neutral en Laravel 12 + React/TypeScript con Inertia y Vite. Incl
 
 ---
 
-> [!NOTE]
-> Entornos: **Local (sin Docker)**, **Local (con PostgreSQL)**, **Dockerizado con PostgreSQL y Nginx**.
-
-## Entornos de Desarrollo
+<details>
+<summary>Entornos de Desarrollo</summary>
 
 ### Desarrollo Local (Sin Docker + SQLite)
 
@@ -131,7 +132,113 @@ Este modo proporciona un entorno consistente y aislado, más cercano a producci�
 > bun dk:artisan migrate:fresh --seed
 > ```
 
+</details>
+
 ---
+
+<details>
+<summary>Instalación y Configuración</summary>
+
+### Instalación Rápida (Recomendada)
+
+La forma más fácil de comenzar con el proyecto es usando el script de instalación automática:
+
+> ```bash
+> # 1. Clonar el repositorio
+> git clone https://github.com/hkxdv/laravel-react-modular-stack.git my-project
+> cd my-project
+>
+> # 2. Ejecutar instalación rápida
+> bun run quick-install
+> ```
+
+Si no deseas instalar Bun solo para la instalación inicial, puedes usar el binario distribuible:
+
+> ```powershell
+> # 1. Clonar el repositorio
+> git clone https://github.com/hkxdv/laravel-react-modular-stack.git my-project
+> cd my-project
+>
+> # 2. Descargar y ejecutar el instalador compilado (Windows)
+> Invoke-WebRequest -Uri "https://github.com/hkxdv/laravel-react-modular-stack/releases/download/v0.1.0/quick-install.exe" -OutFile quick-install.exe && .\quick-install.exe
+> ```
+
+Después de la instalación inicial, Bun seguirá siendo necesario para comandos de desarrollo (`bun dev`, seeds, Ziggy, etc.).
+
+Este script realizará automáticamente:
+
+- ✅ Verificación de la estructura del proyecto
+- ✅ Creación de archivos de configuración (`.env.local`, `.env.users`)
+- ✅ Instalación de dependencias del workspace, backend y frontend
+- ✅ Configuración de base de datos SQLite
+- ✅ Ejecución de migraciones y seeders
+- ✅ Creación de usuarios del sistema
+- ✅ Generación de rutas Ziggy
+- ✅ Limpieza de cachés
+
+**Al finalizar, podrás iniciar el proyecto con:**
+
+```bash
+bun dev
+```
+
+### Agregar Nuevos Usuarios
+
+> Para agregar más usuarios al sistema después de la instalación inicial:
+>
+> 1. **Edita el archivo `.env.users`** siguiendo la convención de variables:
+>
+> ```bash
+> USER_STAFF_{N}_NAME="Nombre"
+> USER_STAFF_{N}_EMAIL="correo@dominio.com"
+> USER_STAFF_{N}_PASSWORD="contraseña_segura"
+> USER_STAFF_{N}_ROLE="ROL_OPCIONAL"  # ej. ADMIN, DEV, MOD-01
+> ```
+>
+> 2. **Ejecuta el seeder de usuarios:**
+>
+> ```bash
+> # Para Local/SQLite
+> bun run seed:users
+>
+> # Para PostgreSQL
+> bun run pg:seed:users
+> ```
+
+### Estructura de Archivos de Configuración
+
+El proyecto utiliza diferentes archivos de entorno según el modo de desarrollo:
+
+- **`.env.local`** - Desarrollo local con SQLite (creado automáticamente)
+- **`.env.users`** - Credenciales de usuarios (creado durante la instalación)
+- **`.env.pg.local.example`** - Plantilla para PostgreSQL local
+- **`.env.docker.example`** - Plantilla para entorno Docker
+
+### Solución de Problemas
+
+> **Regenerar archivos de configuración:**
+>
+> ```bash
+> # Si necesitas recrear los archivos de entorno
+> rm .env.local .env.users
+> bun run quick-install
+> ```
+>
+> **Limpiar instalación:**
+>
+> ```bash
+> # Limpiar cachés y dependencias
+> bun run clear:all
+> rm -rf node_modules backend/vendor frontend/node_modules
+> bun run quick-install
+> ```
+
+</details>
+
+---
+
+<details>
+<summary>Configuración técnica (resumen)</summary>
 
 ## Configuración técnica (resumen)
 
@@ -179,6 +286,10 @@ Este modo proporciona un entorno consistente y aislado, más cercano a producci�
   - Genera Ziggy después de añadir/modificar rutas: bun run ziggy (o bun run pg:ziggy)
   - Limpieza de cachés/autoload: bun run clear:all
   - Chequeos rápidos: bun run lint, bun run types, composer pint:test
+
+</details>
+
+---
 
 ## Créditos y referencia
 
