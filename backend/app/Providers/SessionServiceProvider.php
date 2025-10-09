@@ -26,10 +26,13 @@ class SessionServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->resolving('session', function ($sessionManager) {
-            $sessionManager->extend('database', function ($app, $config) {
-                $table = $config['table'] ?? $app['config']['session.table'];
-                $lifetime = $config['lifetime'] ?? $app['config']['session.lifetime'];
-                $connection = $config['connection'] ?? $app['config']['session.connection'];
+            $sessionManager->extend('database', function ($app) {
+                /** @var array $config */
+                $config = (array) $app['config']->get('session', []);
+
+                $table = $config['table'] ?? $app['config']->get('session.table');
+                $lifetime = $config['lifetime'] ?? $app['config']->get('session.lifetime');
+                $connection = $config['connection'] ?? $app['config']->get('session.connection');
 
                 return new CustomDatabaseSessionHandler(
                     $app['db']->connection($connection),

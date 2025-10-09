@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
@@ -40,5 +43,17 @@ class EarlyBindingsServiceProvider extends ServiceProvider
                 return $translator;
             });
         }
+    }
+
+    public function boot(): void
+    {
+        // Eloquent estricto y fail-fast
+        Model::shouldBeStrict();
+        Model::preventLazyLoading();
+        Model::preventSilentlyDiscardingAttributes();
+        Model::preventAccessingMissingAttributes();
+
+        // Fechas inmutables globales
+        Date::use(CarbonImmutable::class);
     }
 }

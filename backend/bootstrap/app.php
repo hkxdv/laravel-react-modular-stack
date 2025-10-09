@@ -21,6 +21,7 @@ use Illuminate\Translation\FileLoader as TranslationFileLoader;
 use Illuminate\Translation\Translator as TranslationTranslator;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Spatie\Permission\Exceptions\UnauthorizedException;
+use Dotenv\Dotenv;
 
 // Verificar si se debe mostrar errores detallados de Laravel en lugar de los personalizados de Inertia
 $showLaravelErrors = isset($_GET['show_laravel_errors']) || (bool) ($_ENV['SHOW_LARAVEL_ERRORS'] ?? false);
@@ -171,6 +172,17 @@ if ($appEnv !== 'testing') {
     if (file_exists($basePath . DIRECTORY_SEPARATOR . $envFile)) {
         $application->loadEnvironmentFrom($envFile);
     }
+}
+
+// Cargar variables adicionales desde .env.users en la raíz del monorepo
+try {
+    $usersEnvBase = dirname($basePath);
+    $usersEnvFile = '.env.users';
+    if (file_exists($usersEnvBase . DIRECTORY_SEPARATOR . $usersEnvFile)) {
+        Dotenv::createMutable($usersEnvBase, $usersEnvFile)->safeLoad();
+    }
+} catch (\Throwable $e) {
+    // Ignorar cualquier error al cargar .env.users
 }
 
 return $application;

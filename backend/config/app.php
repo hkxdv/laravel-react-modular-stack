@@ -125,4 +125,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | HTTPS Force (App)
+    |--------------------------------------------------------------------------
+    |
+    | Centraliza el uso de APP_FORCE_HTTPS para que el código de aplicación
+    | no llame a env() fuera del directorio config.
+    |
+    */
+
+    'force_https' => env('APP_FORCE_HTTPS', false),
+
 ];
