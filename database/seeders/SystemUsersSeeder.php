@@ -7,7 +7,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
-use Dotenv\Dotenv;
 
 /**
  * Seeder para crear múltiples usuarios base del sistema (guard: staff)
@@ -30,22 +29,20 @@ class SystemUsersSeeder extends Seeder
     {
         $this->command->info('Iniciando seeder de Usuarios del Sistema (.env.users)...');
 
-        // Intentar cargar .env.users desde rutas comunes sin fallar si no existe
-        $this->loadUsersEnvIfExists();
-
         $created = 0;
         $updated = 0;
         $assignedRoles = 0;
 
-        // Por defecto soportamos 10, pero si se define USER_STAFF_MAX se usa ese tope
-        $max = (int) (env('USER_STAFF_MAX', 10));
+        // Leer configuración centralizada para seeders
+        $max = (int) (config('seeders.users.staff.max', 10));
         $max = $max > 0 ? min($max, 50) : 10; // límite de seguridad a 50
+        $staffList = (array) config('seeders.users.staff.list', []);
 
-        for ($i = 1; $i <= $max; $i++) {
-            $email = env("USER_STAFF_{$i}_EMAIL");
-            $password = env("USER_STAFF_{$i}_PASSWORD");
-            $name = env("USER_STAFF_{$i}_NAME", "Usuario {$i}");
-            $roleName = env("USER_STAFF_{$i}_ROLE");
+        foreach ($staffList as $index => $cfg) {
+            $email = $cfg['email'] ?? null;
+            $password = $cfg['password'] ?? null;
+            $name = $cfg['name'] ?? ('Usuario ' . ($index + 1));
+            $roleName = $cfg['role'] ?? null;
 
             if (!$email || !$password) {
                 continue; // Se salta si faltan datos esenciales
@@ -69,8 +66,8 @@ class SystemUsersSeeder extends Seeder
                     $needsUpdate = true;
                 }
 
-                // Si se cambia la contraseña en el .env.users, permite actualizarla explícitamente
-                $forcePassword = env("USER_STAFF_{$i}_FORCE_PASSWORD_UPDATE", false);
+                // Si se solicita actualizar la contraseña desde configuración
+                $forcePassword = (bool) ($cfg['force_password_update'] ?? false);
                 if ($forcePassword) {
                     $updateData['password'] = Hash::make($password);
                     $needsUpdate = true;
@@ -105,28 +102,5 @@ class SystemUsersSeeder extends Seeder
 
         $this->command->info("Usuarios creados: {$created}, actualizados: {$updated}, roles asignados: {$assignedRoles}.");
         $this->command->info('Seeder de usuarios del sistema completado.');
-    }
-
-    /**
-     * Carga el archivo .env.users desde la raíz del repositorio si existe.
-     */
-    protected function loadUsersEnvIfExists(): void
-    {
-        // Solo leer .env.users en la raíz del repositorio (un nivel arriba de base_path())
-        $rootPath = dirname(base_path());
-        $file = $rootPath . DIRECTORY_SEPARATOR . '.env.users';
-
-        if (is_file($file) && is_readable($file)) {
-            try {
-                // Usamos createMutable para permitir añadir variables extra al repositorio actual
-                Dotenv::createMutable($rootPath, '.env.users')->safeLoad();
-                $this->command->info("Cargado archivo de configuración de usuarios: {$file}");
-                return;
-            } catch (\Throwable $e) {
-                $this->command->warn('No se pudo cargar .env.users: ' . $e->getMessage());
-            }
-        }
-
-        $this->command->warn('No se encontró .env.users en la raíz del repositorio. Se usarán únicamente variables del entorno actual.');
     }
 }
