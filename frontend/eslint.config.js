@@ -13,13 +13,16 @@ import typescript from 'typescript-eslint';
 export default [
   js.configs.recommended,
   ...typescript.configs.recommendedTypeChecked,
+  ...typescript.configs.strictTypeChecked,
   ...typescript.configs.stylisticTypeChecked,
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
+      parser: typescript.parser,
       parserOptions: {
         project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
+        projectService: true,
       },
       globals: {
         ...globals.browser,
