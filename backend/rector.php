@@ -24,16 +24,16 @@ return RectorConfig::configure()
     ])
     ->withComposerBased(laravel: true)
     ->withCache(
-        cacheDirectory: __DIR__ . '/bootstrap/cache/rector',
+        cacheDirectory: __DIR__.'/bootstrap/cache/rector',
         cacheClass: FileCacheStorage::class,
     )
     ->withPaths([
-        __DIR__ . '/app',
-        __DIR__ . '/bootstrap/app.php',
-        __DIR__ . '/config',
-        __DIR__ . '/../database',
-        __DIR__ . '/public',
-        __DIR__ . '/routes',
+        __DIR__.'/app',
+        __DIR__.'/bootstrap/app.php',
+        __DIR__.'/config',
+        __DIR__.'/../database',
+        __DIR__.'/public',
+        __DIR__.'/routes',
     ])
     ->withSkip([
         AddOverrideAttributeToOverriddenMethodsRector::class,

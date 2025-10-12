@@ -9,27 +9,27 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
-class LoginAttemptService
+final class LoginAttemptService
 {
     /**
      * La cantidad máxima de intentos fallidos permitidos.
      */
-    protected int $maxAttempts = 5;
+    private int $maxAttempts = 5;
 
     /**
      * El período de bloqueo inicial en minutos.
      */
-    protected int $initialLockoutPeriod = 1;
+    private int $initialLockoutPeriod = 1;
 
     /**
      * El factor de multiplicación del período de bloqueo.
      */
-    protected int $lockoutMultiplier = 2;
+    private int $lockoutMultiplier = 2;
 
     /**
      * El período máximo de bloqueo en minutos.
      */
-    protected int $maxLockoutPeriod = 60;
+    private int $maxLockoutPeriod = 60;
 
     /**
      * Verifica si el usuario o IP ha excedido el límite de intentos fallidos.
@@ -47,7 +47,10 @@ class LoginAttemptService
     public function incrementAttempts(string $identifier, string $ip): void
     {
         $key = $this->getAttemptKey($identifier, $ip);
-        RateLimiter::hit($key, $this->calculateDecayMinutes($identifier, $ip) * 60);
+        RateLimiter::hit(
+            $key,
+            $this->calculateDecayMinutes($identifier, $ip) * 60
+        );
 
         // Registrar el intento fallido para el análisis de seguridad
         Log::warning('Intento de inicio de sesión fallido', [
@@ -94,14 +97,23 @@ class LoginAttemptService
     }
 
     /**
+     * Verifica si una IP está bloqueada por sospecha de ataque.
+     */
+    public function isIpBlocked(string $ip): bool
+    {
+        return Cache::has('ip_block:'.$ip);
+    }
+
+    /**
      * Calcula el tiempo de decaimiento en minutos basado en el número de intentos previos.
      */
-    protected function calculateDecayMinutes(string $identifier, string $ip): int
+    private function calculateDecayMinutes(string $identifier, string $ip): int
     {
         $attempts = $this->getAttempts($identifier, $ip);
 
         // Aplica un incremento exponencial al tiempo de bloqueo
-        $lockoutPeriod = $this->initialLockoutPeriod * pow($this->lockoutMultiplier, $attempts);
+        $lockoutPeriod = $this
+            ->initialLockoutPeriod * pow($this->lockoutMultiplier, $attempts);
 
         // Limita al máximo período de bloqueo
         return min($lockoutPeriod, $this->maxLockoutPeriod);
@@ -110,18 +122,20 @@ class LoginAttemptService
     /**
      * Obtiene la clave para el limitador de tasa.
      */
-    protected function getAttemptKey(string $identifier, string $ip): string
+    private function getAttemptKey(string $identifier, string $ip): string
     {
-        return Str::transliterate('login:' . strtolower($identifier) . '|' . $ip);
+        return Str::transliterate(
+            'login:'.mb_strtolower($identifier).'|'.$ip
+        );
     }
 
     /**
      * Verifica si hay un posible ataque de fuerza bruta desde una IP específica.
      */
-    protected function checkForPotentialAttack(string $ip): void
+    private function checkForPotentialAttack(string $ip): void
     {
         // Contar intentos fallidos totales desde esta IP en diferentes cuentas
-        $ipAttemptsKey = 'login_attempts_ip:' . $ip;
+        $ipAttemptsKey = 'login_attempts_ip:'.$ip;
         $ipAttempts = Cache::get($ipAttemptsKey, 0) + 1;
 
         // Almacenar por 1 hora
@@ -129,10 +143,13 @@ class LoginAttemptService
 
         // Si hay muchos intentos desde la misma IP pero en diferentes cuentas, es sospechoso
         if ($ipAttempts >= 10) {
-            Log::alert('Posible ataque de fuerza bruta detectado', [
-                'ip' => $ip,
-                'total_attempts' => $ipAttempts,
-            ]);
+            Log::alert(
+                'Posible ataque de fuerza bruta detectado',
+                [
+                    'ip' => $ip,
+                    'total_attempts' => $ipAttempts,
+                ]
+            );
 
             // Aquí se podrían implementar acciones adicionales como:
             // 1. Bloquear la IP por un período extendido
@@ -140,16 +157,8 @@ class LoginAttemptService
             // 3. Agregar la IP a una lista negra temporal
 
             // Ejemplo de bloqueo extendido:
-            $blockKey = 'ip_block:' . $ip;
+            $blockKey = 'ip_block:'.$ip;
             Cache::put($blockKey, true, 60 * 60 * 24); // Bloqueo por 24 horas
         }
-    }
-
-    /**
-     * Verifica si una IP está bloqueada por sospecha de ataque.
-     */
-    public function isIpBlocked(string $ip): bool
-    {
-        return Cache::has('ip_block:' . $ip);
     }
 }

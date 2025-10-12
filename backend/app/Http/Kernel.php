@@ -6,7 +6,7 @@ namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
-class Kernel extends HttpKernel
+final class Kernel extends HttpKernel
 {
     /**
      * The application's global HTTP middleware stack.
@@ -17,14 +17,14 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
-        \App\Http\Middleware\TrustProxies::class,
-        \App\Http\Middleware\ForceHttps::class,
+        Middleware\TrustProxies::class,
+        Middleware\ForceHttps::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-        \App\Http\Middleware\TrimStrings::class,
+        Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\SecurityHeaders::class, // Agregado para mejorar seguridad
+        Middleware\SecurityHeaders::class, // Agregado para mejorar seguridad
     ];
 
     /**
@@ -34,18 +34,18 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
+            Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
+            Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\HandleInertiaRequests::class,
+            Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             // Prevenir almacenamiento en caché de páginas con información sensible
             \Illuminate\Http\Middleware\SetCacheHeaders::class,
             // Controlar logging para reducir verbosidad
-            \App\Http\Middleware\LoggingMiddleware::class,
+            Middleware\LoggingMiddleware::class,
         ],
 
         'api' => [
@@ -75,20 +75,20 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth' => Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest' => Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'permission' => \App\Http\Middleware\CheckPermission::class,
-        'protect.assets' => \App\Http\Middleware\ProtectStaticAssets::class,
-        'security-headers' => \App\Http\Middleware\SecurityHeaders::class,
-        'session.integrity' => \App\Http\Middleware\ValidateSessionIntegrity::class,
+        'permission' => Middleware\CheckPermission::class,
+        'protect.assets' => Middleware\ProtectStaticAssets::class,
+        'security-headers' => Middleware\SecurityHeaders::class,
+        'session.integrity' => Middleware\ValidateSessionIntegrity::class,
         // 'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class, // Comentado - middleware no implementado
 
         /*
@@ -108,12 +108,12 @@ class Kernel extends HttpKernel
      */
     protected $middlewarePriority = [
         \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
-        \App\Http\Middleware\ForceHttps::class,
+        Middleware\ForceHttps::class,
         \Illuminate\Cookie\Middleware\EncryptCookies::class,
         \Illuminate\Session\Middleware\StartSession::class,
         \Illuminate\View\Middleware\ShareErrorsFromSession::class,
         \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
-        \App\Http\Middleware\ValidateSessionIntegrity::class,
+        Middleware\ValidateSessionIntegrity::class,
         \Illuminate\Routing\Middleware\ThrottleRequests::class,
         // \App\Http\Middleware\RateLimitMiddleware::class, // Comentado - middleware no implementado
         \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,

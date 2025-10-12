@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  * si el usuario lo solicita. Esto es útil si el correo original no llegó o si el
  * enlace de verificación ha expirado.
  */
-class EmailVerificationNotificationController extends Controller
+final class EmailVerificationNotificationController extends Controller
 {
     /**
      * Envía una nueva notificación de verificación de correo electrónico al usuario.

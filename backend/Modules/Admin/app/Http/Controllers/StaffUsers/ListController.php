@@ -11,7 +11,7 @@ use Modules\Admin\App\Http\Controllers\AdminBaseController;
 /**
  * Controlador para la gestión de listado de usuarios del personal administrativo.
  */
-class ListController extends AdminBaseController
+final class ListController extends AdminBaseController
 {
     /**
      * Muestra la lista de usuarios.

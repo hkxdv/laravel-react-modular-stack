@@ -10,7 +10,7 @@ use Modules\Module02\App\Http\Controllers\Module02BaseController;
 use Modules\Module02\App\Http\Controllers\Module02PanelController;
 use Modules\Module02\App\Services\Module02StatsService;
 
-class Module02ServiceProvider extends ServiceProvider
+final class Module02ServiceProvider extends ServiceProvider
 {
     /**
      * @var string
@@ -52,7 +52,7 @@ class Module02ServiceProvider extends ServiceProvider
     protected function registerConfig(): void
     {
         $this->publishes([
-            module_path($this->moduleName, 'config/config.php') => config_path($this->moduleNameLower . '.php'),
+            module_path($this->moduleName, 'config/config.php') => config_path($this->moduleNameLower.'.php'),
         ], 'config');
         $this->mergeConfigFrom(
             module_path($this->moduleName, 'config/config.php'),

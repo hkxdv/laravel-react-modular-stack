@@ -7,7 +7,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
-class RuntimeConfigServiceProvider extends ServiceProvider
+final class RuntimeConfigServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
@@ -22,7 +22,10 @@ class RuntimeConfigServiceProvider extends ServiceProvider
         }
 
         // Forzar HTTPS en producción si se habilita explícitamente desde config
-        if (app()->isProduction() && filter_var((bool) config('app.force_https', false), FILTER_VALIDATE_BOOL)) {
+        if (
+            app()->isProduction()
+            && filter_var((bool) config('app.force_https', false), FILTER_VALIDATE_BOOL)
+        ) {
             URL::forceScheme('https');
         }
     }

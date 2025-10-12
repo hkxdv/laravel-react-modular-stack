@@ -26,7 +26,7 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @use HasFactory<\Database\Factories\StaffUsersFactory>
  */
-class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVerifyEmail
+final class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\StaffUsersFactory> */
     use CrossGuardPermissions, HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
@@ -63,6 +63,16 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
     ];
 
     /**
+     * Atributos agregados al array/JSON automáticamente.
+     * Esto permite exponer 'avatar' como un atributo computado.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'avatar',
+    ];
+
+    /**
      * Verifica si el usuario está activo.
      */
     public function isActive(): bool
@@ -91,33 +101,9 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
             ->logOnly(['name', 'email'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn (string $eventName) => "El usuario ha sido {$this->getEventDescription($eventName)}");
-    }
-
-    /**
-     * Devuelve una descripción legible del evento.
-     */
-    protected function getEventDescription(string $eventName): string
-    {
-        return match ($eventName) {
-            'created' => 'creado',
-            'updated' => 'actualizado',
-            'deleted' => 'eliminado',
-            default => $eventName,
-        };
-    }
-
-    /**
-     * Obtiene los atributos que deberían ser casteados.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+            ->setDescriptionForEvent(
+                fn (string $eventName) => "El usuario ha sido {$this->getEventDescription($eventName)}"
+            );
     }
 
     /**
@@ -146,8 +132,6 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
         return $this->hasMany(StaffUsersLoginInfo::class, 'staff_user_id');
     }
 
-    /* Relación 'contactProfile' eliminada: se ha retirado el modelo ContactStaffUser y su uso. */
-
     /**
      * Obtiene el nombre de visualización del usuario.
      */
@@ -167,22 +151,27 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
     /**
      * Verifica si un intento de inicio de sesión es sospechoso (desde una IP/dispositivo no conocido).
      */
-    public function isSuspiciousLogin(?string $ipAddress, ?string $userAgent): bool
-    {
-        if (!$ipAddress || !$userAgent) {
+    public function isSuspiciousLogin(
+        ?string $ipAddress,
+        ?string $userAgent
+    ): bool {
+        if (! $ipAddress || ! $userAgent) {
             return true; // No hay datos suficientes, se considera sospechoso.
         }
 
         // Busca si ya tenemos registros de este dispositivo/IP o si es un dispositivo de confianza.
         $isKnown = $this->loginInfos()
-            ->where(function ($query) use ($ipAddress, $userAgent) {
-                $query->where('ip_address', $ipAddress)
-                    ->where('user_agent', $userAgent)
-                    ->orWhere('is_trusted', true);
-            })
+            ->where(
+                function ($query) use ($ipAddress, $userAgent) {
+                    $query
+                        ->where('ip_address', $ipAddress)
+                        ->where('user_agent', $userAgent)
+                        ->orWhere('is_trusted', true);
+                }
+            )
             ->exists();
 
-        return !$isKnown;
+        return ! $isKnown;
     }
 
     /**
@@ -190,8 +179,11 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
      *
      * @param  array<string, mixed>  $deviceInfo
      */
-    public function recordLogin(?string $ipAddress, ?string $userAgent, array $deviceInfo = []): StaffUsersLoginInfo
-    {
+    public function recordLogin(
+        ?string $ipAddress,
+        ?string $userAgent,
+        array $deviceInfo = []
+    ): StaffUsersLoginInfo {
         return $this->loginInfos()->create([
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
@@ -223,15 +215,18 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
             'admin-',
         ];
 
-        return array_filter($allPermissions, function ($permission) use ($excludePatterns) {
-            foreach ($excludePatterns as $pattern) {
-                if (str_starts_with($permission, $pattern)) {
-                    return false; // Excluir si el permiso comienza con un patrón no deseado.
+        return array_filter(
+            $allPermissions,
+            function ($permission) use ($excludePatterns) {
+                foreach ($excludePatterns as $pattern) {
+                    if (str_starts_with($permission, $pattern)) {
+                        return false; // Excluir si el permiso comienza con un patrón no deseado.
+                    }
                 }
-            }
 
-            return true;
-        });
+                return true;
+            }
+        );
     }
 
     /**
@@ -245,21 +240,37 @@ class StaffUsers extends Authenticatable implements AuthenticatableUser, MustVer
     }
 
     /**
-     * Atributos agregados al array/JSON automáticamente.
-     * Esto permite exponer 'avatar' como un atributo computado.
-     *
-     * @var array<int, string>
-     */
-    protected $appends = [
-        'avatar',
-    ];
-
-    /**
      * Accessor para obtener la URL del avatar del usuario.
      * (Se removió la dependencia a ContactStaffUser/contactProfile.)
      */
     public function getAvatarAttribute(): ?string
     {
         return null;
+    }
+
+    /**
+     * Devuelve una descripción legible del evento.
+     */
+    protected function getEventDescription(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'creado',
+            'updated' => 'actualizado',
+            'deleted' => 'eliminado',
+            default => $eventName,
+        };
+    }
+
+    /**
+     * Obtiene los atributos que deberían ser casteados.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 }

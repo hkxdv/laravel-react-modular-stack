@@ -12,12 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Middleware para controlar el logging y reducir verbosidad en producción.
  */
-class LoggingMiddleware
+final class LoggingMiddleware
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {

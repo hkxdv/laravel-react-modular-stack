@@ -23,7 +23,7 @@ use Inertia\Response;
  * Se encarga de mostrar el formulario de login, procesar el inicio de sesión
  * y gestionar el cierre de sesión para los usuarios del panel de administración.
  */
-class LoginController extends Controller
+final class LoginController extends Controller
 {
     /**
      * Crea una nueva instancia del controlador.
@@ -31,7 +31,7 @@ class LoginController extends Controller
      * Inyecta el servicio de auditoría de seguridad para ser utilizado
      * en los métodos de almacenamiento y destrucción de la sesión.
      *
-     * @param  \App\Services\SecurityAuditService  $securityService  El servicio para manejar la auditoría de seguridad.
+     * @param  SecurityAuditService  $securityService  El servicio para manejar la auditoría de seguridad.
      */
     public function __construct(
         protected SecurityAuditService $securityService
@@ -68,7 +68,7 @@ class LoginController extends Controller
     /**
      * Maneja una solicitud de autenticación entrante.
      *
-     * @param  \App\Http\Requests\Auth\LoginRequest  $request  La solicitud de login validada.
+     * @param  LoginRequest  $request  La solicitud de login validada.
      */
     public function store(LoginRequest $request): IlluminateResponse
     {

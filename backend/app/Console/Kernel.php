@@ -10,7 +10,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 /**
  * Kernel de la consola de la aplicación.
  */
-class Kernel extends ConsoleKernel
+final class Kernel extends ConsoleKernel
 {
     /**
      * Los comandos de Artisan proporcionados por la aplicación.
@@ -35,7 +35,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__ . '/Commands');
+        $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
     }

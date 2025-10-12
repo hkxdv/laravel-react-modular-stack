@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
-class HandleInertiaRequests extends Middleware
+final class HandleInertiaRequests extends Middleware
 {
     /**
      * La plantilla raíz que se carga en la primera visita a la página.
@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware
     {
         $sharedData = parent::share($request);
 
-        /** @var \App\Models\StaffUsers|null $staffUser */
+        /** @var StaffUsers|null $staffUser */
         $staffUser = Auth::guard('staff')->user();
 
         // Si hay un usuario de staff, construir y añadir sus datos de navegación.
@@ -103,7 +103,7 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
                 'credentials' => fn () => $request->session()->get('credentials'),
             ],
-            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ]);
     }
 }

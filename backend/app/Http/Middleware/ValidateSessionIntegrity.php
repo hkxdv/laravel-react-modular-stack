@@ -16,12 +16,12 @@ use Symfony\Component\HttpFoundation\Response;
  * Previene ataques de session hijacking verificando la consistencia
  * de la información de la sesión con cada solicitud.
  */
-class ValidateSessionIntegrity
+final class ValidateSessionIntegrity
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, ?string $guard = null): Response
     {
@@ -33,26 +33,26 @@ class ValidateSessionIntegrity
         }
 
         $user = $authGuard->user();
-        $sessionKey = 'session_integrity_' . $guard;
+        $sessionKey = 'session_integrity_'.$guard;
 
         // Obtener información actual de la sesión
         $currentFingerprint = $this->generateSessionFingerprint($request);
         $storedFingerprint = $request->session()->get($sessionKey);
 
         // Si es la primera vez, almacenar el fingerprint
-        if (!$storedFingerprint) {
+        if (! $storedFingerprint) {
             $request->session()->put($sessionKey, $currentFingerprint);
 
             return $next($request);
         }
 
         // Verificar si el fingerprint ha cambiado sospechosamente
-        if (!$this->validateFingerprint($currentFingerprint, $storedFingerprint)) {
+        if (! $this->validateFingerprint($currentFingerprint, $storedFingerprint)) {
             return $this->handleSuspiciousActivity($request, $user, $guard);
         }
 
         // Actualizar timestamp de última actividad
-        $request->session()->put($sessionKey . '_last_activity', now()->timestamp);
+        $request->session()->put($sessionKey.'_last_activity', now()->timestamp);
 
         return $next($request);
     }
@@ -75,13 +75,13 @@ class ValidateSessionIntegrity
      */
     private function getIpNetwork(?string $ip): ?string
     {
-        if (!$ip) {
+        if (! $ip) {
             return null;
         }
 
         $parts = explode('.', $ip);
         if (count($parts) >= 3) {
-            return implode('.', array_slice($parts, 0, 3)) . '.0';
+            return implode('.', array_slice($parts, 0, 3)).'.0';
         }
 
         return $ip;

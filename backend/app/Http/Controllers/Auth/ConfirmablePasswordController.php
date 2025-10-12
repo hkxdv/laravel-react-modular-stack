@@ -19,7 +19,7 @@ use Inertia\Response;
  * que vuelva a introducir su contraseña para realizar acciones sensibles. Una vez
  * confirmada, se almacena una marca de tiempo en la sesión.
  */
-class ConfirmablePasswordController extends Controller
+final class ConfirmablePasswordController extends Controller
 {
     /**
      * Muestra la vista de confirmación de contraseña.
@@ -39,13 +39,13 @@ class ConfirmablePasswordController extends Controller
      * para indicar que el usuario ha confirmado su identidad recientemente.
      *
      *
-     * @throws \Illuminate\Validation\ValidationException Si la contraseña es incorrecta.
+     * @throws ValidationException Si la contraseña es incorrecta.
      */
     public function store(Request $request): RedirectResponse
     {
         // Se valida que la contraseña proporcionada coincida con la del usuario autenticado.
         // Se utiliza el guard 'web' explícitamente para asegurar el contexto correcto.
-        if (!Auth::guard('staff')->validate([
+        if (! Auth::guard('staff')->validate([
             'email' => $request->user()->email,
             'password' => $request->password,
         ])) {

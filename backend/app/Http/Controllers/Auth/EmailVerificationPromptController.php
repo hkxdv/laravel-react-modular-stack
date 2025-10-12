@@ -17,7 +17,7 @@ use Inertia\Response;
  * protegida por el middleware 'verified' sin tener su correo verificado. Su única
  * responsabilidad es mostrar la página que le pide al usuario que verifique su correo.
  */
-class EmailVerificationPromptController extends Controller
+final class EmailVerificationPromptController extends Controller
 {
     /**
      * Muestra la página de aviso de verificación de correo o redirige si el usuario ya está verificado.

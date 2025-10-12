@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 /**
  * Seeder principal para el módulo Module01.
  */
-class Module01DatabaseSeeder extends Seeder
+final class Module01DatabaseSeeder extends Seeder
 {
     /**
      * Ejecuta los seeders de la base de datos.

@@ -14,7 +14,7 @@ use Modules\Module01\App\Services\Module01StatsService;
  * Provider principal del módulo Module01.
  * Registra y arranca los servicios necesarios del módulo.
  */
-class Module01ServiceProvider extends ServiceProvider
+final class Module01ServiceProvider extends ServiceProvider
 {
     /**
      * @var string
@@ -54,7 +54,7 @@ class Module01ServiceProvider extends ServiceProvider
     protected function registerConfig(): void
     {
         $this->publishes([
-            module_path($this->moduleName, 'config/config.php') => config_path($this->moduleNameLower . '.php'),
+            module_path($this->moduleName, 'config/config.php') => config_path($this->moduleNameLower.'.php'),
         ], 'config');
         $this->mergeConfigFrom(
             module_path($this->moduleName, 'config/config.php'),

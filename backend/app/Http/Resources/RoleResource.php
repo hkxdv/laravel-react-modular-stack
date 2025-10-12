@@ -11,7 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Transforma el modelo Role en un array para respuestas API.
  * Este recurso expone de forma segura los datos de un rol del sistema.
  */
-class RoleResource extends JsonResource
+final class RoleResource extends JsonResource
 {
     /**
      * Transforma el recurso en un array.

@@ -22,7 +22,7 @@ use Inertia\Response;
  * Este controlador maneja la fase final del proceso de restablecimiento de contraseña,
  * mostrando el formulario y procesando la nueva contraseña del usuario.
  */
-class NewPasswordController extends Controller
+final class NewPasswordController extends Controller
 {
     /**
      * Muestra la vista para restablecer la contraseña.
@@ -45,7 +45,7 @@ class NewPasswordController extends Controller
      * el token y actualizar la contraseña del usuario de forma segura.
      *
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {

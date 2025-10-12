@@ -15,12 +15,12 @@ use Symfony\Component\HttpFoundation\Response;
  * Verifica que el usuario no haya sido deshabilitado o suspendido
  * después de la autenticación inicial.
  */
-class EnsureUserIsActive
+final class EnsureUserIsActive
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, ?string $guard = null): Response
     {
@@ -35,10 +35,10 @@ class EnsureUserIsActive
         // Verificar si el usuario tiene un campo 'is_active' o 'status'
         if (method_exists($user, 'isActive')) {
             /** @disregard Undefined method 'isActive'.intelephense(P1013) */
-            if (!$user->isActive()) {
+            if (! $user->isActive()) {
                 return $this->handleInactiveUser($request, $guard);
             }
-        } elseif (isset($user->is_active) && !$user->is_active) {
+        } elseif (isset($user->is_active) && ! $user->is_active) {
             return $this->handleInactiveUser($request, $guard);
         } elseif (isset($user->status) && $user->status !== 'active') {
             return $this->handleInactiveUser($request, $guard);

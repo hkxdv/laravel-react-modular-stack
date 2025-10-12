@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * Maneja la lógica de validación y autenticación para el inicio de sesión.
  * Este FormRequest ahora está enfocado exclusivamente en el inicio de sesión del personal (staff).
  */
-class LoginRequest extends FormRequest
+final class LoginRequest extends FormRequest
 {
     /**
      * El tipo de inicio de sesión.
@@ -83,7 +83,7 @@ class LoginRequest extends FormRequest
     /**
      * Intenta autenticar las credenciales de la solicitud.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function authenticate(): void
     {
@@ -98,16 +98,16 @@ class LoginRequest extends FormRequest
         // Verificar si el usuario existe antes de intentar autenticar
         $user = $this->findUser($credentials);
 
-        if (!$user) {
+        if (! $user) {
             $this->handleFailedLogin($loginAttemptService, $identifier, $ip, 'user_not_found');
         }
 
         // Verificar si la cuenta está activa
-        if ($user && !$this->isUserActive($user)) {
+        if ($user && ! $this->isUserActive($user)) {
             $this->handleFailedLogin($loginAttemptService, $identifier, $ip, 'account_inactive');
         }
 
-        if (!Auth::guard($this->guard)->attempt($credentials, $this->boolean('remember'))) {
+        if (! Auth::guard($this->guard)->attempt($credentials, $this->boolean('remember'))) {
             $this->handleFailedLogin($loginAttemptService, $identifier, $ip, 'invalid_credentials');
         }
 
@@ -125,6 +125,73 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Obtiene las credenciales para el intento de autenticación.
+     *
+     * @return array<string, string>
+     */
+    public function getCredentials(): array
+    {
+        return $this->only('email', 'password');
+    }
+
+    /**
+     * Obtiene la URL a la que se debe redirigir después de un inicio de sesión exitoso.
+     */
+    public function getRedirectUrl(): string
+    {
+        return session()->pull('url.intended', route('internal.dashboard'));
+    }
+
+    /**
+     * Asegura que la solicitud de inicio de sesión no esté limitada por frecuencia.
+     *
+     * @throws ValidationException
+     */
+    public function ensureIsNotRateLimited(): void
+    {
+        $loginAttemptService = app(LoginAttemptService::class);
+        $identifier = $this->input('email');
+        $ip = $this->ip();
+
+        // Primero comprueba si la IP está bloqueada (bloqueo de nivel superior)
+        if ($loginAttemptService->isIpBlocked($ip)) {
+            event(new Lockout($this));
+
+            Log::warning('Acceso bloqueado por IP en lista negra.', [
+                'identifier' => $identifier,
+                'ip' => $ip,
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => __('Acceso bloqueado temporalmente por motivos de seguridad.'),
+            ]);
+        }
+
+        // Luego comprueba los intentos individuales
+        if (! $loginAttemptService->hasTooManyAttempts($identifier, $ip)) {
+            return;
+        }
+
+        event(new Lockout($this));
+
+        $minutes = $loginAttemptService->getRemainingMinutes($identifier, $ip);
+        $seconds = $minutes * 60;
+
+        Log::warning('Bloqueo de inicio de sesión por exceso de intentos.', [
+            'identifier' => $identifier,
+            'ip' => $ip,
+            'minutes_remaining' => $minutes,
+        ]);
+
+        throw ValidationException::withMessages([
+            'email' => __('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => $minutes,
+            ]),
+        ]);
+    }
+
+    /**
      * Buscar usuario por credenciales en el guard específico.
      */
     private function findUser(array $credentials)
@@ -132,7 +199,7 @@ class LoginRequest extends FormRequest
         $provider = config("auth.guards.{$this->guard}.provider");
         $model = config("auth.providers.{$provider}.model");
 
-        if (!$model) {
+        if (! $model) {
             return null;
         }
 
@@ -175,73 +242,6 @@ class LoginRequest extends FormRequest
 
         throw ValidationException::withMessages([
             'email' => $message,
-        ]);
-    }
-
-    /**
-     * Obtiene las credenciales para el intento de autenticación.
-     *
-     * @return array<string, string>
-     */
-    public function getCredentials(): array
-    {
-        return $this->only('email', 'password');
-    }
-
-    /**
-     * Obtiene la URL a la que se debe redirigir después de un inicio de sesión exitoso.
-     */
-    public function getRedirectUrl(): string
-    {
-        return session()->pull('url.intended', route('internal.dashboard'));
-    }
-
-    /**
-     * Asegura que la solicitud de inicio de sesión no esté limitada por frecuencia.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function ensureIsNotRateLimited(): void
-    {
-        $loginAttemptService = app(LoginAttemptService::class);
-        $identifier = $this->input('email');
-        $ip = $this->ip();
-
-        // Primero comprueba si la IP está bloqueada (bloqueo de nivel superior)
-        if ($loginAttemptService->isIpBlocked($ip)) {
-            event(new Lockout($this));
-
-            Log::warning('Acceso bloqueado por IP en lista negra.', [
-                'identifier' => $identifier,
-                'ip' => $ip,
-            ]);
-
-            throw ValidationException::withMessages([
-                'email' => __('Acceso bloqueado temporalmente por motivos de seguridad.'),
-            ]);
-        }
-
-        // Luego comprueba los intentos individuales
-        if (!$loginAttemptService->hasTooManyAttempts($identifier, $ip)) {
-            return;
-        }
-
-        event(new Lockout($this));
-
-        $minutes = $loginAttemptService->getRemainingMinutes($identifier, $ip);
-        $seconds = $minutes * 60;
-
-        Log::warning('Bloqueo de inicio de sesión por exceso de intentos.', [
-            'identifier' => $identifier,
-            'ip' => $ip,
-            'minutes_remaining' => $minutes,
-        ]);
-
-        throw ValidationException::withMessages([
-            'email' => __('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => $minutes,
-            ]),
         ]);
     }
 

@@ -8,12 +8,12 @@ use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class Authenticate extends Middleware
+final class Authenticate extends Middleware
 {
     /**
      * Handle an unauthenticated user.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return void
      *
      * @throws \Illuminate\Auth\AuthenticationException

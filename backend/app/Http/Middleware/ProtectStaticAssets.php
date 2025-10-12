@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class ProtectStaticAssets
+final class ProtectStaticAssets
 {
     /**
      * Handle an incoming request.
@@ -31,7 +31,7 @@ class ProtectStaticAssets
         $isAllowed = false;
 
         // Si no hay referer (acceso directo) o proviene de un dominio permitido
-        if (!$referer) {
+        if (! $referer) {
             // Permitir acceso directo (sin referer) - opcional, puedes cambiarlo a false si quieres ser más estricto
             $isAllowed = true;
         } else {
@@ -44,7 +44,7 @@ class ProtectStaticAssets
             }
         }
 
-        if (!$isAllowed) {
+        if (! $isAllowed) {
             abort(403, 'Acceso no autorizado a este recurso.');
         }
 

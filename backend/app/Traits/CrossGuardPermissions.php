@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Traits;
 
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Models\Permission;
@@ -18,13 +19,53 @@ use Spatie\Permission\Models\Role;
 trait CrossGuardPermissions
 {
     /**
-     * Guards disponibles en la aplicación.
-     *
-     * @return array<string>
+     * Sincroniza los permisos y roles entre los guards 'web' y 'sanctum'.
      */
-    protected function getAvailableGuards(): array
+    public static function syncPermissionsBetweenGuards(): void
     {
-        return ['staff', 'web', 'sanctum'];
+        $guardsToSync = ['web', 'sanctum'];
+
+        // Sincronizar Permisos
+        $allPermissions = Permission::whereIn(
+            'guard_name',
+            $guardsToSync
+        )->get()->groupBy('name');
+
+        foreach ($allPermissions as $name => $permissions) {
+            $existingGuards = $permissions->pluck('guard_name')->toArray();
+            $missingGuards = array_diff($guardsToSync, $existingGuards);
+
+            foreach ($missingGuards as $guard) {
+                Permission::create(['name' => $name, 'guard_name' => $guard]);
+            }
+        }
+
+        // Sincronizar Roles
+        $allRoles = Role::whereIn(
+            'guard_name',
+            $guardsToSync
+        )->with('permissions')->get()->groupBy('name');
+
+        foreach ($allRoles as $name => $roles) {
+            $existingGuards = $roles->pluck('guard_name')->toArray();
+            $missingGuards = array_diff($guardsToSync, $existingGuards);
+
+            $templateRole = $roles->firstWhere('guard_name', 'web')
+                ?? $roles->first();
+
+            foreach ($missingGuards as $guard) {
+                $newRole = Role::firstOrCreate([
+                    'name' => $name,
+                    'guard_name' => $guard,
+                ]);
+                $permissionsToSync = Permission::where('guard_name', $guard)
+                    ->whereIn('name', $templateRole->permissions->pluck('name'))
+                    ->get();
+                $newRole->syncPermissions($permissionsToSync);
+            }
+        }
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     /**
@@ -33,7 +74,7 @@ trait CrossGuardPermissions
     public function hasPermissionToCross(string $permission): bool
     {
         $permissionName = $permission;
-        $cacheKey = 'user.' . $this->id . '.permission.' . $permissionName;
+        $cacheKey = 'user.'.$this->id.'.permission.'.$permissionName;
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($permission) {
             // Concede acceso inmediato a roles de alto nivel.
@@ -82,24 +123,32 @@ trait CrossGuardPermissions
      */
     public function hasRoleCross($roles): bool
     {
-        $roles = is_array($roles) || $roles instanceof \Illuminate\Support\Collection ? $roles : [$roles];
-        $roleNames = collect($roles)->map(fn ($role) => is_object($role) ? $role->name : $role)->sort()->implode('.');
-        $cacheKey = 'user.' . $this->id . '.roles.' . $roleNames;
+        $roles = is_array($roles) || $roles instanceof \Illuminate\Support\Collection
+            ? $roles
+            : [$roles];
+        $roleNames = collect($roles)->map(fn ($role) => is_object($role)
+            ? $role->name
+            : $role)->sort()->implode('.');
+        $cacheKey = 'user.'.$this->id.'.roles.'.$roleNames;
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($roles) {
-            foreach ($this->getAvailableGuards() as $guard) {
-                try {
-                    if ($this->hasRole($roles, $guard)) {
-                        return true;
+        return Cache::remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            function () use ($roles) {
+                foreach ($this->getAvailableGuards() as $guard) {
+                    try {
+                        if ($this->hasRole($roles, $guard)) {
+                            return true;
+                        }
+                    } catch (Exception $e) {
+                        // Continuar si el rol no existe en el guard.
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    // Continuar si el rol no existe en el guard.
-                    continue;
                 }
-            }
 
-            return false;
-        });
+                return false;
+            }
+        );
     }
 
     /**
@@ -109,54 +158,30 @@ trait CrossGuardPermissions
      */
     public function getAllCrossGuardPermissions(): array
     {
-        $cacheKey = 'user.' . $this->id . '.all_cross_guard_permissions';
+        $cacheKey = 'user.'.$this->id.'.all_cross_guard_permissions';
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () {
-            if ($this->hasRoleCross(['ADMIN', 'DEV'])) {
-                return Permission::all()->pluck('name')->unique()->values()->toArray();
+        return Cache::remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            function () {
+                if ($this->hasRoleCross(['ADMIN', 'DEV'])) {
+                    return Permission::all()->pluck('name')
+                        ->unique()->values()->toArray();
+                }
+
+                return $this->getAllPermissions()->pluck('name')
+                    ->unique()->values()->toArray();
             }
-
-            return $this->getAllPermissions()->pluck('name')->unique()->values()->toArray();
-        });
+        );
     }
 
     /**
-     * Sincroniza los permisos y roles entre los guards 'web' y 'sanctum'.
+     * Guards disponibles en la aplicación.
+     *
+     * @return array<string>
      */
-    public static function syncPermissionsBetweenGuards(): void
+    protected function getAvailableGuards(): array
     {
-        $guardsToSync = ['web', 'sanctum'];
-
-        // Sincronizar Permisos
-        $allPermissions = Permission::whereIn('guard_name', $guardsToSync)->get()->groupBy('name');
-
-        foreach ($allPermissions as $name => $permissions) {
-            $existingGuards = $permissions->pluck('guard_name')->toArray();
-            $missingGuards = array_diff($guardsToSync, $existingGuards);
-
-            foreach ($missingGuards as $guard) {
-                Permission::create(['name' => $name, 'guard_name' => $guard]);
-            }
-        }
-
-        // Sincronizar Roles
-        $allRoles = Role::whereIn('guard_name', $guardsToSync)->with('permissions')->get()->groupBy('name');
-
-        foreach ($allRoles as $name => $roles) {
-            $existingGuards = $roles->pluck('guard_name')->toArray();
-            $missingGuards = array_diff($guardsToSync, $existingGuards);
-
-            $templateRole = $roles->firstWhere('guard_name', 'web') ?? $roles->first();
-
-            foreach ($missingGuards as $guard) {
-                $newRole = Role::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
-                $permissionsToSync = Permission::where('guard_name', $guard)
-                    ->whereIn('name', $templateRole->permissions->pluck('name'))
-                    ->get();
-                $newRole->syncPermissions($permissionsToSync);
-            }
-        }
-
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return ['staff', 'web', 'sanctum'];
     }
 }

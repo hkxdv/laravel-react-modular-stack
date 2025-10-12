@@ -13,14 +13,14 @@ use Illuminate\Validation\Rules\Password;
  * Request para validación de datos de formulario de usuarios del staff.
  * Maneja tanto la creación como la actualización de usuarios.
  */
-class UserRequest extends FormRequest
+final class UserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        /** @var \App\Models\StaffUsers|null $user */
+        /** @var StaffUsers|null $user */
         $user = Auth::user();
 
         return $user && $user->can('access-admin');
@@ -59,7 +59,7 @@ class UserRequest extends FormRequest
 
         // Regla única para el email, excepto para el usuario actual en actualizaciones
         if ($userId) {
-            $rules['email'][] = 'unique:staff_users,email,' . $userId;
+            $rules['email'][] = 'unique:staff_users,email,'.$userId;
         } else {
             $rules['email'][] = 'unique:staff_users,email';
             $rules['password'] = [
@@ -136,19 +136,32 @@ class UserRequest extends FormRequest
                 $user = $this->route('user');
                 if ($user instanceof StaffUsers) {
                     // Consideramos protegido a cualquier usuario que tenga roles ADMIN o DEV
-                    $requestRoles = array_map('strtoupper', (array) $this->input('roles', []));
+                    $requestRoles = array_map(
+                        'strtoupper',
+                        (array) $this->input('roles', [])
+                    );
 
                     $currentProtectedRoles = $user->roles
                         ->pluck('name')
-                        ->map(fn ($name) => strtoupper((string) $name))
-                        ->filter(fn ($name) => in_array($name, ['ADMIN', 'DEV'], true))
+                        ->map(
+                            fn ($name) => mb_strtoupper((string) $name)
+                        )
+                        ->filter(
+                            fn ($name) => in_array($name, ['ADMIN', 'DEV'], true)
+                        )
                         ->values()
                         ->all();
 
                     // Verificar que todos los roles protegidos actuales sigan presentes en la solicitud
-                    $remainingProtectedRoles = array_intersect($currentProtectedRoles, $requestRoles);
+                    $remainingProtectedRoles = array_intersect(
+                        $currentProtectedRoles,
+                        $requestRoles
+                    );
 
-                    if (count($remainingProtectedRoles) !== count($currentProtectedRoles)) {
+                    if (
+                        count($remainingProtectedRoles)
+                        !== count($currentProtectedRoles)
+                    ) {
                         $validator->errors()->add(
                             'roles',
                             'No se pueden remover roles protegidos de un usuario administrador'

@@ -15,7 +15,7 @@ use Laravel\Telescope\TelescopeApplicationServiceProvider;
  * Este proveedor configura el comportamiento de Telescope, incluyendo el registro de entradas,
  * la ofuscación de datos sensibles y el control de acceso al panel de Telescope.
  */
-class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
+final class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
     /**
      * Registra los servicios de la aplicación para Telescope.
@@ -36,14 +36,16 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         // Define qué entradas deben ser registradas por Telescope.
         // En entornos locales, se registra todo. En otros entornos, solo se registran
         // excepciones, peticiones fallidas, trabajos fallidos, tareas programadas y etiquetas monitoreadas.
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
-            return $isLocal ||
-                   $entry->isReportableException() ||
-                   $entry->isFailedRequest() ||
-                   $entry->isFailedJob() ||
-                   $entry->isScheduledTask() ||
-                   $entry->hasMonitoredTag();
-        });
+        Telescope::filter(
+            function (IncomingEntry $entry) use ($isLocal) {
+                return $isLocal
+                    || $entry->isReportableException()
+                    || $entry->isFailedRequest()
+                    || $entry->isFailedJob()
+                    || $entry->isScheduledTask()
+                    || $entry->hasMonitoredTag();
+            }
+        );
     }
 
     /**

@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  * Maneja el inicio de sesión de usuarios y la obtención de datos del usuario autenticado
  * a través de tokens de API de Sanctum.
  */
-class ApiAuthController extends Controller
+final class ApiAuthController extends Controller
 {
     /**
      * Maneja la solicitud de inicio de sesión y genera un token de API.
@@ -27,10 +27,10 @@ class ApiAuthController extends Controller
      * y, si todo es correcto, emite un nuevo token de Sanctum. El `device_name`
      * se utiliza para identificar el token y revocar tokens antiguos del mismo dispositivo.
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP con las credenciales.
-     * @return \Illuminate\Http\JsonResponse La respuesta JSON con el token de acceso.
+     * @param  Request  $request  La solicitud HTTP con las credenciales.
+     * @return JsonResponse La respuesta JSON con el token de acceso.
      *
-     * @throws \Illuminate\Validation\ValidationException Si la validación falla.
+     * @throws ValidationException Si la validación falla.
      */
     public function login(Request $request): JsonResponse
     {
@@ -42,13 +42,13 @@ class ApiAuthController extends Controller
 
         $user = StaffUsers::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
             ]);
         }
 
-        if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail()) {
+        if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail()) {
             throw ValidationException::withMessages([
                 'email' => ['Debes verificar tu correo electrónico antes de continuar.'],
             ]);
@@ -69,7 +69,7 @@ class ApiAuthController extends Controller
     /**
      * Obtiene la información del usuario actualmente autenticado.
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP.
+     * @param  Request  $request  La solicitud HTTP.
      * @return array Un array con los datos públicos del usuario.
      */
     public function user(Request $request): array

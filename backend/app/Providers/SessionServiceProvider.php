@@ -15,7 +15,7 @@ use Illuminate\Support\ServiceProvider;
  * Este proveedor personaliza el comportamiento del manejador de sesiones de base de datos
  * de Laravel para que funcione con la columna `staff_user_id` en lugar de la `user_id` estándar.
  */
-class SessionServiceProvider extends ServiceProvider
+final class SessionServiceProvider extends ServiceProvider
 {
     /**
      * Registra los servicios de sesión personalizados.
@@ -25,23 +25,29 @@ class SessionServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->resolving('session', function ($sessionManager) {
-            $sessionManager->extend('database', function ($app) {
-                /** @var array $config */
-                $config = (array) $app['config']->get('session', []);
+        $this->app->resolving(
+            'session',
+            function ($sessionManager) {
+                $sessionManager->extend('database', function ($app) {
+                    /** @var array $config */
+                    $config = (array) $app['config']->get('session', []);
 
-                $table = $config['table'] ?? $app['config']->get('session.table');
-                $lifetime = $config['lifetime'] ?? $app['config']->get('session.lifetime');
-                $connection = $config['connection'] ?? $app['config']->get('session.connection');
+                    $table = $config['table']
+                        ?? $app['config']->get('session.table');
+                    $lifetime = $config['lifetime']
+                        ?? $app['config']->get('session.lifetime');
+                    $connection = $config['connection']
+                        ?? $app['config']->get('session.connection');
 
-                return new CustomDatabaseSessionHandler(
-                    $app['db']->connection($connection),
-                    $table,
-                    $lifetime,
-                    $app
-                );
-            });
-        });
+                    return new CustomDatabaseSessionHandler(
+                        $app['db']->connection($connection),
+                        $table,
+                        $lifetime,
+                        $app
+                    );
+                });
+            }
+        );
     }
 
     /**
@@ -58,7 +64,12 @@ class SessionServiceProvider extends ServiceProvider
             // Algunas partes de Laravel o paquetes de terceros pueden depender de la columna 'user_id',
             // y este listener asegura que se rellene después del login, aunque nuestro manejador
             // personalizado se centre en 'staff_user_id'.
-            if ($event->user && DB::connection(config('session.connection'))->getDriverName() === 'sqlite') {
+            if (
+                $event->user
+                && DB::connection(
+                    config('session.connection')
+                )->getDriverName() === 'sqlite'
+            ) {
                 DB::table(config('session.table'))
                     ->where('id', $this->app['session']->getId())
                     ->update(['user_id' => $event->user->id]);
@@ -74,7 +85,7 @@ class SessionServiceProvider extends ServiceProvider
  * para usuarios autenticados con el guard de staff. Esto permite que el sistema de sesiones
  * funcione correctamente con el modelo de usuarios del personal.
  */
-class CustomDatabaseSessionHandler extends DatabaseSessionHandler
+final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
 {
     /**
      * Añade la información del usuario al payload de la sesión.

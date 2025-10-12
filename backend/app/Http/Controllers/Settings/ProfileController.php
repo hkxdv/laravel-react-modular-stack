@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProfileController extends BaseSettingsController
+final class ProfileController extends BaseSettingsController
 {
     /**
      * Muestra la página de configuración del perfil del usuario.
@@ -62,31 +62,5 @@ class ProfileController extends BaseSettingsController
         $request->session()->regenerateToken();
 
         return redirect('/');
-    }
-
-    /**
-     * [REMOVIDO] Perfil de contacto público.
-     * Esta funcionalidad ha sido eliminada junto con el modelo ContactStaffUser.
-     * Se mantiene el método como no-op para evitar referencias rotas si quedaran rutas/llamadas antiguas.
-     */
-    public function updateContactProfile(Request $request): RedirectResponse
-    {
-        return back()->with('status', 'contact-profile-removed');
-    }
-
-    /**
-     * [REMOVIDO] Subida de imagen de perfil público.
-     */
-    public function uploadProfileImage(Request $request): RedirectResponse
-    {
-        return back()->with('status', 'profile-image-feature-removed');
-    }
-
-    /**
-     * [REMOVIDO] Eliminación de imagen de perfil público.
-     */
-    public function deleteProfileImage(Request $request): RedirectResponse
-    {
-        return back()->with('status', 'profile-image-feature-removed');
     }
 }

@@ -11,7 +11,7 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PasswordController extends BaseSettingsController
+final class PasswordController extends BaseSettingsController
 {
     /**
      * Muestra la página de configuración de la contraseña del usuario.

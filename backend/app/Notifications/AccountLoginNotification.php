@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\URL;
  * Proporciona al usuario detalles sobre el inicio de sesión y acciones rápidas para asegurar su cuenta,
  * como marcar el dispositivo como confiable o cambiar la contraseña.
  */
-class AccountLoginNotification extends Notification implements ShouldQueue
+final class AccountLoginNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -60,7 +60,7 @@ class AccountLoginNotification extends Notification implements ShouldQueue
      * Construye la representación por correo electrónico de la notificación.
      *
      * @param  mixed  $notifiable  La entidad que recibe la notificación (generalmente el usuario).
-     * @return \Illuminate\Notifications\Messages\MailMessage El mensaje de correo electrónico configurado.
+     * @return MailMessage El mensaje de correo electrónico configurado.
      */
     public function toMail(object $notifiable): MailMessage
     {

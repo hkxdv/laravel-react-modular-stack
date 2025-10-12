@@ -16,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  * de verificación. Utiliza EmailVerificationRequest para validar la firma y al usuario,
  * marca el correo como verificado y dispara el evento correspondiente.
  */
-class VerifyEmailController extends Controller
+final class VerifyEmailController extends Controller
 {
     /**
      * Marca la dirección de correo electrónico del usuario autenticado como verificada.
@@ -31,7 +31,7 @@ class VerifyEmailController extends Controller
         $user = $request->user();
 
         // Si el usuario aún no ha verificado su correo, se procede a marcarlo.
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             // Marca el correo electrónico como verificado en la base de datos.
             $user->markEmailAsVerified();
 
@@ -41,6 +41,6 @@ class VerifyEmailController extends Controller
 
         // Redirige al usuario al dashboard, añadiendo un parámetro para que el frontend
         // pueda mostrar un mensaje de bienvenida o de estado.
-        return redirect()->intended(route('internal.dashboard', absolute: false) . '?verified=1');
+        return redirect()->intended(route('internal.dashboard', absolute: false).'?verified=1');
     }
 }

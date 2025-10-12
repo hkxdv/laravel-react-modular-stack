@@ -24,7 +24,7 @@ trait PermissionVerifier
     {
         /** @var \App\Models\StaffUsers|\App\Interfaces\AuthenticatableUser|null $user */
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 

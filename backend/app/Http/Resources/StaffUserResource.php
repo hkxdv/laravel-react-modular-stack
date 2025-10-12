@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Este recurso expone de forma segura los datos del usuario del personal,
  * incluyendo sus roles y permisos de forma condicional para optimizar el rendimiento.
  */
-class StaffUserResource extends JsonResource
+final class StaffUserResource extends JsonResource
 {
     /**
      * Transforma el recurso en un array.

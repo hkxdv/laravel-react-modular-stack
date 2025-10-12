@@ -12,7 +12,7 @@ use Tighten\Ziggy\Ziggy;
 /**
  * Servicio para filtrar rutas de Ziggy según el tipo de usuario
  */
-class RouteFilterService
+final class RouteFilterService
 {
     /**
      * Obtener rutas de Ziggy filtradas para el contexto actual
@@ -43,8 +43,10 @@ class RouteFilterService
     /**
      * Aplica exclusiones específicas basadas en el contexto actual
      */
-    protected function applySpecificExclusions(array $routes, Request $request): array
-    {
+    private function applySpecificExclusions(
+        array $routes,
+        Request $request
+    ): array {
         // Si estamos en la página de bienvenida, ser muy restrictivos
         if ($request->path() === '/' || $request->path() === '') {
             // Estos son los únicos prefijos que realmente necesitamos en la página de bienvenida
@@ -54,7 +56,7 @@ class RouteFilterService
 
             return array_filter($routes, function ($key) use ($allowedPrefixes) {
                 foreach ($allowedPrefixes as $prefix) {
-                    if (strpos($key, $prefix) === 0) {
+                    if (mb_strpos($key, $prefix) === 0) {
                         return true;
                     }
                 }
@@ -69,7 +71,7 @@ class RouteFilterService
     /**
      * Filtrar rutas según el tipo de usuario actual
      */
-    protected function filterRoutesByUserType(array $routes): array
+    private function filterRoutesByUserType(array $routes): array
     {
         // Determinar patrones a utilizar según el usuario actual
         $patterns = $this->getPatternsByUserType();
@@ -81,7 +83,7 @@ class RouteFilterService
     /**
      * Obtener los patrones de rutas aplicables según el tipo de usuario actual
      */
-    protected function getPatternsByUserType(): array
+    private function getPatternsByUserType(): array
     {
         // Cargar patrones desde la configuración
         $publicPatterns = Config::get('routes.filters.public', []);
@@ -101,7 +103,7 @@ class RouteFilterService
     /**
      * Filtrar rutas basado en un conjunto de patrones
      */
-    protected function filterRoutesByPatterns(array $routes, array $patterns): array
+    private function filterRoutesByPatterns(array $routes, array $patterns): array
     {
         $filteredRoutes = [];
         $notMatchedRoutes = [];
@@ -120,7 +122,7 @@ class RouteFilterService
 
         // Luego procesamos las rutas que coincidan con patrones con comodines
         $wildcardPatterns = array_filter($patterns, function ($pattern) {
-            return strpos($pattern, '*') !== false;
+            return mb_strpos($pattern, '*') !== false;
         });
 
         if (count($wildcardPatterns) > 0) {
@@ -154,7 +156,7 @@ class RouteFilterService
     /**
      * Verificar si una ruta coincide con alguno de los patrones
      */
-    protected function routeMatchesPatterns(string $routeName, array $patterns): bool
+    private function routeMatchesPatterns(string $routeName, array $patterns): bool
     {
         foreach ($patterns as $pattern) {
             // Convertir el patrón a expresión regular
@@ -172,7 +174,7 @@ class RouteFilterService
     /**
      * Convertir un patrón con wildcards a expresión regular
      */
-    protected function patternToRegex(string $pattern): string
+    private function patternToRegex(string $pattern): string
     {
         // Escapar caracteres especiales de regex, excepto asteriscos
         $pattern = preg_quote($pattern, '/');
@@ -181,6 +183,6 @@ class RouteFilterService
         $pattern = str_replace('\*', '.*', $pattern);
 
         // Crear regex completa
-        return '/^' . $pattern . '$/';
+        return '/^'.$pattern.'$/';
     }
 }

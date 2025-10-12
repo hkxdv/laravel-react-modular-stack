@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckPermission
+final class CheckPermission
 {
     /**
      * Maneja una solicitud entrante para verificar permisos de usuario.
@@ -19,12 +19,12 @@ class CheckPermission
      * Este middleware centraliza la lógica de autorización para usuarios del staff
      * y responde adecuadamente a solicitudes web y API (JSON).
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP entrante.
-     * @param  \Closure  $next  El siguiente middleware en la cadena.
+     * @param  Request  $request  La solicitud HTTP entrante.
+     * @param  Closure  $next  El siguiente middleware en la cadena.
      * @param  string  $permission  El nombre del permiso a verificar.
      * @param  string|null  $guard  El guard de autenticación a utilizar. Si es nulo, se usa el por defecto.
      *
-     * @throws \Spatie\Permission\Exceptions\UnauthorizedException Si el usuario no tiene permiso y la solicitud no espera JSON.
+     * @throws UnauthorizedException Si el usuario no tiene permiso y la solicitud no espera JSON.
      */
     public function handle(Request $request, Closure $next, string $permission, ?string $guard = null): Response
     {
@@ -49,7 +49,7 @@ class CheckPermission
      *
      * @param  mixed  $user
      */
-    protected function userHasPermission($user, string $permission, ?string $guard): bool
+    private function userHasPermission($user, string $permission, ?string $guard): bool
     {
         if ($user instanceof StaffUsers) {
             if (method_exists($user, 'hasPermissionToCross') && $user->hasPermissionToCross($permission)) {
@@ -76,7 +76,7 @@ class CheckPermission
      * @param  array  $exceptionArgs  Argumentos para la excepción.
      * @return \Illuminate\Http\JsonResponse|void
      */
-    protected function handleUnauthorized(Request $request, string $exceptionType, array $exceptionArgs = [])
+    private function handleUnauthorized(Request $request, string $exceptionType, array $exceptionArgs = [])
     {
         if ($request->expectsJson()) {
             $message = $exceptionType === 'notLoggedIn'

@@ -16,14 +16,21 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\App\Http\Controllers\AdminPanelController;
 
-Route::middleware(['auth:staff', 'verified', 'throttle:60,1', 'permission:access-admin,staff'])
-    ->name('internal.admin.')
-    ->prefix('internal/admin')
-    ->group(function () {
+Route::middleware([
+    'auth:staff',
+    'verified',
+    'throttle:60,1',
+    'permission:access-admin,staff',
+])->name('internal.admin.')->prefix('internal/admin')->group(
+    function () {
 
         // La ruta principal del panel de administración.
-        Route::get('/', [AdminPanelController::class, 'showModulePanel'])->name('panel');
+        Route::get(
+            '/',
+            [AdminPanelController::class, 'showModulePanel']
+        )->name('panel');
 
         // Rutas para la gestión de usuarios (CRUD de vistas).
-        require __DIR__ . '/users.php';
-    });
+        require __DIR__.'/users.php';
+    }
+);

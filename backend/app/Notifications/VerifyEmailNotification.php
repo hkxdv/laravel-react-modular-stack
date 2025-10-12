@@ -20,9 +20,32 @@ use Illuminate\Support\Facades\URL;
  * para generar una URL firmada y con tiempo de expiración que el usuario debe
  * visitar para activar su cuenta.
  */
-class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
+final class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
 {
     use Queueable;
+
+    /**
+     * Construye la representación por correo electrónico de la notificación.
+     *
+     * @param  mixed  $notifiable  La entidad que recibe la notificación.
+     * @return MailMessage El mensaje de correo electrónico configurado.
+     */
+    public function toMail($notifiable): MailMessage
+    {
+        // Genera la URL de verificación única para este usuario.
+        $verificationUrl = $this->verificationUrl($notifiable);
+
+        // Construye el mensaje de correo.
+        return (new MailMessage)
+            ->subject('Activación de Cuenta y Verificación de Correo')
+            ->greeting("¡Hola, {$notifiable->name}!")
+            ->line('Se ha creado una cuenta para ti en nuestro sistema.')
+            ->line('Para activar tu cuenta y comenzar, por favor verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:')
+            ->action('Verificar Correo Electrónico', $verificationUrl)
+            ->line('Si no esperabas la creación de esta cuenta, puedes ignorar este mensaje de forma segura.')
+            ->line('Este correo electrónico es generado automáticamente. Por favor, no respondas a este mensaje.')
+            ->salutation('Saludos,');
+    }
 
     /**
      * Genera la URL de verificación para el usuario notificado.
@@ -44,28 +67,5 @@ class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
         );
-    }
-
-    /**
-     * Construye la representación por correo electrónico de la notificación.
-     *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return \Illuminate\Notifications\Messages\MailMessage El mensaje de correo electrónico configurado.
-     */
-    public function toMail($notifiable): MailMessage
-    {
-        // Genera la URL de verificación única para este usuario.
-        $verificationUrl = $this->verificationUrl($notifiable);
-
-        // Construye el mensaje de correo.
-        return (new MailMessage)
-            ->subject('Activación de Cuenta y Verificación de Correo')
-            ->greeting("¡Hola, {$notifiable->name}!")
-            ->line('Se ha creado una cuenta para ti en nuestro sistema.')
-            ->line('Para activar tu cuenta y comenzar, por favor verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:')
-            ->action('Verificar Correo Electrónico', $verificationUrl)
-            ->line('Si no esperabas la creación de esta cuenta, puedes ignorar este mensaje de forma segura.')
-            ->line('Este correo electrónico es generado automáticamente. Por favor, no respondas a este mensaje.')
-            ->salutation('Saludos,');
     }
 }

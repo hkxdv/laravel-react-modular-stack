@@ -8,7 +8,7 @@ use App\DTO\EnhancedStat;
 use App\Interfaces\StatsServiceInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 
-class Module02StatsService implements StatsServiceInterface
+final class Module02StatsService implements StatsServiceInterface
 {
     /**
      * {@inheritDoc}

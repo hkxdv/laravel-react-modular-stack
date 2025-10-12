@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Artisan;
  * Comando de ejemplo de Laravel para mostrar una cita inspiradora.
  * php artisan inspire
  */
+
+/*
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+ */

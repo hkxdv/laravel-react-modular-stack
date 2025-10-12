@@ -9,7 +9,7 @@ use App\Interfaces\StatsServiceInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 
-class AdminStatsService implements StatsServiceInterface
+final class AdminStatsService implements StatsServiceInterface
 {
     public function __construct(
         private readonly StaffUserManagerInterface $staffUserManager,
@@ -18,8 +18,10 @@ class AdminStatsService implements StatsServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array
-    {
+    public function getPanelStats(
+        string $moduleSlug,
+        ?Authenticatable $user = null
+    ): array {
         // Totales básicos del dashboard Admin
         $totalUsers = $this->staffUserManager->getTotalUsers();
         $totalRoles = $this->staffUserManager->getTotalRoles();

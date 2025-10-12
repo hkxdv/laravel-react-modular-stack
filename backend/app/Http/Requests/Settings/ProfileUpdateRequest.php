@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 /**
  * Valida los datos para la actualización del perfil de un usuario del personal.
  */
-class ProfileUpdateRequest extends FormRequest
+final class ProfileUpdateRequest extends FormRequest
 {
     /**
      * Determina si el usuario está autorizado para realizar esta solicitud.

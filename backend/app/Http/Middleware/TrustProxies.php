@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Middleware\TrustProxies as Middleware;
 use Illuminate\Http\Request;
 
-class TrustProxies extends Middleware
+final class TrustProxies extends Middleware
 {
     /**
      * Los proxies de confianza para esta aplicación.

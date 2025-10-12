@@ -15,7 +15,7 @@ use Inertia\Response as InertiaResponse;
  * Servicio para componer y preparar datos para las vistas.
  * Encapsula la lógica de preparación de datos que se pasarán a los componentes de Inertia.
  */
-class ViewComposerService implements ViewComposerInterface
+final class ViewComposerService implements ViewComposerInterface
 {
     /**
      * Constructor del servicio de composición de vistas.
@@ -123,29 +123,34 @@ class ViewComposerService implements ViewComposerInterface
     ): array {
         // Normalizar nombre funcional y obtener descripción desde config del módulo
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
-        $functionalName = $functionalName ?? ($moduleConfig['functional_name'] ?? ucfirst($moduleSlug));
+        $functionalName = $functionalName
+            ?? (
+                $moduleConfig['functional_name'] ?? ucfirst($moduleSlug)
+            );
         $moduleDescription = $moduleConfig['description'] ?? null;
 
         // Obtener todos los elementos de navegación
-        $navigationElements = $this->navigationService->assembleNavigationStructure(
-            permissionChecker: $permissionChecker,
-            moduleSlug: $moduleSlug,
-            contextualItemsConfig: $contextualNavItemsConfig,
-            user: $user,
-            functionalName: $functionalName,
-            routeSuffix: $routeSuffix,
-            routeParams: $routeParams,
-            viewData: $data
-        );
+        $navigationElements = $this->navigationService
+            ->assembleNavigationStructure(
+                permissionChecker: $permissionChecker,
+                moduleSlug: $moduleSlug,
+                contextualItemsConfig: $contextualNavItemsConfig,
+                user: $user,
+                functionalName: $functionalName,
+                routeSuffix: $routeSuffix,
+                routeParams: $routeParams,
+                viewData: $data
+            );
 
         // Construir ítems del panel
-        $panelItems = $this->navigationService->buildNavigation(
-            navType: NavigationBuilderInterface::NAV_TYPE_PANEL,
-            itemsConfig: $panelItemsConfig,
-            permissionChecker: $permissionChecker,
-            moduleSlug: $moduleSlug,
-            functionalName: $functionalName
-        );
+        $panelItems = $this->navigationService
+            ->buildNavigation(
+                navType: NavigationBuilderInterface::NAV_TYPE_PANEL,
+                itemsConfig: $panelItemsConfig,
+                permissionChecker: $permissionChecker,
+                moduleSlug: $moduleSlug,
+                functionalName: $functionalName
+            );
 
         // Combinar todos los datos
         return [
@@ -179,24 +184,29 @@ class ViewComposerService implements ViewComposerInterface
         Request $request
     ): array {
         // Obtener elementos de navegación usando el servicio de navegación
-        $navigationElements = $this->navigationService->assembleNavigationStructure(
-            permissionChecker: $permissionChecker,
-            moduleSlug: null,
-            contextualItemsConfig: [],
-            user: $user
-        );
+        $navigationElements = $this->navigationService
+            ->assembleNavigationStructure(
+                permissionChecker: $permissionChecker,
+                moduleSlug: null,
+                contextualItemsConfig: [],
+                user: $user
+            );
 
         // Obtener todos los módulos habilitados (para mostrar también los restringidos)
         $allModules = $this->moduleRegistry->getAllEnabledModules();
 
         // Preparar tarjetas de módulos y navegación contextual (combinadas con canAccess)
-        $moduleCards = $this->navigationService->buildModuleCards($allModules, $availableModules);
+        $moduleCards = $this->navigationService
+            ->buildModuleCards(
+                $allModules,
+                $availableModules
+            );
 
         // Separar backend en accesibles y restringidos para simplificar el frontend
         $accessibleCards = [];
         $restrictedCards = [];
         foreach ($moduleCards as $card) {
-            if (!empty($card['canAccess'])) {
+            if (! empty($card['canAccess'])) {
                 $accessibleCards[] = $card;
             } else {
                 $restrictedCards[] = $card;

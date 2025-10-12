@@ -21,7 +21,12 @@ interface ApiResponseFormatterInterface
      * @param  array  $meta  Metadatos adicionales
      * @return JsonResponse Respuesta JSON
      */
-    public function successResponse($data = null, ?string $message = null, int $statusCode = 200, array $meta = []): JsonResponse;
+    public function successResponse(
+        $data = null,
+        ?string $message = null,
+        int $statusCode = 200,
+        array $meta = []
+    ): JsonResponse;
 
     /**
      * Genera una respuesta JSON de error.
@@ -31,7 +36,11 @@ interface ApiResponseFormatterInterface
      * @param  array  $errors  Errores detallados
      * @return JsonResponse Respuesta JSON
      */
-    public function errorResponse(string $message, int $statusCode, array $errors = []): JsonResponse;
+    public function errorResponse(
+        string $message,
+        int $statusCode,
+        array $errors = []
+    ): JsonResponse;
 
     /**
      * Genera una respuesta JSON con paginación.
@@ -42,5 +51,10 @@ interface ApiResponseFormatterInterface
      * @param  int  $statusCode  Código HTTP de estado
      * @return JsonResponse Respuesta JSON
      */
-    public function paginatedResponse($data, array $paginationInfo, ?string $message = null, int $statusCode = 200): JsonResponse;
+    public function paginatedResponse(
+        $data,
+        array $paginationInfo,
+        ?string $message = null,
+        int $statusCode = 200
+    ): JsonResponse;
 }

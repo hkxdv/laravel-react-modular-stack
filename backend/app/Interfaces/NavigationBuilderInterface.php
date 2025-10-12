@@ -93,7 +93,10 @@ interface NavigationBuilderInterface
      * @param  array<Module>  $accessibleModules  Módulos a los que el usuario tiene acceso
      * @return array<int, array<string, mixed>> Tarjetas de módulos
      */
-    public function buildModuleCards(array $allModules, array $accessibleModules = []): array;
+    public function buildModuleCards(
+        array $allModules,
+        array $accessibleModules = []
+    ): array;
 
     /**
      * Construye breadcrumbs a partir de una configuración explícita.
@@ -118,7 +121,10 @@ interface NavigationBuilderInterface
      * @param  array<string, mixed>  $moduleConfig  Configuración completa del módulo
      * @return mixed Configuración con referencias resueltas
      */
-    public function resolveConfigReferences($config, array $moduleConfig): mixed;
+    public function resolveConfigReferences(
+        $config,
+        array $moduleConfig
+    ): mixed;
 
     /**
      * Prepara todos los elementos de navegación necesarios para una vista.

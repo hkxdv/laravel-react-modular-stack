@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Http\Controllers\StaffUsers;
 
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,7 @@ use Modules\Admin\App\Http\Requests\UserRequest;
 /**
  * Controlador para la creación de usuarios del personal administrativo.
  */
-class CreateController extends AdminBaseController
+final class CreateController extends AdminBaseController
 {
     /**
      * Muestra el formulario de creación de un nuevo usuario.
@@ -82,9 +83,9 @@ class CreateController extends AdminBaseController
             // Para solicitudes normales, redirigir como antes
             return redirect()->route('internal.admin.users.index')
                 ->with('success', "Usuario '{$user->name}' creado exitosamente.");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Loguear el error para análisis posterior
-            Log::error('Error al crear usuario: ' . $e->getMessage(), [
+            Log::error('Error al crear usuario: '.$e->getMessage(), [
                 'data' => $request->except(['password', 'password_confirmation']),
                 'trace' => $e->getTraceAsString(),
             ]);

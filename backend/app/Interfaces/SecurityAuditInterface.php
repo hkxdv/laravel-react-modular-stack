@@ -27,7 +27,10 @@ interface SecurityAuditInterface
      * @param  Authenticatable  $user  Usuario autenticado
      * @param  Request  $request  Request actual
      */
-    public function handleSuspiciousLoginNotification(Authenticatable $user, Request $request): void;
+    public function handleSuspiciousLoginNotification(
+        Authenticatable $user,
+        Request $request
+    ): void;
 
     /**
      * Cierra la sesión del usuario para un guard específico.

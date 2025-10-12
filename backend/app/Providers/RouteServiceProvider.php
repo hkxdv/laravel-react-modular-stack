@@ -18,7 +18,7 @@ use Tighten\Ziggy\Ziggy;
  * configurar los patrones de ruta globales, definir los limitadores de velocidad (rate limiters)
  * y registrar cualquier configuración relacionada con el enrutamiento.
  */
-class RouteServiceProvider extends ServiceProvider
+final class RouteServiceProvider extends ServiceProvider
 {
     /**
      * La ruta a la que se redirige a los usuarios después de la autenticación.
@@ -131,7 +131,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::get('/api/routes', function (Request $request) {
             $groupsInput = $request->input('groups', '');
 
-            $requestedGroups = !empty($groupsInput)
+            $requestedGroups = ! empty($groupsInput)
                 ? explode(',', $groupsInput)
                 : [];
 
@@ -144,7 +144,9 @@ class RouteServiceProvider extends ServiceProvider
                 )
             );
 
-            return app('ziggy')->filter($groupsToFilter)->toArray();
+            return app('ziggy')
+                ->filter($groupsToFilter)
+                ->toArray();
         })->middleware('web');
     }
 }

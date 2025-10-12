@@ -9,12 +9,67 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class ErrorPageResponder
+final class ErrorPageResponder
 {
-    protected static function friendlyMessage(int $status, ?string $message = null): string
+    public static function unauthorized(Request $request)
     {
+        return self::inertiaErrorPage(
+            403,
+            self::friendlyMessage(403),
+            $request
+        );
+    }
+
+    public static function http(HttpException $e, Request $request)
+    {
+        $status = $e->getStatusCode();
+
+        return self::inertiaErrorPage(
+            $status,
+            self::friendlyMessage($status, $e->getMessage()),
+            $request
+        );
+    }
+
+    public static function authentication(
+        AuthenticationException $e,
+        Request $request
+    ) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+
+        return null;
+    }
+
+    public static function validation(Request $request)
+    {
+        return self::inertiaErrorPage(
+            422,
+            self::friendlyMessage(422),
+            $request
+        );
+    }
+
+    public static function generic(Request $request)
+    {
+        if (! config('app.debug')) {
+            return self::inertiaErrorPage(
+                500,
+                self::friendlyMessage(500),
+                $request
+            );
+        }
+
+        return null;
+    }
+
+    private static function friendlyMessage(
+        int $status,
+        ?string $message = null
+    ): string {
         // Si hay un mensaje específico y no estamos en producción, mostrarlo
-        if ($message && !app()->isProduction()) {
+        if ($message && ! app()->isProduction()) {
             return $message;
         }
 
@@ -32,49 +87,18 @@ class ErrorPageResponder
             503 => 'El servicio no está disponible temporalmente. Por favor, intenta de nuevo más tarde.',
         ];
 
-        return $errorMessages[$status] ?? 'Se ha producido un error inesperado.';
+        return $errorMessages[$status]
+            ?? 'Se ha producido un error inesperado.';
     }
 
-    protected static function inertiaErrorPage(int $status, string $message, Request $request)
-    {
+    private static function inertiaErrorPage(
+        int $status,
+        string $message,
+        Request $request
+    ) {
         return Inertia::render('errors/error-page', [
             'status' => $status,
             'message' => $message,
         ])->toResponse($request)->setStatusCode($status);
-    }
-
-    public static function unauthorized(Request $request)
-    {
-        return self::inertiaErrorPage(403, self::friendlyMessage(403), $request);
-    }
-
-    public static function http(HttpException $e, Request $request)
-    {
-        $status = $e->getStatusCode();
-
-        return self::inertiaErrorPage($status, self::friendlyMessage($status, $e->getMessage()), $request);
-    }
-
-    public static function authentication(AuthenticationException $e, Request $request)
-    {
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'No autenticado'], 401);
-        }
-
-        return null;
-    }
-
-    public static function validation(Request $request)
-    {
-        return self::inertiaErrorPage(422, self::friendlyMessage(422), $request);
-    }
-
-    public static function generic(Request $request)
-    {
-        if (!config('app.debug')) {
-            return self::inertiaErrorPage(500, self::friendlyMessage(500), $request);
-        }
-
-        return null;
     }
 }

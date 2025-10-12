@@ -20,8 +20,12 @@ trait ApiResponseFormatter
      * @param  int  $statusCode  Código HTTP de estado
      * @param  array  $meta  Metadatos adicionales
      */
-    protected function successResponse($data = null, ?string $message = null, int $statusCode = 200, array $meta = []): JsonResponse
-    {
+    protected function successResponse(
+        $data = null,
+        ?string $message = null,
+        int $statusCode = 200,
+        array $meta = []
+    ): JsonResponse {
         $response = [
             'success' => true,
         ];
@@ -34,7 +38,7 @@ trait ApiResponseFormatter
             $response['message'] = $message;
         }
 
-        if (!empty($meta)) {
+        if (! empty($meta)) {
             $response['meta'] = $meta;
         }
 
@@ -48,14 +52,17 @@ trait ApiResponseFormatter
      * @param  int  $statusCode  Código HTTP de estado
      * @param  array  $errors  Errores detallados (opcional)
      */
-    protected function errorResponse(string $message, int $statusCode, array $errors = []): JsonResponse
-    {
+    protected function errorResponse(
+        string $message,
+        int $statusCode,
+        array $errors = []
+    ): JsonResponse {
         $response = [
             'success' => false,
             'message' => $message,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -70,8 +77,17 @@ trait ApiResponseFormatter
      * @param  string|null  $message  Mensaje opcional
      * @param  int  $statusCode  Código HTTP de estado
      */
-    protected function paginatedResponse($data, array $paginationInfo, ?string $message = null, int $statusCode = 200): JsonResponse
-    {
-        return $this->successResponse($data, $message, $statusCode, $paginationInfo);
+    protected function paginatedResponse(
+        $data,
+        array $paginationInfo,
+        ?string $message = null,
+        int $statusCode = 200
+    ): JsonResponse {
+        return $this->successResponse(
+            $data,
+            $message,
+            $statusCode,
+            $paginationInfo
+        );
     }
 }

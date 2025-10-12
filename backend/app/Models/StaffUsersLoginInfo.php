@@ -26,9 +26,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_trusted Indica si el dispositivo es de confianza.
  * @property \Illuminate\Support\Carbon|null $last_login_at Fecha y hora del último inicio de sesión.
  * @property int $login_count Contador de inicios de sesión desde este dispositivo.
- * @property-read \App\Models\StaffUsers $staffUser
+ * @property-read StaffUsers $staffUser
  */
-class StaffUsersLoginInfo extends Model
+final class StaffUsersLoginInfo extends Model
 {
     use HasFactory;
 
@@ -125,7 +125,7 @@ class StaffUsersLoginInfo extends Model
             return true;
         }
 
-        if (!$userAgent || !$this->user_agent) {
+        if (! $userAgent || ! $this->user_agent) {
             return false;
         }
 

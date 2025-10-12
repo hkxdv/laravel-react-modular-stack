@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notification;
  * una acción importante, proporcionando detalles contextuales como la acción realizada,
  * la IP y el dispositivo, para que pueda verificar la legitimidad de la actividad.
  */
-class PasswordConfirmationNotification extends Notification implements ShouldQueue
+final class PasswordConfirmationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -48,7 +48,7 @@ class PasswordConfirmationNotification extends Notification implements ShouldQue
      * Construye la representación por correo electrónico de la notificación.
      *
      * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return \Illuminate\Notifications\Messages\MailMessage El mensaje de correo electrónico configurado.
+     * @return MailMessage El mensaje de correo electrónico configurado.
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -60,7 +60,7 @@ class PasswordConfirmationNotification extends Notification implements ShouldQue
 
         // --- Detalles de la Confirmación ---
         $message->line('**Detalles de la confirmación:**')
-            ->line('- **Fecha y hora:** ' . now()->format('d/m/Y H:i:s'));
+            ->line('- **Fecha y hora:** '.now()->format('d/m/Y H:i:s'));
 
         if ($this->ipAddress) {
             $message->line("- **Dirección IP:** {$this->ipAddress}");

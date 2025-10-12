@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use JsonSerializable;
+
 /**
  * Value Object para representar una estadística enriquecida del panel.
  */
-class EnhancedStat implements \JsonSerializable
+final class EnhancedStat implements JsonSerializable
 {
     public function __construct(
         public readonly string $key,
