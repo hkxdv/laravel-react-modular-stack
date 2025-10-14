@@ -37,7 +37,7 @@ final class Handler extends ExceptionHandler
     public function register(): void
     {
         // Registra errores críticos en un log separado
-        $this->reportable(function (Error $e) {
+        $this->reportable(function (Error $e): void {
             Log::channel('daily')->critical('Error fatal: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),

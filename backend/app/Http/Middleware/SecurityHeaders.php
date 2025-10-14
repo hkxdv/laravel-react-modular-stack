@@ -15,6 +15,7 @@ final class SecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
+        /** @var Response $response */
         $response = $next($request);
 
         // Verificamos si estamos respondiendo con un error o una redirección
@@ -34,7 +35,7 @@ final class SecurityHeaders
 
             // Agregar informacion sobre límites de tasa para APIs
             if ($request->is('api/*') && app()->bound('limiter') && ! $isErrorOrRedirect) {
-                $this->addRateLimitHeaders($request, $response);
+                $this->addRateLimitHeaders($response);
             }
 
             return $response; // Retornamos temprano para APIs
@@ -91,40 +92,13 @@ final class SecurityHeaders
         $contentType = $response->headers->get('Content-Type', '');
         $downloadTypes = ['application/zip', 'application/pdf', 'application/msword', 'application/vnd.ms-excel'];
 
-        foreach ($downloadTypes as $type) {
-            if (mb_stripos($contentType, $type) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Aplica cabeceras CSP según contexto de la solicitud
-     */
-    private function applyCspHeaders(Request $request, Response $response): void
-    {
-        // Base CSP común para todas las respuestas
-        $cspBase = "default-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';";
-
-        // CSP para rutas normales
-        $csp = $cspBase." script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; ".
-            "img-src 'self' data:; font-src 'self' data:; connect-src 'self';";
-
-        // CSP más estricta para rutas administrativas
-        if ($request->is('internal/admin*')) {
-            $csp = $cspBase." script-src 'self'; style-src 'self'; ".
-                "img-src 'self'; font-src 'self'; connect-src 'self';";
-        }
-
-        $response->headers->set('Content-Security-Policy', $csp);
+        return array_any($downloadTypes, fn ($type): bool => mb_stripos((string) $contentType, (string) $type) !== false);
     }
 
     /**
      * Agrega cabeceras informativas sobre límites de tasa para APIs
      */
-    private function addRateLimitHeaders(Request $request, Response $response): void
+    private function addRateLimitHeaders(Response $response): void
     {
         // Simularemos información de límites de tasa
         // Idealmente estos datos vendrían de tu implementación real de rate limiting

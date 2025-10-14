@@ -16,11 +16,15 @@ final class ProtectStaticAssets
     {
         // Verificar el referer para asegurarse de que proviene de nuestro dominio
         $referer = $request->headers->get('referer');
-        $allowedDomains = [
-            config('app.url'),
-            // Puedes agregar más dominios permitidos aquí
-            // 'https://otro-dominio-permitido.com'
-        ];
+        $appUrl = config('app.url');
+
+        /** @var list<string> $allowedDomains */
+        $allowedDomains = [];
+        if (is_string($appUrl) && $appUrl !== '') {
+            $allowedDomains[] = $appUrl;
+        }
+        // Puedes agregar más dominios permitidos aquí
+        // $allowedDomains[] = 'https://otro-dominio-permitido.com';
 
         // Para entornos de desarrollo, permitir localhost y dominios de desarrollo
         if (app()->environment('local', 'development')) {
@@ -31,7 +35,7 @@ final class ProtectStaticAssets
         $isAllowed = false;
 
         // Si no hay referer (acceso directo) o proviene de un dominio permitido
-        if (! $referer) {
+        if (in_array($referer, [null, '', '0'], true)) {
             // Permitir acceso directo (sin referer) - opcional, puedes cambiarlo a false si quieres ser más estricto
             $isAllowed = true;
         } else {
@@ -44,9 +48,7 @@ final class ProtectStaticAssets
             }
         }
 
-        if (! $isAllowed) {
-            abort(403, 'Acceso no autorizado a este recurso.');
-        }
+        abort_unless($isAllowed, 403, 'Acceso no autorizado a este recurso.');
 
         return $next($request);
     }

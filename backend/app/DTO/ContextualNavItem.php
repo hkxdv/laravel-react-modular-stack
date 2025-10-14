@@ -16,6 +16,7 @@ final class ContextualNavItem
      * - 'route_params' opcional array
      * - 'current' opcional bool
      *
+     * @param  array<string, mixed>  $config
      * @return array<int, string> Lista de errores; vacío si es válida
      */
     public static function validate(array $config): array

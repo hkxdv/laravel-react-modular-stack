@@ -27,6 +27,8 @@ interface AuthenticatableUser extends Authenticatable
 
     /**
      * Determina si el usuario tiene un rol específico.
+     *
+     * @param  string|string[]  $roles
      */
     public function hasRole(
         string|array $roles,

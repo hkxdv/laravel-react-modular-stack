@@ -18,7 +18,7 @@ interface ApiResponseFormatterInterface
      * @param  mixed  $data  Los datos a incluir en la respuesta
      * @param  string|null  $message  Mensaje opcional
      * @param  int  $statusCode  Código HTTP de estado
-     * @param  array  $meta  Metadatos adicionales
+     * @param  array<string, mixed>  $meta  Metadatos adicionales
      * @return JsonResponse Respuesta JSON
      */
     public function successResponse(
@@ -33,7 +33,7 @@ interface ApiResponseFormatterInterface
      *
      * @param  string  $message  Mensaje de error
      * @param  int  $statusCode  Código HTTP de estado
-     * @param  array  $errors  Errores detallados
+     * @param  array<string, mixed>  $errors  Errores detallados
      * @return JsonResponse Respuesta JSON
      */
     public function errorResponse(
@@ -46,7 +46,7 @@ interface ApiResponseFormatterInterface
      * Genera una respuesta JSON con paginación.
      *
      * @param  mixed  $data  Datos paginados
-     * @param  array  $paginationInfo  Información de paginación
+     * @param  array<string, mixed>  $paginationInfo  Información de paginación
      * @param  string|null  $message  Mensaje opcional
      * @param  int  $statusCode  Código HTTP de estado
      * @return JsonResponse Respuesta JSON

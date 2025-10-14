@@ -65,12 +65,6 @@ final class ForceHttps
             'HTTP_CLOUDFRONT_FORWARDED_PROTO' => 'https',
         ];
 
-        foreach ($sslHeaders as $header => $value) {
-            if ($request->server($header) === $value) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($sslHeaders, fn ($value, $header): bool => $request->server($header) === $value);
     }
 }

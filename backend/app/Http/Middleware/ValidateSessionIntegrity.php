@@ -37,10 +37,18 @@ final class ValidateSessionIntegrity
 
         // Obtener información actual de la sesión
         $currentFingerprint = $this->generateSessionFingerprint($request);
+        /**
+         * @var array{
+         *   user_agent: string|null,
+         *   ip_network: string|null,
+         *   accept_language: string|null,
+         *   accept_encoding: string|null
+         * }|null $storedFingerprint
+         */
         $storedFingerprint = $request->session()->get($sessionKey);
 
         // Si es la primera vez, almacenar el fingerprint
-        if (! $storedFingerprint) {
+        if (! is_array($storedFingerprint)) {
             $request->session()->put($sessionKey, $currentFingerprint);
 
             return $next($request);
@@ -48,6 +56,10 @@ final class ValidateSessionIntegrity
 
         // Verificar si el fingerprint ha cambiado sospechosamente
         if (! $this->validateFingerprint($currentFingerprint, $storedFingerprint)) {
+            if (! $user instanceof \Illuminate\Contracts\Auth\Authenticatable) {
+                return $next($request);
+            }
+
             return $this->handleSuspiciousActivity($request, $user, $guard);
         }
 
@@ -59,6 +71,13 @@ final class ValidateSessionIntegrity
 
     /**
      * Genera un fingerprint de la sesión basado en información del cliente.
+     *
+     * @return array{
+     *   user_agent: string|null,
+     *   ip_network: string|null,
+     *   accept_language: string|null,
+     *   accept_encoding: string|null
+     * }
      */
     private function generateSessionFingerprint(Request $request): array
     {
@@ -75,7 +94,7 @@ final class ValidateSessionIntegrity
      */
     private function getIpNetwork(?string $ip): ?string
     {
-        if (! $ip) {
+        if (in_array($ip, [null, '', '0'], true)) {
             return null;
         }
 
@@ -89,6 +108,19 @@ final class ValidateSessionIntegrity
 
     /**
      * Valida si el fingerprint actual es consistente con el almacenado.
+     *
+     * @param array{
+     *   user_agent: string|null,
+     *   ip_network: string|null,
+     *   accept_language: string|null,
+     *   accept_encoding: string|null
+     * } $current
+     * @param array{
+     *   user_agent: string|null,
+     *   ip_network: string|null,
+     *   accept_language: string|null,
+     *   accept_encoding: string|null
+     * } $stored
      */
     private function validateFingerprint(array $current, array $stored): bool
     {
@@ -98,14 +130,9 @@ final class ValidateSessionIntegrity
         }
 
         // IP puede cambiar ligeramente (misma red)
-        if ($current['ip_network'] !== $stored['ip_network']) {
-            // Permitir cambio de IP solo si otros factores coinciden
-            if (
-                $current['accept_language'] !== $stored['accept_language'] ||
-                $current['accept_encoding'] !== $stored['accept_encoding']
-            ) {
-                return false;
-            }
+        // Permitir cambio de IP solo si otros factores coinciden
+        if ($current['ip_network'] !== $stored['ip_network'] && ($current['accept_language'] !== $stored['accept_language'] || $current['accept_encoding'] !== $stored['accept_encoding'])) {
+            return false;
         }
 
         return true;
@@ -114,16 +141,22 @@ final class ValidateSessionIntegrity
     /**
      * Maneja actividad sospechosa en la sesión.
      */
-    private function handleSuspiciousActivity(Request $request, $user, ?string $guard): Response
-    {
+    private function handleSuspiciousActivity(
+        Request $request,
+        \Illuminate\Contracts\Auth\Authenticatable $user,
+        ?string $guard
+    ): Response {
         // Log de la actividad sospechosa
-        Log::warning('Actividad sospechosa detectada en sesión', [
-            'user_id' => $user->id,
-            'guard' => $guard,
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'url' => $request->fullUrl(),
-        ]);
+        Log::warning(
+            'Actividad sospechosa detectada en sesión',
+            [
+                'user_id' => $user->getAuthIdentifier(),
+                'guard' => $guard,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'url' => $request->fullUrl(),
+            ]
+        );
 
         // Cerrar la sesión por seguridad
         Auth::guard($guard)->logout();

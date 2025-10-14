@@ -14,17 +14,12 @@ use Illuminate\Support\Facades\Auth;
  */
 abstract class BaseSettingsController extends Controller
 {
-    protected ModuleRegistryService $moduleRegistry;
-
-    public function __construct(ModuleRegistryService $moduleRegistry)
-    {
-        $this->moduleRegistry = $moduleRegistry;
-    }
+    public function __construct(protected ModuleRegistryService $moduleRegistry) {}
 
     /**
      * Obtiene los ítems de navegación para el menú de configuración.
      *
-     * @return array<int, array<string, string>>
+     * @return array<int, array<string, mixed>>
      */
     protected function getSettingsNavigationItems(): array
     {

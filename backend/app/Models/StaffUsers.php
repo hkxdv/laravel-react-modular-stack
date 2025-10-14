@@ -21,8 +21,13 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * Modelo de Usuario para el personal interno (Staff).
  *
- * @mixin \Spatie\Permission\Traits\HasRoles
- * @mixin \App\Traits\CrossGuardPermissions
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $password
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
  *
  * @use HasFactory<\Database\Factories\StaffUsersFactory>
  */
@@ -30,8 +35,6 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
 {
     /** @use HasFactory<\Database\Factories\StaffUsersFactory> */
     use CrossGuardPermissions, HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
-
-    protected $guard_name = 'staff';
 
     /**
      * El nombre de la tabla asociada con el modelo.
@@ -66,11 +69,13 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
      * Atributos agregados al array/JSON automáticamente.
      * Esto permite exponer 'avatar' como un atributo computado.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $appends = [
         'avatar',
     ];
+
+    private string $guard_name = 'staff';
 
     /**
      * Verifica si el usuario está activo.
@@ -102,7 +107,7 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(
-                fn (string $eventName) => "El usuario ha sido {$this->getEventDescription($eventName)}"
+                fn (string $eventName): string => "El usuario ha sido {$this->getEventDescription($eventName)}"
             );
     }
 
@@ -126,6 +131,8 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
 
     /**
      * Define la relación con la información de inicio de sesión del usuario.
+     *
+     * @return HasMany<StaffUsersLoginInfo, $this>
      */
     public function loginInfos(): HasMany
     {
@@ -145,7 +152,7 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
      */
     public function getAuthGuard(): string
     {
-        return 'staff';
+        return $this->guard_name;
     }
 
     /**
@@ -155,14 +162,17 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
         ?string $ipAddress,
         ?string $userAgent
     ): bool {
-        if (! $ipAddress || ! $userAgent) {
+        if (
+            in_array($ipAddress, [null, '', '0'], true)
+            || in_array($userAgent, [null, '', '0'], true)
+        ) {
             return true; // No hay datos suficientes, se considera sospechoso.
         }
 
         // Busca si ya tenemos registros de este dispositivo/IP o si es un dispositivo de confianza.
         $isKnown = $this->loginInfos()
             ->where(
-                function ($query) use ($ipAddress, $userAgent) {
+                function ($query) use ($ipAddress, $userAgent): void {
                     $query
                         ->where('ip_address', $ipAddress)
                         ->where('user_agent', $userAgent)
@@ -184,7 +194,8 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
         ?string $userAgent,
         array $deviceInfo = []
     ): StaffUsersLoginInfo {
-        return $this->loginInfos()->create([
+        /** @var StaffUsersLoginInfo $created */
+        $created = $this->loginInfos()->create([
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
             'device_type' => $deviceInfo['device'] ?? null,
@@ -195,6 +206,21 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
             'last_login_at' => now(),
             'login_count' => 1,
         ]);
+
+        return $created;
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        /** @var array<string, mixed> $arr */
+        $arr = $this->toArray();
+
+        return $arr;
     }
 
     /**
@@ -203,7 +229,7 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
      *
      * @return array<string>
      */
-    public function getFrontendPermissionsAttribute(): array
+    protected function getFrontendPermissionsAttribute(): array
     {
         // Obtiene todos los permisos únicos (directos y vía roles) a través del trait.
         $allPermissions = $this->getAllCrossGuardPermissions();
@@ -217,7 +243,7 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
 
         return array_filter(
             $allPermissions,
-            function ($permission) use ($excludePatterns) {
+            function (string $permission) use ($excludePatterns): bool {
                 foreach ($excludePatterns as $pattern) {
                     if (str_starts_with($permission, $pattern)) {
                         return false; // Excluir si el permiso comienza con un patrón no deseado.
@@ -230,35 +256,12 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
     }
 
     /**
-     * Get the indexable data array for the model.
-     *
-     * @return array<string, mixed>
-     */
-    public function toSearchableArray(): array
-    {
-        return array_merge($this->toArray(), []);
-    }
-
-    /**
      * Accessor para obtener la URL del avatar del usuario.
      * (Se removió la dependencia a ContactStaffUser/contactProfile.)
      */
-    public function getAvatarAttribute(): ?string
+    protected function getAvatarAttribute(): string
     {
-        return null;
-    }
-
-    /**
-     * Devuelve una descripción legible del evento.
-     */
-    protected function getEventDescription(string $eventName): string
-    {
-        return match ($eventName) {
-            'created' => 'creado',
-            'updated' => 'actualizado',
-            'deleted' => 'eliminado',
-            default => $eventName,
-        };
+        return '';
     }
 
     /**
@@ -271,6 +274,21 @@ final class StaffUsers extends Authenticatable implements AuthenticatableUser, M
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_activity' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Devuelve una descripción legible del evento.
+     */
+    private function getEventDescription(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'creado',
+            'updated' => 'actualizado',
+            'deleted' => 'eliminado',
+            default => $eventName,
+        };
     }
 }

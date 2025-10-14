@@ -34,32 +34,45 @@ final class ApiAuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
+        /**
+         * @var array{email:string,password:string,device_name:string} $data
+         */
+        $data = $request->validate([
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
             'device_name' => ['required', 'string', 'max:255'],
         ]);
 
-        $user = StaffUsers::where('email', $request->email)->first();
+        $email = $data['email'];
+        $password = $data['password'];
+        $deviceName = $data['device_name'];
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
+        $user = StaffUsers::query()->where('email', $email)->first();
+
+        $hashedPassword = $user?->password;
+        throw_if(
+            ! $user || ! is_string($hashedPassword) || ! Hash::check(
+                $password,
+                $hashedPassword
+            ),
+            ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
-            ]);
-        }
+            ])
+        );
 
-        if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail()) {
-            throw ValidationException::withMessages([
+        throw_if(
+            ! $user->hasVerifiedEmail(),
+            ValidationException::withMessages([
                 'email' => ['Debes verificar tu correo electrónico antes de continuar.'],
-            ]);
-        }
+            ])
+        );
 
-        $user->tokens()->where('name', $request->device_name)->delete();
-        $token = $user->createToken($request->device_name, ['basic'], now()->addDays(30));
+        $user->tokens()->where('name', $deviceName)->delete();
+        $token = $user->createToken($deviceName, ['basic'], now()->addDays(30));
 
         Log::info('Token API generado', [
-            'user_id' => $user->id,
-            'device' => $request->device_name,
+            'user_id' => $user->getAuthIdentifier(),
+            'device' => $deviceName,
             'ip' => $request->ip(),
         ]);
 
@@ -70,11 +83,18 @@ final class ApiAuthController extends Controller
      * Obtiene la información del usuario actualmente autenticado.
      *
      * @param  Request  $request  La solicitud HTTP.
-     * @return array Un array con los datos públicos del usuario.
+     * @return array<string, mixed> Un array con los datos públicos del usuario.
      */
     public function user(Request $request): array
     {
-        return $request->user()->only([
+        /** @var StaffUsers|null $user */
+        $user = $request->user();
+
+        if (! $user instanceof StaffUsers) {
+            return [];
+        }
+
+        return $user->only([
             'id',
             'name',
             'email',

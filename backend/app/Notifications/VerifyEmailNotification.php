@@ -27,7 +27,7 @@ final class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
     /**
      * Construye la representación por correo electrónico de la notificación.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable&\Illuminate\Contracts\Auth\MustVerifyEmail  $notifiable  La entidad que recibe la notificación
      * @return MailMessage El mensaje de correo electrónico configurado.
      */
     public function toMail($notifiable): MailMessage
@@ -36,14 +36,32 @@ final class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
         $verificationUrl = $this->verificationUrl($notifiable);
 
         // Construye el mensaje de correo.
+        $nameValue = $notifiable->getAttribute('name');
+        $displayName = is_string($nameValue) ? $nameValue : 'Usuario';
+
         return (new MailMessage)
-            ->subject('Activación de Cuenta y Verificación de Correo')
-            ->greeting("¡Hola, {$notifiable->name}!")
-            ->line('Se ha creado una cuenta para ti en nuestro sistema.')
-            ->line('Para activar tu cuenta y comenzar, por favor verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:')
-            ->action('Verificar Correo Electrónico', $verificationUrl)
-            ->line('Si no esperabas la creación de esta cuenta, puedes ignorar este mensaje de forma segura.')
-            ->line('Este correo electrónico es generado automáticamente. Por favor, no respondas a este mensaje.')
+            ->subject(
+                'Activación de Cuenta y Verificación de Correo'
+            )
+            ->greeting(
+                "¡Hola, {$displayName}!"
+            )
+            ->line(
+                'Se ha creado una cuenta para ti en nuestro sistema.'
+            )
+            ->line(
+                'Para activar tu cuenta y comenzar, por favor verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:'
+            )
+            ->action(
+                'Verificar Correo Electrónico',
+                $verificationUrl
+            )
+            ->line(
+                'Si no esperabas la creación de esta cuenta, puedes ignorar este mensaje de forma segura.'
+            )
+            ->line(
+                'Este correo electrónico es generado automáticamente. Por favor, no respondas a este mensaje.'
+            )
             ->salutation('Saludos,');
     }
 
@@ -54,17 +72,23 @@ final class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
      * garantizando que solo el destinatario pueda verificar la cuenta. La duración
      * de la validez del enlace se obtiene de la configuración de la aplicación.
      *
-     * @param  mixed  $notifiable  La entidad que debe ser notificada.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable&\Illuminate\Contracts\Auth\MustVerifyEmail  $notifiable  La entidad notificada
      * @return string La URL de verificación firmada.
      */
     protected function verificationUrl($notifiable): string
     {
+        $expireRaw = Config::get('auth.verification.expire', 60);
+        $expireMinutes = is_numeric($expireRaw)
+            ? (int) $expireRaw
+            : 60;
+        $email = $notifiable->getEmailForVerification();
+
         return URL::temporarySignedRoute(
             'verification.verify',
-            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            Carbon::now()->addMinutes($expireMinutes),
             [
                 'id' => $notifiable->getKey(),
-                'hash' => sha1($notifiable->getEmailForVerification()),
+                'hash' => sha1($email),
             ]
         );
     }

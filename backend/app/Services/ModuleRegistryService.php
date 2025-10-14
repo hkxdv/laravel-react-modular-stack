@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Interfaces\AuthenticatableUser;
 use App\Interfaces\ModuleRegistryInterface;
+use App\Models\StaffUsers as User;
 use Illuminate\Support\Facades\Auth;
 use Nwidart\Modules\Facades\Module;
 use Nwidart\Modules\Laravel\Module as ModuleInstance;
@@ -26,30 +26,35 @@ final class ModuleRegistryService implements ModuleRegistryInterface
     /**
      * Obtiene los módulos disponibles para un usuario específico.
      *
-     * @return array<ModuleInstance>
+     * @return list<ModuleInstance>
      */
-    public function getAvailableModulesForUser(AuthenticatableUser $user): array
+    public function getAvailableModulesForUser(User $user): array
     {
         // Usar collecciones para aprovechar funciones de orden superior
-        return collect(Module::allEnabled())
-            ->filter(fn (
-                ModuleInstance $module
-            ) => $this->canUserAccessModule($user, $module))
-            ->all();
+        return array_values(
+            collect(Module::allEnabled())
+                ->filter(fn ($module): bool => $module instanceof ModuleInstance
+                    && $this->canUserAccessModule($user, $module))
+                ->values()
+                ->all()
+        );
     }
 
     /**
      * Obtiene los módulos accesibles basados en el usuario actual o todos si no se proporciona usuario.
      *
-     * @param  AuthenticatableUser|null  $user  Usuario para el que se consultan los módulos (o null para todos)
-     * @return array<ModuleInstance>
+     * @param  User|null  $user  Usuario para el que se consultan los módulos (o null para todos)
+     * @return list<ModuleInstance>
      */
     public function getAccessibleModules(
-        ?AuthenticatableUser $user = null
+        ?User $user = null
     ): array {
         // Si no se proporciona usuario, intentar obtener el usuario autenticado desde cualquier guard
-        if (! $user) {
-            foreach (array_keys(config('auth.guards')) as $guard) {
+        if (! $user instanceof User) {
+            $guards = config('auth.guards', []);
+            $guardsArr = is_array($guards) ? $guards : [];
+            foreach (array_keys($guardsArr) as $guardName) {
+                $guard = is_string($guardName) ? $guardName : (string) $guardName;
                 if (Auth::guard($guard)->check()) {
                     $user = Auth::guard($guard)->user();
                     break;
@@ -63,17 +68,27 @@ final class ModuleRegistryService implements ModuleRegistryInterface
         }
 
         // Si no hay usuario, devolver todos los módulos habilitados
-        return Module::allEnabled();
+        return array_values(
+            array_filter(
+                Module::allEnabled(),
+                fn ($m): bool => $m instanceof ModuleInstance
+            )
+        );
     }
 
     /**
      * Obtiene todos los módulos habilitados sin filtrar por usuario.
      *
-     * @return array<ModuleInstance>
+     * @return list<ModuleInstance>
      */
     public function getAllEnabledModules(): array
     {
-        return Module::allEnabled();
+        return array_values(
+            array_filter(
+                Module::allEnabled(),
+                fn ($m): bool => $m instanceof ModuleInstance
+            )
+        );
     }
 
     /**
@@ -92,7 +107,9 @@ final class ModuleRegistryService implements ModuleRegistryInterface
         }
 
         // Obtener la configuración y guardarla en caché
-        $config = config($moduleSlug, []);
+        $configRaw = config($moduleSlug, []);
+        $config = (array) $configRaw;
+        /** @var array<string, mixed> $config */
         $this->configCache[$moduleSlug] = $config;
 
         return $config;
@@ -109,10 +126,10 @@ final class ModuleRegistryService implements ModuleRegistryInterface
     /**
      * Obtiene los ítems de navegación global disponibles para un usuario.
      *
-     * @param  AuthenticatableUser|null  $user  Usuario autenticado
+     * @param  User|null  $user  Usuario autenticado
      * @return array<int, array<string, mixed>>
      */
-    public function getGlobalNavItems(?AuthenticatableUser $user = null): array
+    public function getGlobalNavItems(?User $user = null): array
     {
         // Configuración base para los ítems de navegación global
         return [
@@ -141,21 +158,23 @@ final class ModuleRegistryService implements ModuleRegistryInterface
      * Determina si un usuario puede acceder a un módulo específico.
      */
     private function canUserAccessModule(
-        AuthenticatableUser $user,
+        User $user,
         ModuleInstance $module
     ): bool {
         $config = $this->getModuleConfig($module->getName());
 
         // Si no hay configuración, no permitir acceso
-        if (empty($config)) {
+        if ($config === []) {
             return false;
         }
 
         $permission = $config['base_permission'] ?? null;
-        $authGuard = $config['auth_guard'] ?? null;
+        $permissionStr = is_string($permission) ? $permission : null;
+        $authGuardVal = $config['auth_guard'] ?? null;
+        $authGuardStr = is_string($authGuardVal) ? $authGuardVal : null;
 
         // Si el guard del módulo no coincide con el del usuario, denegar acceso.
-        if ($authGuard && $user->getAuthGuard() !== $authGuard) {
+        if ($authGuardStr && $user->getAuthGuard() !== $authGuardStr) {
             return false;
         }
 
@@ -168,18 +187,11 @@ final class ModuleRegistryService implements ModuleRegistryInterface
         }
 
         // Si no se requiere permiso, permitir acceso.
-        if ($permission === null) {
+        if ($permissionStr === null) {
             return true;
         }
 
-        // Verificar si el usuario tiene el permiso necesario.
-        // Preferir verificación entre guards si el método está disponible.
-        if (method_exists($user, 'hasPermissionToCross')) {
-            return $user->hasPermissionToCross($permission);
-        }
-
-        return $authGuard
-            ? $user->hasPermissionTo($permission, $authGuard)
-            : $user->hasPermissionTo($permission);
+        // Preferir verificación entre guards usando método del contrato.
+        return $user->hasPermissionToCross($permissionStr);
     }
 }

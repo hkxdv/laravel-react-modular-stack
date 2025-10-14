@@ -27,7 +27,7 @@ final class SyncGuardPermissionsCommand extends Command
     /**
      * Ejecuta el comando de consola.
      */
-    public function handle()
+    public function handle(): int
     {
         $this->info('Iniciando sincronización de roles y permisos entre guards...');
 

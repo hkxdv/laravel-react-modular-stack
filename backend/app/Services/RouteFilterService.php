@@ -16,12 +16,22 @@ final class RouteFilterService
 {
     /**
      * Obtener rutas de Ziggy filtradas para el contexto actual
+     *
+     * @return array{
+     *   url: string,
+     *   port: int|null,
+     *   defaults: array<string, mixed>,
+     *   routes: array<string, mixed>,
+     *   location: string
+     * }
      */
     public function getFilteredZiggy(Request $request): array
     {
         // Obtener todas las rutas disponibles
         $ziggy = new Ziggy;
+        /** @var array{url: string, port: int|null, defaults: array<string, mixed>, routes: array<string, mixed>} $allRoutes */
         $allRoutes = $ziggy->toArray();
+        /** @var array<string, mixed> $routes */
         $routes = $allRoutes['routes'];
 
         // Aplicar filtro según el usuario autenticado
@@ -42,6 +52,9 @@ final class RouteFilterService
 
     /**
      * Aplica exclusiones específicas basadas en el contexto actual
+     *
+     * @param  array<string, mixed>  $routes
+     * @return array<string, mixed>
      */
     private function applySpecificExclusions(
         array $routes,
@@ -54,15 +67,14 @@ final class RouteFilterService
                 'sanctum.csrf-cookie',
             ];
 
-            return array_filter($routes, function ($key) use ($allowedPrefixes) {
-                foreach ($allowedPrefixes as $prefix) {
-                    if (mb_strpos($key, $prefix) === 0) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }, ARRAY_FILTER_USE_KEY);
+            return array_filter(
+                $routes,
+                static fn ($key): bool => array_any(
+                    $allowedPrefixes,
+                    fn ($prefix): bool => str_starts_with((string) $key, (string) $prefix)
+                ),
+                ARRAY_FILTER_USE_KEY
+            );
         }
 
         return $routes;
@@ -70,6 +82,9 @@ final class RouteFilterService
 
     /**
      * Filtrar rutas según el tipo de usuario actual
+     *
+     * @param  array<string, mixed>  $routes
+     * @return array<string, mixed>
      */
     private function filterRoutesByUserType(array $routes): array
     {
@@ -82,6 +97,8 @@ final class RouteFilterService
 
     /**
      * Obtener los patrones de rutas aplicables según el tipo de usuario actual
+     *
+     * @return array<int, string>
      */
     private function getPatternsByUserType(): array
     {
@@ -89,12 +106,20 @@ final class RouteFilterService
         $publicPatterns = Config::get('routes.filters.public', []);
         $staffPatterns = Config::get('routes.filters.staff', []);
 
+        // Normalizar a listas de string
+        $publicPatterns = is_array($publicPatterns)
+            ? array_values(array_filter($publicPatterns, 'is_string'))
+            : [];
+        $staffPatterns = is_array($staffPatterns)
+            ? array_values(array_filter($staffPatterns, 'is_string'))
+            : [];
+
         // Por defecto, solo patrones públicos
         $patterns = $publicPatterns;
 
         // Si es staff, añadir patrones de staff
         if (Auth::guard('staff')->check()) {
-            $patterns = array_merge($patterns, $staffPatterns);
+            return array_merge($patterns, $staffPatterns);
         }
 
         return $patterns;
@@ -102,16 +127,22 @@ final class RouteFilterService
 
     /**
      * Filtrar rutas basado en un conjunto de patrones
+     *
+     * @param  array<string, mixed>  $routes
+     * @param  array<int, string>  $patterns
+     * @return array<string, mixed>
      */
-    private function filterRoutesByPatterns(array $routes, array $patterns): array
-    {
+    private function filterRoutesByPatterns(
+        array $routes,
+        array $patterns
+    ): array {
         $filteredRoutes = [];
         $notMatchedRoutes = [];
 
         // Primero procesamos las rutas que coincidan exactamente
         foreach ($routes as $name => $route) {
             // Si la ruta está exactamente en los patrones, añadirla directamente
-            if (in_array($name, $patterns)) {
+            if (in_array($name, $patterns, true)) {
                 $filteredRoutes[$name] = $route;
 
                 continue;
@@ -121,9 +152,10 @@ final class RouteFilterService
         }
 
         // Luego procesamos las rutas que coincidan con patrones con comodines
-        $wildcardPatterns = array_filter($patterns, function ($pattern) {
-            return mb_strpos($pattern, '*') !== false;
-        });
+        $wildcardPatterns = array_filter(
+            $patterns,
+            static fn (string $pattern): bool => str_contains($pattern, '*')
+        );
 
         if (count($wildcardPatterns) > 0) {
             foreach ($notMatchedRoutes as $name => $route) {
@@ -132,7 +164,7 @@ final class RouteFilterService
                     $regexPattern = $this->patternToRegex($pattern);
 
                     // Verificar si la ruta coincide con el patrón
-                    if (preg_match($regexPattern, $name)) {
+                    if (preg_match($regexPattern, $name) === 1) {
                         $filteredRoutes[$name] = $route;
                         break;
                     }
@@ -150,25 +182,8 @@ final class RouteFilterService
             ]);
         }
 
+        /** @var array<string, mixed> $filteredRoutes */
         return $filteredRoutes;
-    }
-
-    /**
-     * Verificar si una ruta coincide con alguno de los patrones
-     */
-    private function routeMatchesPatterns(string $routeName, array $patterns): bool
-    {
-        foreach ($patterns as $pattern) {
-            // Convertir el patrón a expresión regular
-            $regexPattern = $this->patternToRegex($pattern);
-
-            // Verificar si la ruta coincide con el patrón
-            if (preg_match($regexPattern, $routeName)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

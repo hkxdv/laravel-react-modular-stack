@@ -28,9 +28,10 @@ final class MakeProjectModuleCommand extends Command
     /**
      * Ejecuta el comando de consola.
      */
-    public function handle()
+    public function handle(): int
     {
-        $moduleName = $this->argument('name');
+        // Forzar tipo string y evitar nulls provenientes de argumento CLI
+        $moduleName = (string) $this->argument('name');
 
         /* // Validar que el nombre del módulo siga el formato ModuleXX
         if (!preg_match('/^Module\d{2,}$/', $moduleName)) {
@@ -46,7 +47,7 @@ final class MakeProjectModuleCommand extends Command
 
         // $kebabName = Str::kebab($moduleName); // Línea original
         $kebabName = Str::lower(
-            preg_replace('/(?<!^)(?=[A-Z0-9])/', '-', $moduleName)
+            (string) preg_replace('/(?<!^)(?=[A-Z0-9])/', '-', $moduleName)
         );
 
         // Si empieza con "module-", lo mantenemos, si no, añadimos "module-" al principio y luego el resto en kebab
@@ -55,7 +56,7 @@ final class MakeProjectModuleCommand extends Command
             $suffix = Str::substr($moduleName, 6); // Longitud de "Module"
             // Convertir el sufijo a kebab-case y asegurarse de que los números estén separados por guiones
             $kebabSuffix = Str::lower(
-                preg_replace(
+                (string) preg_replace(
                     '/(?<=\D)(?=\d)|(?<=\d)(?=\D)|(?<=[a-z])(?=[A-Z])/',
                     '-',
                     $suffix
@@ -75,7 +76,8 @@ final class MakeProjectModuleCommand extends Command
             $confirm = $this->ask(
                 "El módulo {$moduleName} ya existe. ¿Deseas eliminarlo y continuar? (yes/no)",
                 'no'
-            );
+            ) ?? 'no';
+            $confirm = is_string($confirm) ? $confirm : 'no';
             if (Str::lower($confirm) === 'yes' || Str::lower($confirm) === 'y') {
                 $this->info("Eliminando directorio existente: {$basePath}");
                 File::deleteDirectory($basePath);
@@ -133,6 +135,9 @@ final class MakeProjectModuleCommand extends Command
         // Definir rutas a los stubs y destinos de los archivos generados
         $stubsPath = base_path('stubs/new-module-custom/');
 
+        /**
+         * @var array<string, array{stub:string, dest:string}> $filesToGenerate
+         */
         $filesToGenerate = [
             'composer.json' => [
                 'stub' => 'composer.stub',
@@ -181,7 +186,7 @@ final class MakeProjectModuleCommand extends Command
         ];
 
         // Generar archivos desde stubs
-        foreach ($filesToGenerate as $generatedFileName => $fileInfo) {
+        foreach ($filesToGenerate as $fileInfo) {
             $stubPath = $stubsPath.$fileInfo['stub'];
             $destPath = $fileInfo['dest'];
 
@@ -212,12 +217,16 @@ final class MakeProjectModuleCommand extends Command
         $statuses = File::exists($statusesPath)
             ? json_decode(File::get($statusesPath), true)
             : [];
+        if (! is_array($statuses)) {
+            $statuses = [];
+        }
 
         $statuses[$studlyName] = true; // Asegurar que el módulo esté activo
 
+        $jsonStatuses = json_encode($statuses, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         File::put(
             $statusesPath,
-            json_encode($statuses, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            is_string($jsonStatuses) ? $jsonStatuses : '[]'
         );
         $this->info('modules_statuses.json actualizado.');
 

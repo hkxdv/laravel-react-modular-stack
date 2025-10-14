@@ -81,8 +81,15 @@ final class LoginAttemptService
     public function getAttempts(string $identifier, string $ip): int
     {
         $key = $this->getAttemptKey($identifier, $ip);
+        $raw = RateLimiter::attempts($key);
+        if (is_int($raw)) {
+            return $raw;
+        }
+        if (is_string($raw) || is_float($raw)) {
+            return (int) $raw;
+        }
 
-        return RateLimiter::attempts($key);
+        return 0;
     }
 
     /**
@@ -112,8 +119,9 @@ final class LoginAttemptService
         $attempts = $this->getAttempts($identifier, $ip);
 
         // Aplica un incremento exponencial al tiempo de bloqueo
-        $lockoutPeriod = $this
-            ->initialLockoutPeriod * pow($this->lockoutMultiplier, $attempts);
+        $lockoutPeriod = (int) round(
+            $this->initialLockoutPeriod * $this->lockoutMultiplier ** $attempts
+        );
 
         // Limita al máximo período de bloqueo
         return min($lockoutPeriod, $this->maxLockoutPeriod);
@@ -136,7 +144,14 @@ final class LoginAttemptService
     {
         // Contar intentos fallidos totales desde esta IP en diferentes cuentas
         $ipAttemptsKey = 'login_attempts_ip:'.$ip;
-        $ipAttempts = Cache::get($ipAttemptsKey, 0) + 1;
+        $raw = Cache::get($ipAttemptsKey, 0);
+        $base = 0;
+        if (is_int($raw)) {
+            $base = $raw;
+        } elseif (is_string($raw) || is_float($raw)) {
+            $base = (int) $raw;
+        }
+        $ipAttempts = $base + 1;
 
         // Almacenar por 1 hora
         Cache::put($ipAttemptsKey, $ipAttempts, 60 * 60);

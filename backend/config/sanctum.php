@@ -17,7 +17,9 @@ return [
     |
     */
 
-    'stateful' => array_filter(explode(',', env('SANCTUM_STATEFUL_DOMAINS', ''))),
+    'stateful' => array_filter(
+        explode(',', (string) env('SANCTUM_STATEFUL_DOMAINS', ''))
+    ),
 
     /*
     |--------------------------------------------------------------------------

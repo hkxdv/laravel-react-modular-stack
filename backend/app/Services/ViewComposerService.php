@@ -15,21 +15,21 @@ use Inertia\Response as InertiaResponse;
  * Servicio para componer y preparar datos para las vistas.
  * Encapsula la lógica de preparación de datos que se pasarán a los componentes de Inertia.
  */
-final class ViewComposerService implements ViewComposerInterface
+final readonly class ViewComposerService implements ViewComposerInterface
 {
     /**
      * Constructor del servicio de composición de vistas.
      */
     public function __construct(
-        private readonly NavigationBuilderInterface $navigationService,
-        private readonly ModuleRegistryInterface $moduleRegistry,
+        private NavigationBuilderInterface $navigationService,
+        private ModuleRegistryInterface $moduleRegistry,
     ) {}
 
     /**
      * Prepara los datos comunes para las vistas del módulo.
      * Incluye panelItems, stats, pageTitle, description y mensajes flash.
      *
-     * @param  array<string, mixed>  $panelItemsConfig
+     * @param  array<int, array<string, mixed>>|array<string, mixed>  $panelItemsConfig
      * @param  array<string, mixed>|null  $stats
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -42,12 +42,35 @@ final class ViewComposerService implements ViewComposerInterface
         ?array $stats = null,
         array $data = []
     ): array {
-        $panelItems = $this->navigationService->buildPanelItems(
-            itemsConfig: $panelItemsConfig,
-            permissionChecker: $permissionChecker,
-            moduleSlug: $moduleSlug,
-            functionalName: $functionalName
+        $isList = array_is_list($panelItemsConfig);
+
+        $normalizedPanelItemsConfig = $isList
+            ? $panelItemsConfig
+            : [$panelItemsConfig];
+
+        // Asegurar que cada ítem tenga llaves string para cumplir el contrato
+        $normalizedPanelItemsConfig = array_map(
+            static function ($item): array {
+                if (! is_array($item)) {
+                    return [];
+                }
+                $assoc = [];
+                foreach ($item as $k => $v) {
+                    $assoc[(string) $k] = $v;
+                }
+
+                return $assoc;
+            },
+            $normalizedPanelItemsConfig
         );
+
+        $panelItems = $this->navigationService
+            ->buildPanelItems(
+                itemsConfig: $normalizedPanelItemsConfig,
+                permissionChecker: $permissionChecker,
+                moduleSlug: $moduleSlug,
+                functionalName: $functionalName
+            );
 
         // Obtener descripción desde el config del módulo para exponerla como prop uniforme
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
@@ -123,10 +146,10 @@ final class ViewComposerService implements ViewComposerInterface
     ): array {
         // Normalizar nombre funcional y obtener descripción desde config del módulo
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
-        $functionalName = $functionalName
-            ?? (
-                $moduleConfig['functional_name'] ?? ucfirst($moduleSlug)
-            );
+        $fn = $moduleConfig['functional_name'] ?? null;
+        $functionalName = is_string($functionalName)
+            ? $functionalName
+            : (is_string($fn) ? $fn : ucfirst($moduleSlug));
         $moduleDescription = $moduleConfig['description'] ?? null;
 
         // Obtener todos los elementos de navegación
@@ -196,10 +219,17 @@ final class ViewComposerService implements ViewComposerInterface
         $allModules = $this->moduleRegistry->getAllEnabledModules();
 
         // Preparar tarjetas de módulos y navegación contextual (combinadas con canAccess)
+        $typedAvailableModules = array_values(
+            array_filter(
+                $availableModules,
+                static fn ($m): bool => $m instanceof \Nwidart\Modules\Laravel\Module
+            )
+        );
+
         $moduleCards = $this->navigationService
             ->buildModuleCards(
                 $allModules,
-                $availableModules
+                $typedAvailableModules
             );
 
         // Separar backend en accesibles y restringidos para simplificar el frontend

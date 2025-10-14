@@ -24,19 +24,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $platform Plataforma o sistema operativo.
  * @property bool $is_mobile Indica si el dispositivo es móvil.
  * @property bool $is_trusted Indica si el dispositivo es de confianza.
- * @property \Illuminate\Support\Carbon|null $last_login_at Fecha y hora del último inicio de sesión.
+ * @property \Carbon\CarbonInterface|null $last_login_at Fecha y hora del último inicio de sesión.
  * @property int $login_count Contador de inicios de sesión desde este dispositivo.
  * @property-read StaffUsers $staffUser
+ *
+ * @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<\App\Models\StaffUsersLoginInfo>>
  */
 final class StaffUsersLoginInfo extends Model
 {
+    /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<\App\Models\StaffUsersLoginInfo>> */
     use HasFactory;
 
     /**
      * Umbral de similitud para la comparación de agentes de usuario.
      * Se usa para tolerar variaciones menores en las versiones de los navegadores.
      */
-    private const USER_AGENT_SIMILARITY_THRESHOLD = 80;
+    private const int USER_AGENT_SIMILARITY_THRESHOLD = 80;
 
     /**
      * El nombre de la tabla asociada con el modelo.
@@ -48,7 +51,7 @@ final class StaffUsersLoginInfo extends Model
     /**
      * Los atributos que son asignables en masa.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'staff_user_id',
@@ -76,30 +79,9 @@ final class StaffUsersLoginInfo extends Model
     ];
 
     /**
-     * ACCESOR DE COMPATIBILIDAD: Obtiene el `staff_user_id`.
-     *
-     * Este accesor existe para mantener la compatibilidad con partes del código
-     * que podrían referirse incorrectamente a `staff_users_id` (en plural).
-     * El nombre correcto de la columna es `staff_user_id`.
-     */
-    public function getStaffUsersIdAttribute(): int
-    {
-        return $this->staff_user_id;
-    }
-
-    /**
-     * MUTADOR DE COMPATIBILIDAD: Establece el `staff_user_id`.
-     *
-     * Este mutador permite asignar el ID de usuario utilizando el alias incorrecto
-     * `staff_users_id` por razones de compatibilidad.
-     */
-    public function setStaffUsersIdAttribute(int $value): void
-    {
-        $this->attributes['staff_user_id'] = $value;
-    }
-
-    /**
      * Define la relación con el usuario de personal al que pertenece esta información.
+     *
+     * @return BelongsTo<StaffUsers, $this>
      */
     public function staffUser(): BelongsTo
     {
@@ -125,7 +107,7 @@ final class StaffUsersLoginInfo extends Model
             return true;
         }
 
-        if (! $userAgent || ! $this->user_agent) {
+        if (in_array($userAgent, [null, '', '0'], true) || ! $this->user_agent) {
             return false;
         }
 
@@ -143,5 +125,28 @@ final class StaffUsersLoginInfo extends Model
         $this->last_login_at = now();
         $this->increment('login_count');
         $this->save();
+    }
+
+    /**
+     * ACCESOR DE COMPATIBILIDAD: Obtiene el `staff_user_id`.
+     *
+     * Este accesor existe para mantener la compatibilidad con partes del código
+     * que podrían referirse incorrectamente a `staff_users_id` (en plural).
+     * El nombre correcto de la columna es `staff_user_id`.
+     */
+    protected function getStaffUsersIdAttribute(): int
+    {
+        return $this->staff_user_id;
+    }
+
+    /**
+     * MUTADOR DE COMPATIBILIDAD: Establece el `staff_user_id`.
+     *
+     * Este mutador permite asignar el ID de usuario utilizando el alias incorrecto
+     * `staff_users_id` por razones de compatibilidad.
+     */
+    protected function setStaffUsersIdAttribute(int $value): void
+    {
+        $this->attributes['staff_user_id'] = $value;
     }
 }

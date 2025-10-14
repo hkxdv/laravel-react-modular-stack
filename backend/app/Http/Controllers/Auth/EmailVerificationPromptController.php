@@ -28,8 +28,8 @@ final class EmailVerificationPromptController extends Controller
     public function __invoke(Request $request): Response|RedirectResponse
     {
         // Se comprueba si el usuario ya ha verificado su correo electrónico.
-        // Si es así, se le redirige a su destino previsto para no interrumpir su flujo.
-        if ($request->user()->hasVerifiedEmail()) {
+        $user = $this->requireStaffUser($request);
+        if ($user->hasVerifiedEmail()) {
             return redirect()->intended(route('internal.dashboard', absolute: false));
         }
 

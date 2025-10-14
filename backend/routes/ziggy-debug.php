@@ -16,14 +16,25 @@ if (app()->environment('local')) {
                 'staff' => new Ziggy(group: 'staff'),
             ];
 
+            // Asegurar tipos estrictos para evitar 'mixed' en PHPStan
+            $publicArray = $groups['public']->toArray();
+            $staffArray = $groups['staff']->toArray();
+
+            $publicRoutes = is_array($publicArray['routes'] ?? null)
+                ? $publicArray['routes']
+                : [];
+            $staffRoutes = is_array($staffArray['routes'] ?? null)
+                ? $staffArray['routes']
+                : [];
+
             return response()->json([
                 'groups' => [
-                    'public' => count($groups['public']->toArray()['routes']),
-                    'staff' => count($groups['staff']->toArray()['routes']),
+                    'public' => count($publicRoutes),
+                    'staff' => count($staffRoutes),
                 ],
                 'routes' => [
-                    'public' => array_keys($groups['public']->toArray()['routes']),
-                    'staff' => array_keys($groups['staff']->toArray()['routes']),
+                    'public' => array_keys($publicRoutes),
+                    'staff' => array_keys($staffRoutes),
                 ],
             ]);
         }

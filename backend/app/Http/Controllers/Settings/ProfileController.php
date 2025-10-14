@@ -19,10 +19,11 @@ final class ProfileController extends BaseSettingsController
      */
     public function edit(Request $request): Response
     {
-        $user = $request->user();
+        $user = $this->requireStaffUser($request);
 
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
+            // El modelo StaffUsers implementa MustVerifyEmail; siempre verdadero
+            'mustVerifyEmail' => true,
             'status' => $request->session()->get('status'),
             'contextualNavItems' => $this->getSettingsNavigationItems(),
         ]);
@@ -33,12 +34,13 @@ final class ProfileController extends BaseSettingsController
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $this->requireStaffUser($request);
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
-        $request->user()->save();
+        $user->save();
 
         return to_route('internal.settings.profile.edit');
     }
@@ -52,7 +54,7 @@ final class ProfileController extends BaseSettingsController
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = $request->user();
+        $user = $this->requireStaffUser($request);
 
         FacadesAuth::logout();
 

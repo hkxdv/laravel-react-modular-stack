@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Date;
@@ -19,13 +21,14 @@ final class EarlyBindingsServiceProvider extends ServiceProvider
     {
         // Bind temprano para 'cache' para evitar fallos en procesos de arranque/descubrimiento
         if (! $this->app->bound('cache')) {
-            $this->app->singleton('cache', function ($app) {
-                return new CacheManager($app);
-            });
+            $this->app->singleton(
+                'cache',
+                fn (ApplicationContract $app): CacheManager => new CacheManager($app)
+            );
         }
 
         // Asegurar driver de caché por defecto si no está configurado
-        $config = $this->app->make('config');
+        $config = app(ConfigRepository::class);
         if ($config->get('cache.default') === null) {
             $config->set('cache.default', 'array');
         }
@@ -34,21 +37,31 @@ final class EarlyBindingsServiceProvider extends ServiceProvider
         if (! $this->app->bound('translator')) {
             $this->app->singleton(
                 'translator',
-                function ($app) {
+                function (ApplicationContract $app): TranslationTranslator {
                     $langPath = base_path('resources/lang');
                     $loader = new TranslationFileLoader(
                         new Filesystem,
                         $langPath
                     );
-                    $locale = (
-                        $app->has('config')
-                        && $app['config']->get('app.locale')
-                    ) ? $app['config']->get('app.locale') : 'en';
+
+                    $locale = 'en';
+                    if ($app->has('config')) {
+                        $localeValue = app(
+                            ConfigRepository::class
+                        )->get('app.locale');
+                        $locale = is_string($localeValue)
+                            ? $localeValue : 'en';
+                    }
                     $translator = new TranslationTranslator($loader, $locale);
-                    $fallback = (
-                        $app->has('config')
-                        && $app['config']->get('app.fallback_locale')
-                    ) ? $app['config']->get('app.fallback_locale') : 'en';
+
+                    $fallback = 'en';
+                    if ($app->has('config')) {
+                        $fallbackValue = app(
+                            ConfigRepository::class
+                        )->get('app.fallback_locale');
+                        $fallback = is_string($fallbackValue)
+                            ? $fallbackValue : 'en';
+                    }
                     $translator->setFallback($fallback);
 
                     return $translator;

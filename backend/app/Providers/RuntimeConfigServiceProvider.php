@@ -16,7 +16,8 @@ final class RuntimeConfigServiceProvider extends ServiceProvider
         @ini_set('upload_max_filesize', '10M');
         @ini_set('post_max_size', '10M');
 
-        $timezone = (string) (config('app.timezone') ?? 'UTC');
+        $tzValue = config('app.timezone', 'UTC');
+        $timezone = is_string($tzValue) ? $tzValue : 'UTC';
         if ($timezone !== '') {
             @date_default_timezone_set($timezone);
         }
@@ -24,7 +25,7 @@ final class RuntimeConfigServiceProvider extends ServiceProvider
         // Forzar HTTPS en producción si se habilita explícitamente desde config
         if (
             app()->isProduction()
-            && filter_var((bool) config('app.force_https', false), FILTER_VALIDATE_BOOL)
+            && (bool) config('app.force_https', false)
         ) {
             URL::forceScheme('https');
         }

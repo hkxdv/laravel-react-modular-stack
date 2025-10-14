@@ -16,5 +16,9 @@ use App\Traits\ApiResponseFormatter;
  */
 final class ApiResponseService implements ApiResponseFormatterInterface
 {
-    use ApiResponseFormatter;
+    use ApiResponseFormatter {
+        successResponse as public successResponse;
+        errorResponse as public errorResponse;
+        paginatedResponse as public paginatedResponse;
+    }
 }

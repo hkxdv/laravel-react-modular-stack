@@ -84,7 +84,10 @@ interface NavigationBuilderInterface
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @return array<int, array<string, mixed>> Ítems de navegación
      */
-    public function buildNavItems(array $modules, callable $permissionChecker): array;
+    public function buildNavItems(
+        array $modules,
+        callable $permissionChecker
+    ): array;
 
     /**
      * Construye las tarjetas de módulos para el dashboard.

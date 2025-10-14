@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Route;
  * Estas rutas manejan el flujo para usuarios que aún no han iniciado sesión.
  * Se especifica el guard 'staff' para asegurar que se aplique al personal.
  */
-Route::middleware('guest:staff')->group(function () {
+Route::middleware('guest:staff')->group(function (): void {
     /**
      * Muestra el formulario de inicio de sesión para el personal.
      * GET /internal/login
@@ -97,7 +97,7 @@ Route::middleware('guest:staff')->group(function () {
  * Rutas que requieren que el usuario del personal ya haya iniciado sesión.
  * Se especifica el guard 'staff' para asegurar que se aplique al personal.
  */
-Route::middleware(['auth:staff'])->group(function () {
+Route::middleware(['auth:staff'])->group(function (): void {
     /**
      * Muestra la pantalla de aviso para verificar el correo electrónico.
      * Se muestra si el usuario no ha verificado su email.

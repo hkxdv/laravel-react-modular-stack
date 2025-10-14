@@ -51,7 +51,6 @@ final class ResetPasswordNotification extends Notification implements ShouldQueu
     /**
      * Obtiene los canales de entrega de la notificación.
      *
-     * @param  mixed  $notifiable
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -62,56 +61,90 @@ final class ResetPasswordNotification extends Notification implements ShouldQueu
     /**
      * Construye la representación por correo electrónico de la notificación.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return MailMessage El mensaje de correo electrónico configurado.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable&\Illuminate\Contracts\Auth\CanResetPassword  $notifiable
      */
     public function toMail(object $notifiable): MailMessage
     {
         // Si se ha definido un callback personalizado, se utiliza para construir el mensaje.
         if (self::$toMailCallback) {
-            return call_user_func(self::$toMailCallback, $notifiable, $this->token);
+            return call_user_func(
+                self::$toMailCallback,
+                $notifiable,
+                $this->token
+            );
         }
 
         // Obtiene el tiempo de expiración del token desde la configuración.
-        $expirationInMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
+        $defaultBroker = config('auth.defaults.passwords');
+        $broker = is_string($defaultBroker) ? $defaultBroker : 'users';
+        $expireRaw = config('auth.passwords.'.$broker.'.expire');
+        $expirationInMinutes = is_numeric($expireRaw) ? (int) $expireRaw : 60;
 
         // Construye el mensaje de correo estándar.
+        $nameValue = $notifiable->getAttribute('name');
+        $displayName = is_string($nameValue) ? $nameValue : 'Usuario';
+
         return (new MailMessage)
-            ->subject('Notificación de Restablecimiento de Contraseña')
-            ->greeting("¡Hola, {$notifiable->name}!")
-            ->line('Estás recibiendo este correo porque hemos recibido una solicitud de restablecimiento de contraseña para tu cuenta.')
-            ->action('Restablecer Contraseña', $this->resetUrl($notifiable))
-            ->line("Este enlace de restablecimiento de contraseña expirará en {$expirationInMinutes} minutos.")
-            ->line('Si no solicitaste este cambio, puedes ignorar este mensaje de forma segura.')
-            ->line('Este es un correo electrónico generado automáticamente. Por favor, no respondas a este mensaje.')
+            ->subject(
+                'Notificación de Restablecimiento de Contraseña'
+            )
+            ->greeting(
+                "¡Hola, {$displayName}!"
+            )
+            ->line(
+                'Estás recibiendo este correo porque hemos recibido una solicitud de restablecimiento de contraseña para tu cuenta.'
+            )
+            ->action(
+                'Restablecer Contraseña',
+                $this->resetUrl($notifiable)
+            )
+            ->line(
+                "Este enlace de restablecimiento de contraseña expirará en {$expirationInMinutes} minutos."
+            )
+            ->line(
+                'Si no solicitaste este cambio, puedes ignorar este mensaje de forma segura.'
+            )
+            ->line(
+                'Este es un correo electrónico generado automáticamente. Por favor, no respondas a este mensaje.'
+            )
             ->salutation('Saludos,');
     }
 
     /**
      * Obtiene la representación de la notificación como un array.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable&\Illuminate\Contracts\Auth\CanResetPassword  $notifiable
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        $defaultBroker = config('auth.defaults.passwords');
+        $broker = is_string($defaultBroker)
+            ? $defaultBroker
+            : 'users';
+        $expireRaw = config('auth.passwords.'.$broker.'.expire');
+        $expirationInMinutes = is_numeric($expireRaw)
+            ? (int) $expireRaw
+            : 60;
+
         return [
             'message' => 'Se ha solicitado un restablecimiento de contraseña.',
-            'expires_at' => now()->addMinutes(config('auth.passwords.'.config('auth.defaults.passwords').'.expire'))->toIso8601String(),
+            'expires_at' => now()->addMinutes($expirationInMinutes)->toIso8601String(),
         ];
     }
 
     /**
      * Genera la URL de restablecimiento de contraseña para el usuario notificado.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return string La URL absoluta y firmada para el restablecimiento.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable&\Illuminate\Contracts\Auth\CanResetPassword  $notifiable
      */
-    protected function resetUrl(object $notifiable): string
+    private function resetUrl(object $notifiable): string
     {
+        $email = $notifiable->getEmailForPasswordReset();
+
         return url(route('password.reset', [
             'token' => $this->token,
-            'email' => $notifiable->getEmailForPasswordReset(),
+            'email' => $email,
         ], false));
     }
 }

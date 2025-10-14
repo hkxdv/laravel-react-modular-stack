@@ -11,8 +11,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class ErrorPageResponder
 {
-    public static function unauthorized(Request $request)
-    {
+    public static function unauthorized(
+        Request $request
+    ): \Symfony\Component\HttpFoundation\Response {
         return self::inertiaErrorPage(
             403,
             self::friendlyMessage(403),
@@ -20,8 +21,10 @@ final class ErrorPageResponder
         );
     }
 
-    public static function http(HttpException $e, Request $request)
-    {
+    public static function http(
+        HttpException $e,
+        Request $request
+    ): \Symfony\Component\HttpFoundation\Response {
         $status = $e->getStatusCode();
 
         return self::inertiaErrorPage(
@@ -34,7 +37,7 @@ final class ErrorPageResponder
     public static function authentication(
         AuthenticationException $e,
         Request $request
-    ) {
+    ): ?\Symfony\Component\HttpFoundation\Response {
         if ($request->expectsJson()) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
@@ -42,8 +45,9 @@ final class ErrorPageResponder
         return null;
     }
 
-    public static function validation(Request $request)
-    {
+    public static function validation(
+        Request $request
+    ): \Symfony\Component\HttpFoundation\Response {
         return self::inertiaErrorPage(
             422,
             self::friendlyMessage(422),
@@ -51,8 +55,9 @@ final class ErrorPageResponder
         );
     }
 
-    public static function generic(Request $request)
-    {
+    public static function generic(
+        Request $request
+    ): ?\Symfony\Component\HttpFoundation\Response {
         if (! config('app.debug')) {
             return self::inertiaErrorPage(
                 500,
@@ -95,7 +100,7 @@ final class ErrorPageResponder
         int $status,
         string $message,
         Request $request
-    ) {
+    ): \Symfony\Component\HttpFoundation\Response {
         return Inertia::render('errors/error-page', [
             'status' => $status,
             'message' => $message,

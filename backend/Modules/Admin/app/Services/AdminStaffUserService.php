@@ -94,6 +94,10 @@ final class AdminStaffUserService implements StaffUserManagerInterface
 
         // Crear el usuario con los datos proporcionados
         $user = StaffUsers::create($data);
+        // Inicializar fecha de establecimiento de contraseña
+        $user->forceFill([
+            'password_changed_at' => now(),
+        ])->save();
 
         // Si no se verificará automáticamente, enviar notificación de verificación
         if (
@@ -133,7 +137,19 @@ final class AdminStaffUserService implements StaffUserManagerInterface
     {
         $user = StaffUsers::find($id);
         if ($user) {
+            // Extraer password_changed_at si viene en payload y evitar mass assignment
+            $pwdChangedAt = $data['password_changed_at'] ?? null;
+            if (array_key_exists('password_changed_at', $data)) {
+                unset($data['password_changed_at']);
+            }
+
             $user->update($data);
+
+            if ($pwdChangedAt !== null) {
+                $user->forceFill([
+                    'password_changed_at' => $pwdChangedAt,
+                ])->save();
+            }
         }
 
         return $user;
@@ -242,19 +258,34 @@ final class AdminStaffUserService implements StaffUserManagerInterface
                 // Añadir una descripción según el nombre del rol
                 switch (mb_strtoupper($role->name)) {
                     case 'ADMIN':
-                        $role->description = 'Acceso completo a todas las funciones del sistema';
+                        $role->setAttribute(
+                            'description',
+                            'Acceso completo a todas las funciones del sistema'
+                        );
                         break;
                     case 'DEV':
-                        $role->description = 'Acceso de desarrollador con privilegios especiales';
+                        $role->setAttribute(
+                            'description',
+                            'Acceso de desarrollador con privilegios especiales'
+                        );
                         break;
                     case 'MOD-01':
-                        $role->description = 'Acceso al Módulo 01';
+                        $role->setAttribute(
+                            'description',
+                            'Acceso al Módulo 01'
+                        );
                         break;
                     case 'MOD-02':
-                        $role->description = 'Acceso al Módulo 02';
+                        $role->setAttribute(
+                            'description',
+                            'Acceso al Módulo 02'
+                        );
                         break;
                     default:
-                        $role->description = "Rol de {$role->name}";
+                        $role->setAttribute(
+                            'description',
+                            "Rol de {$role->name}"
+                        );
                 }
             }
         );

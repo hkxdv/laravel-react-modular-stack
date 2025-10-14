@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\StaffUsers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,11 +22,14 @@ final class StaffUserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var StaffUsers $user */
+        $user = $this->resource;
+
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'email_verified_at' => $this->email_verified_at,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
             'user_type' => 'staff',
 
             // Carga condicional de la relación 'roles' usando RoleResource para consistencia.
@@ -34,9 +38,10 @@ final class StaffUserResource extends JsonResource
             // Carga condicional de todos los permisos (directos y vía roles).
             // Se incluye solo si la relación 'roles' ha sido cargada,
             // ya que getAllPermissions() depende de ella para ser eficiente.
-            'permissions' => $this->when($this->relationLoaded('roles'), function () {
-                return $this->getAllPermissions()->pluck('name');
-            }),
+            'permissions' => $this->when(
+                $user->relationLoaded('roles'),
+                fn () => $user->getAllPermissions()->pluck('name')
+            ),
         ];
     }
 }

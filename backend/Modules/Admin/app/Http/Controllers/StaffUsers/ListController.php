@@ -33,7 +33,12 @@ final class ListController extends AdminBaseController
         $additionalData = [
             'users' => $this->staffUserManager->getAllUsers($params),
             'roles' => $this->staffUserManager->getAllRoles(),
-            'filters' => $request->only(['search', 'role', 'sort_field', 'sort_direction']),
+            'filters' => $request->only([
+                'search',
+                'role',
+                'sort_field',
+                'sort_direction',
+            ]),
         ];
 
         return $this->prepareAndRenderModuleView(

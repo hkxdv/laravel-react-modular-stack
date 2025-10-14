@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -36,8 +37,13 @@ final class JsonbQueryService
      * @param  mixed  $value  El valor a buscar
      * @return Builder La consulta modificada
      */
-    public function whereJsonContains(Builder $query, string $column, string $path, string $operator, mixed $value): Builder
-    {
+    public function whereJsonContains(
+        Builder $query,
+        string $column,
+        string $path,
+        string $operator,
+        mixed $value
+    ): Builder {
         if ($this->isPostgres()) {
             // PostgreSQL permite consultas más avanzadas con el operador @>
             $jsonPath = $this->buildJsonPath($column, $path);
@@ -46,7 +52,7 @@ final class JsonbQueryService
         }
 
         // Para SQLite y MySQL, usamos la sintaxis estándar de Laravel
-        $fullPath = $path ? "$column->$path" : $column;
+        $fullPath = $path !== '' && $path !== '0' ? "$column->$path" : $column;
 
         return $query->where($fullPath, $operator, $value);
     }
@@ -54,15 +60,22 @@ final class JsonbQueryService
     /**
      * Busca registros donde una propiedad de JSONB/JSON tiene un valor específico.
      *
-     * @param  Builder|\Illuminate\Database\Eloquent\Builder  $query  La consulta base a modificar
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder|EloquentBuilder<TModel>  $query  La consulta base a modificar
      * @param  string  $jsonColumn  La columna JSON/JSONB
      * @param  string  $property  La propiedad dentro del JSON
      * @param  mixed  $value  El valor a buscar
      * @param  string  $operator  El operador de comparación (por defecto '=')
-     * @return mixed La consulta modificada
+     * @return Builder|EloquentBuilder<TModel> La consulta modificada
      */
-    public function whereJsonProperty($query, string $jsonColumn, string $property, mixed $value, string $operator = '='): mixed
-    {
+    public function whereJsonProperty(
+        Builder|EloquentBuilder $query,
+        string $jsonColumn,
+        string $property,
+        mixed $value,
+        string $operator = '='
+    ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Usamos el operador JSONB específico de PostgreSQL (más eficiente)
             return $query->whereRaw("$jsonColumn->>? $operator ?", [$property, $value]);
@@ -74,7 +87,6 @@ final class JsonbQueryService
 
         // Para otros operadores, usamos whereRaw
         return $query->whereRaw("JSON_EXTRACT($jsonColumn, '$.$property') $operator ?", [$value]);
-
     }
 
     /**
@@ -91,22 +103,28 @@ final class JsonbQueryService
             return false;
         }
 
-        $indexName = $indexName ?? "idx_{$table}_{$column}";
+        $indexName ??= "idx_{$table}_{$column}";
 
         return DB::statement("CREATE INDEX IF NOT EXISTS {$indexName} ON {$table} USING GIN ({$column})");
     }
 
     /**
-     * Realiza una búsqueda difusa en una propiedad JSONB (solo PostgreSQL).
+     * Realiza una búsqueda difusa en una propiedad JSON/JSONB.
      *
-     * @param  Builder|\Illuminate\Database\Eloquent\Builder  $query  El constructor de consulta
-     * @param  string  $jsonColumn  El nombre de la columna JSONB
-     * @param  string  $property  La propiedad a buscar dentro del JSONB
-     * @param  string  $searchTerm  El término de búsqueda
-     * @return mixed La consulta con la condición añadida
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder|EloquentBuilder<TModel>  $query  Constructor de consulta
+     * @param  string  $jsonColumn  Columna JSON/JSONB
+     * @param  string  $property  Propiedad dentro del JSON
+     * @param  string  $searchTerm  Término de búsqueda
+     * @return Builder|EloquentBuilder<TModel> Consulta modificada
      */
-    public function whereJsonPropertyLike($query, string $jsonColumn, string $property, string $searchTerm): mixed
-    {
+    public function whereJsonPropertyLike(
+        Builder|EloquentBuilder $query,
+        string $jsonColumn,
+        string $property,
+        string $searchTerm
+    ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Búsqueda difusa en PostgreSQL con ILIKE para ignorar mayúsculas/minúsculas
             return $query->whereRaw("$jsonColumn->>? ILIKE ?", [$property, "%{$searchTerm}%"]);
@@ -115,20 +133,25 @@ final class JsonbQueryService
         // Para otros motores, esto es más complejo y menos eficiente
         // Aquí usamos una aproximación, aunque no es óptima para grandes conjuntos de datos
         return $query->whereRaw("JSON_EXTRACT($jsonColumn, '$.$property') LIKE ?", ["%{$searchTerm}%"]);
-
     }
 
     /**
-     * Busca en múltiples propiedades JSON/JSONB (solo PostgreSQL).
+     * Busca en múltiples propiedades JSON/JSONB.
      *
-     * @param  Builder|\Illuminate\Database\Eloquent\Builder  $query  El constructor de consulta
-     * @param  string  $jsonColumn  El nombre de la columna JSON/JSONB
-     * @param  array  $properties  Lista de propiedades a buscar dentro del JSON
-     * @param  string  $searchTerm  El término de búsqueda
-     * @return mixed La consulta con la condición añadida
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder|EloquentBuilder<TModel>  $query  Constructor de consulta
+     * @param  string  $jsonColumn  Columna JSON/JSONB
+     * @param  list<string>  $properties  Propiedades a buscar
+     * @param  string  $searchTerm  Término de búsqueda
+     * @return Builder|EloquentBuilder<TModel> Consulta modificada
      */
-    public function searchAcrossJsonProperties($query, string $jsonColumn, array $properties, string $searchTerm): mixed
-    {
+    public function searchAcrossJsonProperties(
+        Builder|EloquentBuilder $query,
+        string $jsonColumn,
+        array $properties,
+        string $searchTerm
+    ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             $conditions = [];
             $bindings = [];
@@ -143,25 +166,32 @@ final class JsonbQueryService
         }
 
         // Para otros motores, hacemos una aproximación
-        return $query->where(function ($q) use ($jsonColumn, $properties, $searchTerm) {
+        return $query->where(function (
+            EloquentBuilder|Builder $q
+        ) use ($jsonColumn, $properties, $searchTerm): void {
             foreach ($properties as $property) {
                 $q->orWhereRaw("JSON_EXTRACT($jsonColumn, '$.$property') LIKE ?", ["%{$searchTerm}%"]);
             }
         });
-
     }
 
     /**
      * Verifica si una propiedad JSON/JSONB existe.
      *
-     * @param  Builder|\Illuminate\Database\Eloquent\Builder  $query  El constructor de consulta
-     * @param  string  $jsonColumn  El nombre de la columna JSON/JSONB
-     * @param  string  $property  La propiedad a verificar dentro del JSON
-     * @param  bool  $exists  Si debe existir o no existir la propiedad
-     * @return mixed La consulta con la condición añadida
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder|EloquentBuilder<TModel>  $query  Constructor de consulta
+     * @param  string  $jsonColumn  Columna JSON/JSONB
+     * @param  string  $property  Propiedad a verificar
+     * @param  bool  $exists  Si debe existir o no
+     * @return Builder|EloquentBuilder<TModel> Consulta modificada
      */
-    public function whereJsonPropertyExists($query, string $jsonColumn, string $property, bool $exists = true): mixed
-    {
+    public function whereJsonPropertyExists(
+        Builder|EloquentBuilder $query,
+        string $jsonColumn,
+        string $property,
+        bool $exists = true
+    ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             $operator = $exists ? 'IS NOT NULL' : 'IS NULL';
 
@@ -172,20 +202,26 @@ final class JsonbQueryService
         }
 
         return $query->whereRaw("JSON_EXTRACT($jsonColumn, '$.$property') IS NULL");
-
     }
 
     /**
      * Ordena los resultados por una propiedad JSON/JSONB.
      *
-     * @param  Builder|\Illuminate\Database\Eloquent\Builder  $query  El constructor de consulta
      * @param  string  $jsonColumn  El nombre de la columna JSON/JSONB
      * @param  string  $property  La propiedad por la que ordenar
      * @param  string  $direction  Dirección del ordenamiento ('asc' o 'desc')
-     * @return mixed La consulta con el ordenamiento añadido
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder|EloquentBuilder<TModel>  $query  Constructor de consulta
+     * @return Builder|EloquentBuilder<TModel>
      */
-    public function orderByJsonProperty($query, string $jsonColumn, string $property, string $direction = 'asc'): mixed
-    {
+    public function orderByJsonProperty(
+        Builder|EloquentBuilder $query,
+        string $jsonColumn,
+        string $property,
+        string $direction = 'asc'
+    ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Para PostgreSQL, convertimos el valor a texto para un ordenamiento más consistente
             return $query->orderByRaw("$jsonColumn->>? $direction", [$property]);
@@ -193,7 +229,6 @@ final class JsonbQueryService
 
         // Para otros motores
         return $query->orderByRaw("JSON_EXTRACT($jsonColumn, '$.$property') $direction");
-
     }
 
     /**
@@ -203,9 +238,11 @@ final class JsonbQueryService
      * @param  string  $path  La ruta dentro del JSON
      * @return string La expresión de ruta completa para PostgreSQL
      */
-    private function buildJsonPath(string $column, string $path): string
-    {
-        if (empty($path)) {
+    private function buildJsonPath(
+        string $column,
+        string $path
+    ): string {
+        if ($path === '' || $path === '0') {
             return $column;
         }
 
@@ -232,9 +269,20 @@ final class JsonbQueryService
     private function formatJsonValue(mixed $value): string
     {
         if (is_array($value)) {
-            return json_encode($value);
+            $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return is_string($encoded) ? $encoded : '';
         }
 
-        return (string) $value;
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+
+        $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return is_string($encoded) ? $encoded : '';
     }
 }

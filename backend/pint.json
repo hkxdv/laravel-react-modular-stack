@@ -1,6 +1,7 @@
 {
   "preset": "laravel",
-  "notPath": ["tests/TestCase.php", "tmp"],
+  "paths": ["app", "Modules", "config", "routes", "../database"],
+  "exclude": ["bootstrap", "storage", "vendor", "tmp"],
   "rules": {
     "array_push": true,
     "backtick_to_shell_exec": true,

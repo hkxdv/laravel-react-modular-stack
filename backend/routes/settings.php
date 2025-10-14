@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('internal/settings')
     ->name('internal.settings.')
     ->middleware(['web', 'auth:staff', 'verified', 'throttle:60,1'])
-    ->group(function () {
+    ->group(function (): void {
         /**
          * Redirige la ruta base '/internal/settings' a la página de perfil.
          * GET /internal/settings -> /internal/settings/profile
@@ -39,7 +39,7 @@ Route::prefix('internal/settings')
         // --- Gestión del Perfil ---
         Route::controller(
             ProfileController::class
-        )->group(function () {
+        )->group(function (): void {
             Route::get('profile', 'edit')->name('profile.edit');
             Route::patch('profile', 'update')->name('profile.update');
             Route::delete('profile', 'destroy')->name('profile.destroy');
@@ -48,7 +48,7 @@ Route::prefix('internal/settings')
         // --- Gestión de Contraseña ---
         Route::controller(
             PasswordController::class
-        )->group(function () {
+        )->group(function (): void {
             Route::get('password', 'edit')->name('password.edit');
             Route::put('password', 'update')->name('password.update');
         });
@@ -56,7 +56,7 @@ Route::prefix('internal/settings')
         // --- Configuración de Apariencia ---
         Route::controller(
             AppearanceController::class
-        )->group(function () {
+        )->group(function (): void {
             Route::get('appearance', 'show')->name('appearance');
         });
     });

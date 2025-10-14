@@ -11,9 +11,11 @@ use App\Models\StaffUsers;
 use App\Traits\PermissionVerifier;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Inertia\Response as InertiaResponse;
 
@@ -48,7 +50,7 @@ final class InternalDashboardController extends Controller
     public function index(Request $request): InertiaResponse
     {
         try {
-            /** @var StaffUsers $user */
+            /** @var StaffUsers|null $user */
             $user = $request->user('staff');
 
             // Verificar que tenemos un usuario autenticado
@@ -95,6 +97,12 @@ final class InternalDashboardController extends Controller
             // Asegurar que la colección de módulos sea un array indexado para el frontend.
             $indexedModules = array_values($availableModules);
 
+            // Construir los ítems de navegación principales usando el servicio
+            $mainNavItems = $this->navigationBuilderService->buildNavItems(
+                $indexedModules,
+                fn (string $permission) => $this->can($permission)
+            );
+
             // Verificar si necesita cambiar contraseña
             $passwordChangeRequired = $this->isPasswordChangeRequired($user);
 
@@ -103,7 +111,9 @@ final class InternalDashboardController extends Controller
                 ->composeDashboardViewContext(
                     user: $user,
                     availableModules: $indexedModules,
-                    permissionChecker: fn (string $permission) => $user->hasPermissionTo($permission),
+                    permissionChecker: fn (
+                        string $permission
+                    ) => $this->can($permission),
                     request: $request
                 );
 
@@ -112,13 +122,14 @@ final class InternalDashboardController extends Controller
                 'passwordChangeRequired' => $passwordChangeRequired,
                 'lastLogin' => $this->getLastLoginInfo($user),
                 'sessionInfo' => $this->getSessionInfo($request),
+                'mainNavItems' => $mainNavItems,
             ]);
 
             // Log de acceso exitoso
             Log::info(
                 'Acceso exitoso al dashboard interno',
                 [
-                    'user_id' => $user->id,
+                    'user_id' => $user->getAuthIdentifier(),
                     'email' => $user->email,
                     'ip' => $request->ip(),
                     'user_agent' => $request->userAgent(),
@@ -144,7 +155,7 @@ final class InternalDashboardController extends Controller
     /**
      * Cerrar sesión de forma segura.
      */
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         try {
             $user = Auth::guard('staff')->user();
@@ -153,7 +164,7 @@ final class InternalDashboardController extends Controller
                 Log::info(
                     'Logout exitoso del dashboard interno',
                     [
-                        'user_id' => $user->id,
+                        'user_id' => $user->getAuthIdentifier(),
                         'email' => $user->email,
                         'ip' => $request->ip(),
                     ]
@@ -204,16 +215,30 @@ final class InternalDashboardController extends Controller
     private function updateLastActivity(StaffUsers $user): void
     {
         try {
-            if ($user && method_exists($user, 'update')) {
-                $user->update([
-                    'last_activity' => Carbon::now(),
-                ]);
+            // Solo intentar persistir si la columna existe en la tabla
+            if (Schema::hasColumn('staff_users', 'last_activity')) {
+                $now = Carbon::now();
+                /** @var \Illuminate\Support\Carbon|null $lastActivity */
+                $lastActivity = $user->getAttribute('last_activity');
+
+                // Evitar escrituras frecuentes: solo persistir si pasaron >=5 minutos
+                if ($lastActivity instanceof Carbon) {
+                    $minutes = $lastActivity->diffInMinutes($now);
+                    if ($minutes < 5) {
+                        return; // Skip write
+                    }
+                }
+
+                // Evitar restricciones de asignación masiva usando forceFill
+                $user->forceFill([
+                    'last_activity' => $now,
+                ])->save();
             }
         } catch (Exception $e) {
             Log::warning(
                 'No se pudo actualizar la última actividad',
                 [
-                    'user_id' => $user->id ?? null,
+                    'user_id' => $user->getAuthIdentifier(),
                     'error' => $e->getMessage(),
                 ]
             );
@@ -230,18 +255,22 @@ final class InternalDashboardController extends Controller
         }
 
         $maxAge = config(
-            'auth.security.password_requirements.staff.max_age_days',
+            'security.authentication.passwords.staff.max_age_days',
             90
         );
-        $passwordAge = Carbon::parse(
-            $user->password_changed_at
-        )->diffInDays(Carbon::now());
+
+        /** @var \Illuminate\Support\Carbon|string|int|float|null $passwordChangedAt */
+        $passwordChangedAt = $user->password_changed_at;
+        $passwordAge = Carbon::parse($passwordChangedAt)
+            ->diffInDays(Carbon::now());
 
         return $passwordAge >= $maxAge;
     }
 
     /**
      * Obtener información del último login.
+     *
+     * @return array{datetime: Carbon, ip: string, user_agent: string}|null
      */
     private function getLastLoginInfo(StaffUsers $user): ?array
     {
@@ -249,25 +278,37 @@ final class InternalDashboardController extends Controller
             return null;
         }
 
+        /** @var \Illuminate\Support\Carbon|string|int|float|null $lastLoginAt */
+        $lastLoginAt = $user->last_login_at;
+
         return [
-            'datetime' => Carbon::parse($user->last_login_at),
-            'ip' => $user->last_login_ip ?? 'Desconocida',
-            'user_agent' => $user->last_login_user_agent ?? 'Desconocido',
+            'datetime' => Carbon::parse($lastLoginAt),
+            'ip' => is_string($user->getAttribute('last_login_ip'))
+                ? (string) $user->getAttribute('last_login_ip')
+                : 'Desconocida',
+            'user_agent' => is_string($user->getAttribute('last_login_user_agent'))
+                ? (string) $user->getAttribute('last_login_user_agent')
+                : 'Desconocido',
         ];
     }
 
     /**
      * Obtener información de la sesión actual.
+     *
+     * @return array{ip: string|null, user_agent: string|null, session_id: string, started_at: Carbon}
      */
     private function getSessionInfo(Request $request): array
     {
+        $rawStartedAt = Session::get('_token_created_at', time());
+        $timestamp = is_int($rawStartedAt) || is_float($rawStartedAt)
+            ? (int) $rawStartedAt
+            : (is_string($rawStartedAt) ? (int) $rawStartedAt : time());
+
         return [
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'session_id' => Session::getId(),
-            'started_at' => Carbon::createFromTimestamp(
-                Session::get('_token_created_at', time())
-            ),
+            'started_at' => Carbon::createFromTimestamp($timestamp),
         ];
     }
 }

@@ -43,24 +43,33 @@ final class ConfirmablePasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Se valida que la contraseña proporcionada coincida con la del usuario autenticado.
-        // Se utiliza el guard 'web' explícitamente para asegurar el contexto correcto.
-        if (! Auth::guard('staff')->validate([
-            'email' => $request->user()->email,
-            'password' => $request->password,
-        ])) {
-            // Si la validación falla, se lanza una ValidationException con un mensaje de error
-            // localizado, que se mostrará en el formulario.
-            throw ValidationException::withMessages([
+        // Validar entrada de manera tipada
+        /** @var array{password:string} $validated */
+        $validated = $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = $this->requireStaffUser($request);
+
+        // Validar credenciales contra el guard 'staff'
+        throw_unless(
+            Auth::guard('staff')->validate([
+                'email' => $user->email,
+                'password' => $validated['password'],
+            ]),
+            ValidationException::withMessages([
                 'password' => __('auth.password'),
-            ]);
-        }
+            ])
+        );
 
         // Si la contraseña es correcta, se guarda una marca de tiempo en la sesión.
         // Esto activa el "modo seguro" de Laravel por un tiempo determinado.
         $request->session()->put('auth.password_confirmed_at', time());
 
         // Finalmente, se redirige al usuario a la URL a la que intentaba acceder originalmente.
-        return redirect()->intended(route('internal.dashboard', absolute: false));
+        return redirect()->intended(route(
+            'internal.dashboard',
+            absolute: false
+        ));
     }
 }

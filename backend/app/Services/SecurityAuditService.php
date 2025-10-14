@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Agent;
 
-final class SecurityAuditService
+final readonly class SecurityAuditService
 {
-    public function __construct(private readonly Agent $agent) {}
+    public function __construct(private Agent $agent) {}
 
     /**
      * Prepara la sesión después de una autenticación exitosa.
@@ -37,7 +37,7 @@ final class SecurityAuditService
         Authenticatable $user,
         Request $request
     ): void {
-        if (! $user instanceof StaffUsers || ! method_exists($user, 'notify')) {
+        if (! $user instanceof StaffUsers) {
             return;
         }
 
@@ -66,8 +66,8 @@ final class SecurityAuditService
             $deviceDescription = mb_trim(
                 $deviceInfo['platform'].' '.$deviceInfo['browser']
             );
-            $deviceDescription = $deviceDescription
-                ?: 'Dispositivo desconocido';
+            $deviceDescription = $deviceDescription !== '' && $deviceDescription !== '0'
+                ? $deviceDescription : 'Dispositivo desconocido';
 
             // Luego, si el login es sospechoso, envía la notificación.
             if ($user->isSuspiciousLogin($ipAddress, $userAgent)) {
@@ -82,8 +82,16 @@ final class SecurityAuditService
             }
         } catch (Exception $e) {
             // Loguea el error con más contexto para facilitar la depuración.
+            $id = $user->getAuthIdentifier();
+            $uid = is_string($id)
+                ? $id
+                : (is_int($id)
+                    ? (string) $id
+                    : 'desconocido'
+                );
+
             Log::warning(
-                'Error al procesar notificación de login para el usuario: '.$user->id,
+                'Error al procesar notificación de login para el usuario: '.$uid,
                 [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
@@ -111,8 +119,8 @@ final class SecurityAuditService
         }
 
         // Limpiar las cookies relacionadas con la sesión
-        if ($cookieName = config('session.cookie')) {
-            $cookiePrefix = config('session.cookie_prefix', '');
+        $cookieName = config('session.cookie');
+        if (is_string($cookieName)) {
             $request->cookies->remove($cookieName);
 
             // Si estamos en modo debug, loguear información

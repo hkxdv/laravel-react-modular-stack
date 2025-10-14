@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Route;
 
 // Rutas de prueba para visualizar errores (solo en desarrollo)
 if (app()->environment('local')) {
-    Route::prefix('test-errors')->middleware(['web'])->group(function () {
+    Route::prefix('test-errors')->middleware(['web'])->group(function (): void {
 
         // Ruta para probar todos los tipos de errores
         Route::get(
             '/view/{code}',
-            function ($code) {
+            function (int|string $code) {
                 $code = (int) $code;
                 $message = match ($code) {
                     400 => 'La solicitud contiene errores o no puede ser procesada.',

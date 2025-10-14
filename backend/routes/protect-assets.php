@@ -6,9 +6,9 @@ use App\Http\Middleware\ProtectStaticAssets;
 use Illuminate\Support\Facades\Route;
 
 // Rutas para activos protegidos
-Route::middleware([ProtectStaticAssets::class])->group(function () {
+Route::middleware([ProtectStaticAssets::class])->group(function (): void {
     // Esta ruta servirá los archivos de una carpeta protegida y hará fallback a storage público si aplica
-    Route::get('/assets/{path}', function ($path) {
+    Route::get('/assets/{path}', function (string $path) {
         $protectedPath = storage_path('app/protected/assets/'.$path);
         $publicPath = storage_path('app/public/'.$path);
 
@@ -19,9 +19,7 @@ Route::middleware([ProtectStaticAssets::class])->group(function () {
             $filePath = $publicPath;
         }
 
-        if (! $filePath) {
-            abort(404);
-        }
+        abort_unless(is_string($filePath), 404);
 
         // Determinar el tipo MIME basado en la extensión
         $extension = mb_strtolower(pathinfo($filePath, PATHINFO_EXTENSION));

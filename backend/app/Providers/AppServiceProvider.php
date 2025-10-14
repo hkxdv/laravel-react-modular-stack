@@ -8,6 +8,7 @@ use App\Interfaces\ApiResponseFormatterInterface;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
 use App\Interfaces\ViewComposerInterface;
+use App\Models\StaffUsers;
 use App\Services\ApiResponseService;
 use App\Services\JsonbQueryService;
 use App\Services\ModuleRegistryService;
@@ -41,11 +42,13 @@ final class AppServiceProvider extends ServiceProvider
         // Establece una ruta personalizada para la base de datos.
         // Esto es útil para que los comandos Artisan como 'migrate' encuentren la
         // base de datos en la estructura de directorios del proyecto.
-        $app->useDatabasePath(realpath(__DIR__.'/../../../database'));
+        $app->useDatabasePath(base_path('../database'));
 
         // Registra Telescope solo en entornos de no producción para depuración.
-        if ($this->app->environment() !== 'production') {
-            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+        if (! $this->app->environment('production')) {
+            $this->app->register(
+                \Laravel\Telescope\TelescopeServiceProvider::class
+            );
             $this->app->register(TelescopeServiceProvider::class);
         }
 
@@ -86,12 +89,13 @@ final class AppServiceProvider extends ServiceProvider
         // Define una regla global 'before' para la autorización.
         // Esta función se ejecuta antes de cualquier otra verificación de Gate o Política.
         // Otorga acceso total a los super-administradores para simplificar la gestión de permisos.
-        Gate::before(function ($user, $ability) {
-            // Si el usuario tiene el rol 'ADMIN' o 'DEV', se le otorgan todos los permisos.
-            // Se comprueba si el método 'hasRole' existe para evitar errores con modelos de usuario
-            // que no implementen este sistema de roles (ej. usuarios de otros guards).
+        Gate::before(function (
+            \Illuminate\Contracts\Auth\Authenticatable $user,
+            string $ability
+        ): ?bool {
+            // Si es nuestro modelo StaffUsers y tiene rol ADMIN o DEV, otorga acceso total
             if (
-                method_exists($user, 'hasRole')
+                $user instanceof StaffUsers
                 && ($user->hasRole('ADMIN') || $user->hasRole('DEV'))
             ) {
                 return true;

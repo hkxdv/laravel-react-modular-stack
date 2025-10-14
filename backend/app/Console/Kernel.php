@@ -18,7 +18,7 @@ final class Kernel extends ConsoleKernel
      * Este array registra los comandos personalizados para que estén disponibles
      * a través de la interfaz de línea de comandos de Artisan.
      *
-     * @var array
+     * @var array<int, class-string>
      */
     protected $commands = [
         Commands\MakeProjectModuleCommand::class,

@@ -15,6 +15,7 @@ final class PanelItem
      * - 'icon' opcional string
      * - 'route_params' opcional array
      *
+     * @param  array<string, mixed>  $config
      * @return array<int, string> Lista de errores; vacío si es válida
      */
     public static function validate(array $config): array

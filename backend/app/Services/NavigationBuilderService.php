@@ -8,6 +8,7 @@ use App\DTO\ContextualNavItem;
 use App\DTO\PanelItem;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
+use App\Models\StaffUsers;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -16,14 +17,18 @@ use Nwidart\Modules\Laravel\Module;
 /**
  * Servicio para la construcción de elementos de navegación del sistema.
  */
-final class NavigationBuilderService implements NavigationBuilderInterface
+final readonly class NavigationBuilderService implements NavigationBuilderInterface
 {
     /**
      * Mapeo de tipos de navegación a sus configuraciones específicas.
      *
-     * @var array<string, array<string, string|array>>
+     * @var array<string, array{
+     *   textKey: string,
+     *   textTemplateKey: string,
+     *   extraFields: array<string, string>
+     * }>
      */
-    private const NAV_TYPE_CONFIG = [
+    private const array NAV_TYPE_CONFIG = [
         self::NAV_TYPE_CONTEXTUAL => [
             'textKey' => 'title',
             'textTemplateKey' => 'title_template',
@@ -54,7 +59,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
      * Constructor de NavigationBuilderService.
      */
     public function __construct(
-        private readonly ModuleRegistryInterface $moduleRegistry
+        private ModuleRegistryInterface $moduleRegistry
     ) {}
 
     /**
@@ -78,10 +83,21 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         }
 
         // Resolver referencias en la configuración si existen
-        $moduleConfig = $this
-            ->moduleRegistry->getModuleConfig($moduleSlug);
+        $moduleConfig = $this->moduleRegistry
+            ->getModuleConfig($moduleSlug);
         $resolvedConfig = $this
             ->resolveConfigReferences($itemsConfig, $moduleConfig);
+        // Asegurar que la configuración resuelta sea un array secuencial de ítems
+        $resolvedConfig = is_array($resolvedConfig)
+            ? array_values($resolvedConfig)
+            : [];
+        /** @var array<int, array<string, mixed>> $resolvedConfig */
+        $resolvedConfig = array_values(
+            array_filter(
+                $resolvedConfig,
+                static fn ($v): bool => is_array($v)
+            )
+        );
 
         // Obtener la configuración específica para el tipo de navegación
         $config = self::NAV_TYPE_CONFIG[$navType];
@@ -142,20 +158,24 @@ final class NavigationBuilderService implements NavigationBuilderInterface
      * @param  array<Module>  $modules
      * @return array<int, array<string, mixed>>
      */
-    public function buildNavItems(array $modules, callable $permissionChecker): array
-    {
+    public function buildNavItems(
+        array $modules,
+        callable $permissionChecker
+    ): array {
         $navItems = [];
         $moduleItems = [];
 
         foreach ($modules as $module) {
             $moduleName = mb_strtolower($module->getName());
             $config = $this->moduleRegistry->getModuleConfig($moduleName);
-
             // Verificar si el módulo debe mostrarse en la navegación
-            if (
-                empty($config)
-                || ! ($config['nav_item']['show_in_nav'] ?? false)
-            ) {
+            if (! isset($config['nav_item'])) {
+                continue;
+            }
+            if (! is_array($config['nav_item'])) {
+                continue;
+            }
+            if (! ($config['nav_item']['show_in_nav'] ?? false)) {
                 continue;
             }
 
@@ -164,12 +184,17 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             $permission = $config['base_permission'] ?? null;
 
             if (! $permission || $permissionChecker($permission)) {
-                $routeName = $navItem['route_name'];
+                $routeName = isset($navItem['route_name']) && is_string($navItem['route_name'])
+                    ? $navItem['route_name']
+                    : null;
+
                 $item = [
-                    'title' => $config['functional_name'] ?? $moduleName,
-                    'href' => $this->generateRoute($routeName),
-                    'icon' => $navItem['icon'] ?? null,
-                    'current' => $this->isCurrentRoute($routeName),
+                    'title' => isset($config['functional_name']) && is_string($config['functional_name'])
+                        ? $config['functional_name']
+                        : $moduleName,
+                    'href' => $routeName !== null ? $this->generateRoute($routeName) : '#',
+                    'icon' => isset($navItem['icon']) && is_string($navItem['icon']) ? $navItem['icon'] : null,
+                    'current' => $routeName !== null && $this->isCurrentRoute($routeName),
                 ];
 
                 // Determinar si el módulo debe aparecer en la navegación principal o en la sección de módulos
@@ -192,16 +217,23 @@ final class NavigationBuilderService implements NavigationBuilderInterface
      * @param  array<Module>  $modules
      * @return array<int, array<string, mixed>>
      */
-    public function buildModuleNavItems(array $modules, callable $permissionChecker): array
-    {
+    public function buildModuleNavItems(
+        array $modules,
+        callable $permissionChecker
+    ): array {
         $moduleItems = [];
 
         foreach ($modules as $module) {
             $moduleName = mb_strtolower($module->getName());
             $config = $this->moduleRegistry->getModuleConfig($moduleName);
-
             // Verificar si el módulo debe mostrarse en la navegación
-            if (empty($config) || ! ($config['nav_item']['show_in_nav'] ?? false)) {
+            if (! isset($config['nav_item'])) {
+                continue;
+            }
+            if (! is_array($config['nav_item'])) {
+                continue;
+            }
+            if (! ($config['nav_item']['show_in_nav'] ?? false)) {
                 continue;
             }
 
@@ -209,17 +241,22 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             $navItem = $config['nav_item'];
             $permission = $config['base_permission'] ?? null;
 
-            if (! $permission || $permissionChecker($permission)) {
-                // Solo incluir si no está marcado para la navegación principal
-                if (! ($navItem['show_in_main_nav'] ?? false)) {
-                    $routeName = $navItem['route_name'];
-                    $moduleItems[] = [
-                        'title' => $config['functional_name'] ?? $moduleName,
-                        'href' => $this->generateRoute($routeName),
-                        'icon' => $navItem['icon'] ?? null,
-                        'current' => $this->isCurrentRoute($routeName),
-                    ];
-                }
+            // Solo incluir si no está marcado para la navegación principal
+            if ((! $permission || $permissionChecker($permission)) && ! ($navItem['show_in_main_nav'] ?? false)) {
+                $routeName = isset($navItem['route_name'])
+                    && is_string($navItem['route_name'])
+                    ? $navItem['route_name'] : null;
+                $moduleItems[] = [
+                    'title' => isset($config['functional_name'])
+                        && is_string($config['functional_name'])
+                        ? $config['functional_name'] : $moduleName,
+                    'href' => $routeName !== null
+                        ? $this->generateRoute($routeName) : '#',
+                    'icon' => isset($navItem['icon'])
+                        && is_string($navItem['icon'])
+                        ? $navItem['icon'] : null,
+                    'current' => $routeName !== null && $this->isCurrentRoute($routeName),
+                ];
             }
         }
 
@@ -248,19 +285,27 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         foreach ($allModules as $module) {
             $moduleNameLower = mb_strtolower($module->getName());
             $config = $this->moduleRegistry->getModuleConfig($moduleNameLower);
-
-            if (empty($config) || ! isset($config['nav_item'])) {
+            if (! isset($config['nav_item'])) {
+                continue;
+            }
+            if (! is_array($config['nav_item'])) {
                 continue;
             }
 
-            $routeName = $config['nav_item']['route_name'];
+            $routeName = isset($config['nav_item']['route_name']) && is_string($config['nav_item']['route_name'])
+                ? $config['nav_item']['route_name']
+                : null;
             $canAccess = isset($accessibleNames[$moduleNameLower]);
 
             $moduleCards[] = [
-                'name' => $config['functional_name'] ?? $module->getName(),
+                'name' => isset($config['functional_name']) && is_string($config['functional_name'])
+                    ? $config['functional_name']
+                    : $module->getName(),
                 'description' => $config['description'] ?? '',
-                'href' => $this->generateRoute($routeName),
-                'icon' => $config['nav_item']['icon'] ?? null,
+                'href' => $routeName !== null ? $this->generateRoute($routeName) : '#',
+                'icon' => isset($config['nav_item']['icon']) && is_string($config['nav_item']['icon'])
+                    ? $config['nav_item']['icon']
+                    : null,
                 'canAccess' => $canAccess,
             ];
         }
@@ -287,7 +332,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
     /**
      * Construye los breadcrumbs a partir de una configuración explícita.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{title: string, href: string}>
      */
     public function buildConfiguredBreadcrumbs(
         string $moduleSlug,
@@ -296,19 +341,26 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         array $viewData = []
     ): array {
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
+        /** @var array<string, mixed> $moduleConfig */
+        $moduleConfigArr = $moduleConfig;
 
         // Verificar si existen breadcrumbs configurados para esta ruta
-        if (! isset($moduleConfig['breadcrumbs'][$routeSuffix])) {
+        if (
+            ! isset($moduleConfigArr['breadcrumbs'])
+            || ! is_array($moduleConfigArr['breadcrumbs'])
+            || ! isset($moduleConfigArr['breadcrumbs'][$routeSuffix])
+        ) {
             // Si no hay configuración específica, devolvemos al menos el breadcrumb del módulo principal
             return [[
-                'title' => $moduleConfig['functional_name']
-                    ?? ucfirst($moduleSlug),
+                'title' => (isset($moduleConfigArr['functional_name'])
+                    && is_string($moduleConfigArr['functional_name']))
+                    ? $moduleConfigArr['functional_name'] : ucfirst($moduleSlug),
                 'href' => $this->generateRoute("internal.{$moduleSlug}.panel"),
             ]];
         }
 
         // Obtener la configuración de breadcrumbs y resolver las referencias
-        $breadcrumbsConfig = $moduleConfig['breadcrumbs'][$routeSuffix];
+        $breadcrumbsConfig = $moduleConfigArr['breadcrumbs'][$routeSuffix];
         $resolvedBreadcrumbsConfig = $this
             ->resolveConfigReferences(
                 $breadcrumbsConfig,
@@ -316,10 +368,26 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                 $routeParams
             );
 
+        if (! is_array($resolvedBreadcrumbsConfig)) {
+            return [[
+                'title' => (isset($moduleConfigArr['functional_name'])
+                    && is_string($moduleConfigArr['functional_name']))
+                    ? $moduleConfigArr['functional_name'] : ucfirst($moduleSlug),
+                'href' => $this->generateRoute("internal.{$moduleSlug}.panel"),
+            ]];
+        }
+
         $breadcrumbs = [];
 
         foreach ($resolvedBreadcrumbsConfig as $config) {
-            $title = $config['title'] ?? '';
+            if (! is_array($config)) {
+                // Ignorar elementos inválidos
+                continue;
+            }
+
+            $title = isset($config['title']) && is_string($config['title'])
+                ? $config['title']
+                : '';
 
             // Manejar títulos dinámicos (acepta dynamic_title y dynamic_title_prop)
             $dynamicKey = isset($config['dynamic_title'])
@@ -330,10 +398,15 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                 );
 
             if (
-                $dynamicKey && ! empty($config[$dynamicKey])
+                $dynamicKey
+                && isset($config[$dynamicKey])
+                && is_string($config[$dynamicKey])
+                && $config[$dynamicKey] !== ''
             ) {
-                $dynamicTitle = $this
-                    ->extractDynamicTitle($config[$dynamicKey], $viewData);
+                $dynamicTitle = $this->extractDynamicTitle(
+                    $config[$dynamicKey],
+                    $viewData
+                );
 
                 if ($dynamicTitle !== null) {
                     $title = $title.': '.$dynamicTitle;
@@ -348,30 +421,31 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             ) {
                 $href = $config['href'];
             } else {
-                $routeName = $config['route_name'] ?? null;
+                $routeName = isset($config['route_name']) && is_string($config['route_name'])
+                    ? $config['route_name']
+                    : null;
 
-                if (
-                    ! $routeName && isset($config['route_name_suffix'])
-                ) {
-                    $routeName = "internal.{$moduleSlug}."
-                        .$config['route_name_suffix'];
+                if (in_array($routeName, [null, '', '0'], true)) {
+                    $routeNameSuffix = isset($config['route_name_suffix']) && is_string($config['route_name_suffix'])
+                        ? $config['route_name_suffix']
+                        : null;
+                    $routeName = $routeNameSuffix !== null && $routeNameSuffix !== '' && $routeNameSuffix !== '0'
+                        ? "internal.{$moduleSlug}.{$routeNameSuffix}"
+                        : null;
                 }
 
                 // Preferir route_params, luego route_parameters (de configs con placeholders)
-                $routeParams = [];
-                if (
-                    isset($config['route_params'])
-                    && is_array($config['route_params'])
-                ) {
-                    $routeParams = $config['route_params'];
-                } elseif (
-                    isset($config['route_parameters'])
-                    && is_array($config['route_parameters'])
-                ) {
-                    $routeParams = $config['route_parameters'];
-                }
+                $routeParams = isset($config['route_params'])
+                    ? (array) $config['route_params']
+                    : (isset($config['route_parameters'])
+                        ? (array) $config['route_parameters']
+                        : []
+                    );
 
-                $href = $routeName
+                // Normalizar parámetros de ruta a array<string, mixed>
+                $routeParams = $this->normalizeRouteParameters($routeParams);
+
+                $href = $routeName !== null
                     ? $this->generateRoute($routeName, $routeParams)
                     : '#';
             }
@@ -382,6 +456,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             ];
         }
 
+        /** @var array<int, array{title: string, href: string}> $breadcrumbs */
         return $breadcrumbs;
     }
 
@@ -393,18 +468,21 @@ final class NavigationBuilderService implements NavigationBuilderInterface
      * @param  array<string, mixed>  $routeParams  Parámetros adicionales para las rutas
      * @return mixed Configuración con referencias resueltas
      */
-    public function resolveConfigReferences(mixed $item, array $config, array $routeParams = []): mixed
-    {
+    public function resolveConfigReferences(
+        mixed $item,
+        array $config,
+        array $routeParams = []
+    ): mixed {
         // Si es un string y comienza con '$ref:', resolverlo
         if (is_string($item) && str_starts_with($item, '$ref:')) {
             $path = mb_substr($item, 5); // Remover '$ref:'
             $parts = explode('.', $path);
             $value = $config;
 
-            // Intentar primero la ruta directa
+            // Intentar primero la ruta directa (validando tipos)
             $directPathFound = true;
             foreach ($parts as $part) {
-                if (! isset($value[$part])) {
+                if (! is_array($value) || ! array_key_exists($part, $value)) {
                     $directPathFound = false;
                     break;
                 }
@@ -431,7 +509,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                     $alternativeFound = true;
 
                     foreach ($alternativePath as $part) {
-                        if (! isset($value[$part])) {
+                        if (! is_array($value) || ! array_key_exists($part, $value)) {
                             $alternativeFound = false;
                             break;
                         }
@@ -464,7 +542,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                     $alternativeFound = true;
 
                     foreach ($alternativePath as $part) {
-                        if (! isset($value[$part])) {
+                        if (! is_array($value) || ! array_key_exists($part, $value)) {
                             $alternativeFound = false;
                             break;
                         }
@@ -499,7 +577,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             if (
                 is_string($value)
                 && str_starts_with($value, 'internal.')
-                && ! empty($routeParams)
+                && $routeParams !== []
             ) {
                 // Generar la URL con los parámetros proporcionados
                 return $this->generateRoute($value, $routeParams);
@@ -513,7 +591,8 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             is_array($item)
             && $this->isAssociativeArray($item)
             && isset($item['route_parameters'])
-            && ! empty($routeParams)
+            && is_array($item['route_parameters'])
+            && $routeParams !== []
         ) {
             // Procesar los parámetros de ruta
             $processedRouteParams = [];
@@ -546,7 +625,11 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         if (is_array($item)) {
             return $this->isAssociativeArray($item)
                 ? $this->resolveAssociativeArray($item, $config, $routeParams)
-                : $this->resolveSequentialArray($item, $config, $routeParams);
+                : $this->resolveSequentialArray(
+                    array_values($item),
+                    $config,
+                    $routeParams
+                );
         }
 
         // Para cualquier otro tipo, devolver tal como está
@@ -555,6 +638,9 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
     /**
      * Método de compatibilidad para buildBreadcrumbsFromContextual
+     *
+     * @param  array<int, array<string, mixed>>  $contextualItems
+     * @return array<int, array{title: string, href: string}>
      */
     public function buildBreadcrumbsFromContextual(
         array $contextualItems,
@@ -583,8 +669,12 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
         // Intentar usar la configuración si existe
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
+        /** @var array<string, mixed> $moduleConfig */
+        $moduleConfigArr = $moduleConfig;
         if (
-            isset($moduleConfig['breadcrumbs'][$routeSuffix])
+            isset($moduleConfigArr['breadcrumbs'])
+            && is_array($moduleConfigArr['breadcrumbs'])
+            && isset($moduleConfigArr['breadcrumbs'][$routeSuffix])
         ) {
             return $this->buildConfiguredBreadcrumbs($moduleSlug, $routeSuffix);
         }
@@ -594,26 +684,41 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
         // Agregar el primer ítem como principal
         if (
-            ! empty($contextualItems)
+            $contextualItems !== []
             && isset($contextualItems[0])
         ) {
+            $firstItem = $contextualItems[0];
+
+            $firstTitle = isset($firstItem['title']) && is_string(
+                $firstItem['title']
+            ) ? $firstItem['title'] : ucfirst($moduleSlug);
+
+            $firstHref = isset($firstItem['href']) && is_string(
+                $firstItem['href']
+            ) ? $firstItem['href'] : '#';
+
             $breadcrumbs[] = [
-                'title' => $contextualItems[0]['title'] ?? ucfirst($moduleSlug),
-                'href' => $contextualItems[0]['href'] ?? '#',
+                'title' => $firstTitle,
+                'href' => $firstHref,
             ];
 
             // Buscar el ítem activo como segundo nivel
             foreach ($contextualItems as $item) {
-                if (
-                    isset($item['current'])
-                    && $item['current'] === true
-                    && (! isset($breadcrumbs[0])
-                        || $breadcrumbs[0]['title'] !== $item['title']
-                    )
-                ) {
+                $item = (array) $item;
+
+                $isCurrent = isset($item['current'])
+                    && $item['current'] === true;
+
+                $itemTitle = isset($item['title']) && is_string(
+                    $item['title']
+                ) ? $item['title'] : '';
+
+                if ($isCurrent && ($firstTitle !== $itemTitle)) {
                     $breadcrumbs[] = [
-                        'title' => $item['title'] ?? '',
-                        'href' => $item['href'] ?? '#',
+                        'title' => $itemTitle,
+                        'href' => (isset($item['href']) && is_string(
+                            $item['href']
+                        )) ? $item['href'] : '#',
                     ];
                     break;
                 }
@@ -625,6 +730,9 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
     /**
      * Método de compatibilidad para buildGlobalNavItems
+     *
+     * @param  array<int, array<string, mixed>>  $itemsConfig
+     * @return array<int, array<string, mixed>>
      */
     public function buildGlobalNavItems(
         array $itemsConfig,
@@ -642,24 +750,25 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
             // Crear el ítem base
             $item = [
-                'title' => $config['title'] ?? '',
-                'icon' => $config['icon'] ?? null,
+                'title' => isset($config['title']) && is_string($config['title'])
+                    ? $config['title'] : '',
+                'icon' => isset($config['icon']) && is_string($config['icon'])
+                    ? $config['icon'] : null,
                 'permission' => $permission,
             ];
 
             // Determinar la URL: usar href directo si está presente, de lo contrario generar ruta
             if (isset($config['href'])) {
-                $item['href'] = $config['href'];
-                $item['current'] = $this->isCurrentUrl($config['href']);
-            } elseif (isset($config['route_name'])) {
+                $href = is_string($config['href']) ? $config['href'] : '#';
+                $item['href'] = $href;
+                $item['current'] = $this->isCurrentUrl($href);
+            } elseif (isset($config['route_name']) && is_string($config['route_name'])) {
                 $routeName = $config['route_name'];
 
-                $routeParameters = isset($config['route_params'])
-                    && is_array($config['route_params'])
-                    ? $config['route_params']
-                    : ($config['route_parameters']
-                        ?? []
-                    );
+                $routeParameters = (array) ($config['route_params']
+                    ?? $config['route_parameters']
+                    ?? []);
+                $routeParameters = $this->normalizeRouteParameters($routeParameters);
 
                 $item['href'] = $this->generateRoute(
                     $routeName,
@@ -702,7 +811,9 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         array $viewData = []
     ): array {
         // Obtener los módulos habilitados
-        $modules = $this->moduleRegistry->getAccessibleModules($user);
+        $modules = $this->moduleRegistry->getAccessibleModules(
+            $user instanceof StaffUsers ? $user : null
+        );
 
         // Construir los ítems de navegación principal
         $mainNavItems = $this->buildNavItems($modules, $permissionChecker);
@@ -715,7 +826,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
         // Construir los ítems de navegación contextual
         $contextualNavItems = [];
-        if (! empty($contextualItemsConfig)) {
+        if ($contextualItemsConfig !== []) {
             $contextualNavItems = $this->buildContextualNavItems(
                 $contextualItemsConfig,
                 $permissionChecker,
@@ -728,7 +839,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
         $globalNavItems = [];
         if ($moduleSlug === null) {
             $globalItemsConfig = $this->moduleRegistry
-                ->getGlobalNavItems($user);
+                ->getGlobalNavItems($user instanceof StaffUsers ? $user : null);
             $globalNavItems = $this->buildGlobalNavItems(
                 $globalItemsConfig,
                 $permissionChecker
@@ -744,7 +855,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                 $routeParams,
                 $viewData
             );
-        } elseif (! empty($contextualNavItems)) {
+        } elseif ($contextualNavItems !== []) {
             $breadcrumbs = $this->buildBreadcrumbsFromContextual(
                 $contextualNavItems,
                 $moduleSlug ?? ''
@@ -786,7 +897,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             } elseif ($textKey === 'title') {
                 $errors = ContextualNavItem::validate($config);
             }
-            if (! empty($errors)) {
+            if ($errors !== []) {
                 Log::warning(
                     'Configuración de item inválida',
                     [
@@ -805,15 +916,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             if ($permission) {
                 $allowed = true;
                 if (is_array($permission)) {
-                    $allowed = false;
-                    foreach ($permission as $perm) {
-                        if (
-                            is_string($perm) && $permissionChecker($perm)
-                        ) {
-                            $allowed = true;
-                            break;
-                        }
-                    }
+                    $allowed = array_any($permission, fn ($perm): bool => is_string($perm) && $permissionChecker($perm));
                 } elseif (is_string($permission)) {
                     $allowed = $permissionChecker($permission);
                 }
@@ -824,9 +927,13 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             }
 
             // Determinar el texto a mostrar
-            $text = $config[$textKey] ?? null;
+            $text = isset($config[$textKey]) && is_string($config[$textKey])
+                ? $config[$textKey]
+                : null;
             if (
-                isset($config[$textTemplateKey]) && $functionalName
+                isset($config[$textTemplateKey])
+                && is_string($config[$textTemplateKey])
+                && $functionalName
             ) {
                 $text = sprintf($config[$textTemplateKey], $functionalName);
             }
@@ -834,8 +941,11 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             // Construir la ruta (preferir route_name si está presente, si no, usar route_name_suffix)
             $routeName = $config['route_name'] ?? null;
             if (! $routeName) {
-                $routeNameSuffix = $config['route_name_suffix'] ?? null;
-                $routeName = $routeNameSuffix
+                $routeNameSuffix = isset($config['route_name_suffix'])
+                    && is_string($config['route_name_suffix'])
+                    ? $config['route_name_suffix']
+                    : null;
+                $routeName = $routeNameSuffix !== null && $routeNameSuffix !== '' && $routeNameSuffix !== '0'
                     ? "internal.{$moduleSlug}.{$routeNameSuffix}"
                     : "internal.{$moduleSlug}";
             }
@@ -857,7 +967,8 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             // Crear el ítem base
             $item = [
                 $textKey => $text,
-                'icon' => $config['icon'] ?? null,
+                'icon' => isset($config['icon'])
+                    && is_string($config['icon']) ? $config['icon'] : null,
                 'permission' => $permission,
             ];
 
@@ -865,13 +976,13 @@ final class NavigationBuilderService implements NavigationBuilderInterface
             foreach ($extraFields as $fieldKey => $configKey) {
                 $item[$fieldKey] = match ($configKey) {
                     'route' => $this->generateRoute(
-                        $routeName,
-                        $routeParameters
+                        is_string($routeName) ? $routeName : '',
+                        $this->normalizeRouteParameters($routeParameters)
                     ),
                     'current' => $this->isCurrentRoute(
-                        $routeName
+                        is_string($routeName) ? $routeName : ''
                     ),
-                    'route_name' => $routeName,
+                    'route_name' => is_string($routeName) ? $routeName : '',
                     default => $config[$configKey] ?? null,
                 };
             }
@@ -884,6 +995,8 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
     /**
      * Genera una URL de ruta de forma segura.
+     *
+     * @param  array<string, mixed>  $parameters
      */
     private function generateRoute(
         string $routeName,
@@ -897,9 +1010,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                     $paramNames = [];
                     // Extraer nombres de parámetros de la URI
                     preg_match_all('/\{([^\}]+)\}/', $route->uri(), $matches);
-                    if (isset($matches[1])) {
-                        $paramNames = $matches[1];
-                    }
+                    $paramNames = $matches[1];
 
                     // Verificar si faltan parámetros requeridos
                     $missingParams = [];
@@ -914,7 +1025,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                     }
 
                     // Si faltan parámetros, no generar la ruta
-                    if (! empty($missingParams)) {
+                    if ($missingParams !== []) {
                         return '#';
                     }
                 }
@@ -927,7 +1038,7 @@ final class NavigationBuilderService implements NavigationBuilderInterface
                 Log::error(
                     "Error al generar ruta {$routeName}",
                     [
-                        'exception' => get_class($e),
+                        'exception' => $e::class,
                         'route_name' => $routeName,
                         'parameters' => $parameters,
                     ]
@@ -1041,10 +1152,12 @@ final class NavigationBuilderService implements NavigationBuilderInterface
 
     /**
      * Determina si un array es asociativo.
+     *
+     * @param  array<int|string, mixed>  $array
      */
     private function isAssociativeArray(array $array): bool
     {
-        if (empty($array)) {
+        if ($array === []) {
             return false;
         }
 
@@ -1066,19 +1179,20 @@ final class NavigationBuilderService implements NavigationBuilderInterface
     }
 
     /**
-     * Extrae el sufijo de ruta de una ruta completa.
+     * Normaliza parámetros de ruta, manteniendo únicamente claves string.
+     *
+     * @param  array<mixed>  $params
+     * @return array<string, mixed>
      */
-    private function extractRouteSuffix(
-        ?string $routeName,
-        string $moduleSlug
-    ): string {
-        if (
-            $routeName && str_starts_with($routeName, "internal.{$moduleSlug}.")
-        ) {
-            return mb_substr($routeName, mb_strlen("internal.{$moduleSlug}."));
+    private function normalizeRouteParameters(array $params): array
+    {
+        $normalized = [];
+        foreach ($params as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            }
         }
 
-        // Por defecto, usar 'panel'
-        return 'panel';
+        return $normalized;
     }
 }

@@ -10,16 +10,16 @@ return new class extends Migration
 {
     /**
      * Plantilla de migración para trabajar con columnas/tables JSONB en PostgreSQL.
-     * 
+     *
      * Este archivo sirve como ejemplo práctico de:
      * - Convertir columnas existentes de JSON a JSONB.
      * - Agregar nuevas columnas JSONB con valor por defecto.
      * - Crear tablas que usan JSONB y sus índices GIN.
      * - Crear índices GIN sobre columnas JSONB para acelerar consultas.
-     * 
+     *
      * Adáptalo a tus necesidades: cambia nombres de tablas/columnas e índices
      * según tu modelo de datos. Todas las operaciones se ejecutan solo en PostgreSQL.
-     * 
+     *
      * Reemplaza en los ejemplos:
      * - example_table_a / json_data
      * - example_table_b / form_data / extra_data
@@ -69,8 +69,8 @@ return new class extends Migration
             // Ejemplo 3: Crear una tabla que usa JSONB + índice GIN
             // Tabla: example_jsonb_entities | Columna: payload
             // -----------------------------------------------------------------
-            if (!Schema::hasTable('example_jsonb_entities')) {
-                DB::statement(<<<SQL
+            if (! Schema::hasTable('example_jsonb_entities')) {
+                DB::statement(<<<'SQL'
                     CREATE TABLE IF NOT EXISTS example_jsonb_entities (
                         id BIGSERIAL PRIMARY KEY,
                         payload jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -87,7 +87,7 @@ return new class extends Migration
 
     /**
      * Revierte los ejemplos aplicados arriba.
-     * 
+     *
      * Ten en cuenta que, si tu modelo original no usaba JSON
      * (por ejemplo, si agregaste columnas nuevas), aquí se elimina
      * lo agregado y se revierten tipos a JSON cuando aplica.

@@ -9,14 +9,14 @@ use JsonSerializable;
 /**
  * Value Object para representar una estadística enriquecida del panel.
  */
-final class EnhancedStat implements JsonSerializable
+final readonly class EnhancedStat implements JsonSerializable
 {
     public function __construct(
-        public readonly string $key,
-        public readonly string $title,
-        public readonly string $description,
-        public readonly string $icon,
-        public readonly int|float $value
+        public string $key,
+        public string $title,
+        public string $description,
+        public string $icon,
+        public int|float $value
     ) {}
 
     /**

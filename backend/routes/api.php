@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Grupo de rutas para la API con limitador de peticiones global.
-Route::middleware(['throttle:api', 'api'])->group(function () {
+Route::middleware(['throttle:api', 'api'])->group(function (): void {
 
     /**
      * Endpoint para la autenticación de usuarios y generación de tokens Sanctum.
@@ -48,9 +48,7 @@ Route::middleware(['throttle:api', 'api'])->group(function () {
  *
  * GET /api/health
  */
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'timestamp' => now()->toIso8601String(),
-    ]);
-})->name('api.health');
+Route::get('/health', fn () => response()->json([
+    'status' => 'ok',
+    'timestamp' => now()->toIso8601String(),
+]))->name('api.health');

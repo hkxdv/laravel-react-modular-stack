@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Grupo de rutas de autenticación internas: prefijo de URI 'internal' pero SIN prefijo de nombre
-Route::prefix('internal')->group(function () {
+Route::prefix('internal')->group(function (): void {
     require __DIR__.'/auth.php';
 });
 
 // Grupo de rutas internas con prefijo de nombre 'internal.'
-Route::prefix('internal')->name('internal.')->group(function () {
+Route::prefix('internal')->name('internal.')->group(function (): void {
     /**
      * Grupo de rutas que requieren que el usuario del personal esté
      * autenticado y haya verificado su correo electrónico.
@@ -31,7 +31,7 @@ Route::prefix('internal')->name('internal.')->group(function () {
         'auth:staff',
         'verified',
         'throttle:60,1',
-    ])->group(function () {
+    ])->group(function (): void {
         /**
          * Panel de control principal.
          * GET /internal/dashboard

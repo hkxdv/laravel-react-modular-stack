@@ -94,7 +94,7 @@ abstract class ModuleOrchestrationController extends Controller
 
         $extras = $this->getAdditionalPanelData();
 
-        if (is_array($extras) && ! empty($extras)) {
+        if ($extras !== []) {
             $additional = array_merge($additional, $extras);
         }
 
@@ -127,7 +127,9 @@ abstract class ModuleOrchestrationController extends Controller
      */
     protected function getFunctionalName(): string
     {
-        return $this->moduleConfig['functional_name'] ?? '';
+        $name = $this->moduleConfig['functional_name'] ?? '';
+
+        return is_string($name) ? $name : '';
     }
 
     /**
@@ -139,17 +141,31 @@ abstract class ModuleOrchestrationController extends Controller
      */
     protected function getInertiaViewDirectory(): string
     {
-        return $this->moduleConfig['inertia_view_directory'] ?? $this->moduleSlug;
+        $dir = $this->moduleConfig['inertia_view_directory']
+            ?? $this->moduleSlug;
+
+        return is_string($dir) ? $dir : $this->moduleSlug;
     }
 
     /**
      * Obtiene el/los permisos base requeridos para acceder al módulo.
      *
-     * @return string|array Permiso(s) necesario(s) para acceder al módulo
+     * @return array<int, string>|string
      */
     protected function getBaseAccessPermission(): string|array
     {
-        return $this->moduleConfig['base_permission'] ?? '';
+        $perm = $this->moduleConfig['base_permission'] ?? '';
+
+        if (is_string($perm)) {
+            return $perm;
+        }
+
+        if (is_array($perm)) {
+            // Normalizar a lista de strings
+            return array_values(array_filter($perm, 'is_string'));
+        }
+
+        return '';
     }
 
     /**
@@ -161,7 +177,9 @@ abstract class ModuleOrchestrationController extends Controller
      */
     protected function getAuthGuard(): string
     {
-        return $this->moduleConfig['auth_guard'] ?? '';
+        $guard = $this->moduleConfig['auth_guard'] ?? '';
+
+        return is_string($guard) ? $guard : '';
     }
 
     /**
@@ -184,8 +202,26 @@ abstract class ModuleOrchestrationController extends Controller
     protected function getPanelItemsConfig(): array
     {
         $panelConfig = $this->moduleConfig['panel_items'] ?? [];
+        if (! is_array($panelConfig)) {
+            return [];
+        }
 
-        return is_array($panelConfig) ? $panelConfig : [];
+        // Asegurar lista de ítems de panel con cada ítem como array
+        $normalized = [];
+        foreach ($panelConfig as $item) {
+            if (is_array($item)) {
+                // Forzar claves de string para cumplir array<string, mixed>
+                $normalizedItem = [];
+                foreach ($item as $k => $v) {
+                    $normalizedItem[(string) $k] = $v;
+                }
+                /** @var array<string, mixed> $normalizedItem */
+                $normalized[] = $normalizedItem;
+            }
+        }
+
+        /** @var array<int, array<string, mixed>> $normalized */
+        return $normalized;
     }
 
     /**
@@ -195,7 +231,9 @@ abstract class ModuleOrchestrationController extends Controller
      * 2) En caso de no existir una clave específica, usar la clave 'default' como fallback.
      * Los controladores hijos pueden sobrescribir si necesitan lógica adicional específica.
      *
-     * @return array<int, array<string, mixed>>
+     * Nota: Devuelve una lista que puede contener referencias en forma de strings, que serán resueltas posteriormente.
+     *
+     * @return array<int, mixed>
      */
     protected function getContextualNavItemsConfig(): array
     {
@@ -208,17 +246,18 @@ abstract class ModuleOrchestrationController extends Controller
         // Intentar usar configuración específica por la ruta actual
         try {
             $currentRequest = request();
-
-            if ($currentRequest && $currentRequest->route()) {
+            // request() siempre retorna instancia en contexto web; evitar && redundante
+            if ($currentRequest->route()) {
                 $suffix = $this->extractRouteSuffixFromRequest($currentRequest);
                 if (
                     isset($navConfigAll[$suffix])
                     && is_array($navConfigAll[$suffix])
                 ) {
-                    return $navConfigAll[$suffix];
+                    // Mantener referencias ($ref:...) para que se resuelvan más adelante
+                    return array_values($navConfigAll[$suffix]);
                 }
             }
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             // Si no se puede detectar, continuar con fallback silenciosamente
         }
 
@@ -227,7 +266,7 @@ abstract class ModuleOrchestrationController extends Controller
             isset($navConfigAll['default'])
             && is_array($navConfigAll['default'])
         ) {
-            return $navConfigAll['default'];
+            return array_values($navConfigAll['default']);
         }
 
         return [];
@@ -334,8 +373,7 @@ abstract class ModuleOrchestrationController extends Controller
             // Forward route params to allow dynamic resolution in breadcrumbs and nav
             return $this->navigationService->resolveConfigReferences(
                 $config,
-                $this->moduleConfig,
-                $routeParams
+                $this->moduleConfig
             );
         }
 
@@ -372,9 +410,17 @@ abstract class ModuleOrchestrationController extends Controller
             ?: abort(403, 'Usuario no autenticado');
 
         // Si no se proporcionaron parámetros de ruta, intentar obtenerlos de la solicitud actual
-        if (empty($routeParams)) {
-            $routeParams = $request->route()->parameters();
+        if ($routeParams === []) {
+            $route = $request->route();
+            $routeParams = $route ? $route->parameters() : [];
         }
+
+        // Normalizar route params a array<string, mixed>
+        $normalizedRouteParams = [];
+        foreach ($routeParams as $key => $value) {
+            $normalizedRouteParams[(string) $key] = $value;
+        }
+        $routeParams = $normalizedRouteParams;
 
         // Obtener la configuración de navegación del módulo
         $panelItemsConfig = $customPanelItems
@@ -383,19 +429,26 @@ abstract class ModuleOrchestrationController extends Controller
             ?? $this->getContextualNavItemsConfig();
 
         // Resolver referencias en las configuraciones
-        if ($this->navigationService) {
-            $panelItemsConfig = $this
-                ->resolveConfigReferences(
-                    $panelItemsConfig,
-                    $routeParams
-                );
-            $contextualNavItemsConfig = $this
-                ->resolveConfigReferences(
-                    $contextualNavItemsConfig,
-                    $routeParams
-                );
+        if ($this->navigationService instanceof NavigationBuilderInterface) {
+            $panelItemsConfig = $this->resolveConfigReferences(
+                $panelItemsConfig,
+                $routeParams
+            );
+            $contextualNavItemsConfig = $this->resolveConfigReferences(
+                $contextualNavItemsConfig,
+                $routeParams
+            );
         }
 
+        // Re-normalizar configuraciones tras resolver referencias
+        /** @var array<int, array<string, mixed>> $panelItemsConfig */
+        $panelItemsConfig = is_array($panelItemsConfig)
+            ? array_values(array_filter($panelItemsConfig, 'is_array'))
+            : [];
+        /** @var array<int, array<string, mixed>> $contextualNavItemsConfig */
+        $contextualNavItemsConfig = is_array($contextualNavItemsConfig)
+            ? array_values(array_filter($contextualNavItemsConfig, 'is_array'))
+            : [];
         $functionalName = $this->getFunctionalName();
 
         // Determinar el sufijo de ruta si no se proporcionó
@@ -405,6 +458,18 @@ abstract class ModuleOrchestrationController extends Controller
         $viewData = array_merge($additionalData, $dynamicTitleData);
 
         // Preparar el contexto de la vista usando el servicio
+        /** @var array<string, mixed>|null $statsParam */
+        $statsParam = null;
+        if (
+            isset($additionalData['stats'])
+            && is_array($additionalData['stats'])
+        ) {
+            $statsParam = [];
+            foreach ($additionalData['stats'] as $k => $v) {
+                $statsParam[(string) $k] = $v;
+            }
+        }
+
         $viewContext = $this->viewComposerService
             ->composeModuleViewContext(
                 moduleSlug: $this->moduleSlug,
@@ -412,11 +477,11 @@ abstract class ModuleOrchestrationController extends Controller
                 contextualNavItemsConfig: $contextualNavItemsConfig,
                 permissionChecker: fn (
                     string $permission
-                ) => $user->hasPermissionTo($permission),
+                ) => $this->can($permission),
                 user: $user,
                 functionalName: $functionalName,
                 data: $viewData,
-                stats: $additionalData['stats'] ?? null,
+                stats: $statsParam,
                 routeSuffix: $routeSuffix,
                 routeParams: $routeParams
             );
@@ -437,7 +502,7 @@ abstract class ModuleOrchestrationController extends Controller
     private function detectModuleAndLoadConfig(): void
     {
         // Obtiene el namespace completo de la clase hija que está siendo instanciada.
-        $namespace = (new ReflectionClass(static::class))->getNamespaceName();
+        $namespace = new ReflectionClass(static::class)->getNamespaceName();
 
         // Divide el namespace en partes para extraer el nombre del módulo.
         $parts = explode('\\', $namespace);
@@ -465,7 +530,8 @@ abstract class ModuleOrchestrationController extends Controller
      */
     private function extractRouteSuffixFromRequest(Request $request): string
     {
-        $currentRoute = $request->route()->getName();
+        $route = $request->route();
+        $currentRoute = $route ? $route->getName() : null;
 
         // Si la ruta actual pertenece al módulo, extraer el sufijo
         if (
@@ -481,7 +547,7 @@ abstract class ModuleOrchestrationController extends Controller
         }
 
         // Por defecto, usar 'panel' o el último segmento de la ruta actual
-        $parts = explode('.', $currentRoute);
+        $parts = explode('.', $currentRoute ?? '');
 
         return end($parts) ?: 'panel';
     }

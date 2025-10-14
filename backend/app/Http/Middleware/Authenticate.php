@@ -14,11 +14,11 @@ final class Authenticate extends Middleware
      * Handle an unauthenticated user.
      *
      * @param  Request  $request
-     * @return void
+     * @param  list<string>  $guards
      *
      * @throws \Illuminate\Auth\AuthenticationException
      */
-    protected function unauthenticated($request, array $guards)
+    protected function unauthenticated($request, array $guards): void
     {
         // Log del intento de acceso no autorizado para auditoría
         Log::info('Intento de acceso no autorizado', [
