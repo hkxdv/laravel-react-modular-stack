@@ -80,8 +80,8 @@ export function useServerTable({
 }: Readonly<UseServerTableOptions>): UseServerTableResult {
   // Estado local de paginación con valores iniciales provenientes del servidor
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: Math.max(0, initialPageIndex ?? 0),
-    pageSize: initialPageSize ?? 10,
+    pageIndex: Math.max(0, initialPageIndex),
+    pageSize: initialPageSize,
   });
   // Estado de ordenamiento de TanStack Table
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -94,25 +94,31 @@ export function useServerTable({
   // Ref para aplicar initialSorting solo una vez (en primer render)
   const hasInitializedSortingRef = useRef(false);
   // Recordar últimos valores para detectar cambios relevantes que requieren reset de página
-  const lastSearchRef = useRef<string>(initialSearch ?? '');
-  const lastSortingRef = useRef<string>(JSON.stringify(initialSorting ?? []));
+  const lastSearchRef = useRef<string>(initialSearch);
+  const lastSortingRef = useRef<string>(JSON.stringify(initialSorting));
 
   // Setters envueltos en transición para reducir bloqueo en handlers de click
   const setSortingTransition = useCallback((next: SortingState) => {
-    startTransition(() => setSorting(next));
+    startTransition(() => {
+      setSorting(next);
+    });
   }, []);
 
   const setSearchTransition = useCallback((next: string) => {
-    startTransition(() => setSearch(next));
+    startTransition(() => {
+      setSearch(next);
+    });
   }, []);
 
   const setPaginationTransition = useCallback((next: PaginationState) => {
-    startTransition(() => setPagination(next));
+    startTransition(() => {
+      setPagination(next);
+    });
   }, []);
 
   // Mantener sincronizado el estado local cuando cambian los valores iniciales desde el servidor
   useEffect(() => {
-    const next = { pageIndex: Math.max(0, initialPageIndex ?? 0), pageSize: initialPageSize ?? 10 };
+    const next = { pageIndex: Math.max(0, initialPageIndex), pageSize: initialPageSize };
     setPagination((prev) => {
       if (prev.pageIndex !== next.pageIndex || prev.pageSize !== next.pageSize) return next;
       return prev;
@@ -120,7 +126,7 @@ export function useServerTable({
   }, [initialPageIndex, initialPageSize]);
 
   // Serialización estable del ordenamiento inicial para dependencias del efecto
-  const initialSortingStr = useMemo(() => JSON.stringify(initialSorting ?? []), [initialSorting]);
+  const initialSortingStr = useMemo(() => JSON.stringify(initialSorting), [initialSorting]);
   // Versión parseada estable para aplicar cuando cambie el ordenamiento inicial
   const initialSortingParsed = useMemo(
     () => JSON.parse(initialSortingStr) as SortingState,
@@ -153,7 +159,7 @@ export function useServerTable({
   // Cuando cambia el ordenamiento (después del inicial), reseteamos a la primera página
   useEffect(() => {
     if (!hasInitializedSortingRef.current) return;
-    const currentSortingStr = JSON.stringify(sorting ?? []);
+    const currentSortingStr = JSON.stringify(sorting);
     if (lastSortingRef.current !== currentSortingStr) {
       setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
       lastSortingRef.current = currentSortingStr;
@@ -162,7 +168,7 @@ export function useServerTable({
 
   // Sincronizar término de búsqueda cuando cambie el valor inicial desde el servidor
   useEffect(() => {
-    setSearch((prev) => (prev === (initialSearch ?? '') ? prev : (initialSearch ?? '')));
+    setSearch((prev) => (prev === initialSearch ? prev : initialSearch));
   }, [initialSearch]);
 
   // Recordar la última cadena de parámetros enviados para evitar navegaciones redundantes
@@ -199,7 +205,7 @@ export function useServerTable({
         preserveScroll: true,
         replace: true,
         // Recarga parcial: refresca solo las props indicadas
-        only: partialProps,
+        only: partialProps ?? [],
         onFinish: () => {
           setIsLoading(false);
           previousParamsRef.current = paramsString;
@@ -211,7 +217,9 @@ export function useServerTable({
       });
     }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [routeUrl, requestParams, onError, partialProps]);
 
   // Cambiar página o tamaño de página para paginación de servidor (memoizado)

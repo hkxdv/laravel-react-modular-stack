@@ -63,7 +63,7 @@ export function AppSidebar({
   const filteredModuleNavItems = moduleNavItems.filter((item) => {
     // Si estamos en una página de módulo, filtrar el módulo actual
     if (isModulePage) {
-      const itemHref = String(item.href || '');
+      const itemHref = item.href || '';
       return (
         !itemHref.includes(`/modules/${moduleSlug}`) &&
         !itemHref.endsWith(`/internal/${moduleSlug}`)
@@ -82,7 +82,7 @@ export function AppSidebar({
   // que apunten al mismo módulo
   const filteredContextualItems = isModulePanel
     ? contextualNavItems.filter((item) => {
-        const itemHref = String(item.href || '');
+        const itemHref = item.href || '';
         return !itemHref.endsWith(`/internal/${moduleSlug}`);
       })
     : contextualNavItems;

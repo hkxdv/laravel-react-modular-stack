@@ -41,7 +41,7 @@ export function createColumnDefs<T>({
     meta?: Record<string, unknown>;
   }[];
   enableSorting?: boolean;
-}): ColumnDef<T, unknown>[] {
+}): ColumnDef<T>[] {
   return columns.map((column) => ({
     header: column.header,
     ...(column.accessorKey ? { accessorKey: column.accessorKey as string } : {}),

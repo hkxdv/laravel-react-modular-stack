@@ -29,8 +29,7 @@ export default function UserEditPage({
   moduleNavItems,
   globalNavItems,
   breadcrumbs,
-  _errors = {},
-  flash = {},
+  flash,
 }: Readonly<UserEditPageProps>) {
   useNavigationProgress({ delayMs: 150 });
 
@@ -39,18 +38,13 @@ export default function UserEditPage({
   useFlashToasts(
     flash
       ? {
-          success: flash.success ?? undefined,
-          error: flash.error ?? undefined,
-          info: flash.info ?? undefined,
-          warning: flash.warning ?? undefined,
+          success: flash.success ?? '',
+          error: flash.error ?? '',
+          info: flash.info ?? '',
+          warning: flash.warning ?? '',
         }
       : undefined,
   );
-
-  // Asegura que los props esenciales (usuario, roles y usuario autenticado) se hayan cargado.
-  if (!user || !roles || !auth?.user) {
-    return <div>Cargando...</div>;
-  }
 
   // Fallback de breadcrumbs si no vienen desde el servidor
   const computedBreadcrumbs: BreadcrumbItem[] =
@@ -63,10 +57,10 @@ export default function UserEditPage({
     <AppLayout
       breadcrumbs={computedBreadcrumbs}
       user={userData}
-      contextualNavItems={contextualNavItems}
-      mainNavItems={mainNavItems}
-      moduleNavItems={moduleNavItems}
-      globalNavItems={globalNavItems}
+      contextualNavItems={contextualNavItems ?? []}
+      mainNavItems={mainNavItems ?? []}
+      moduleNavItems={moduleNavItems ?? []}
+      globalNavItems={globalNavItems ?? []}
     >
       <Head title={`Editar Usuario: ${user.name}`} />
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -140,7 +134,7 @@ const UserEditManager: React.FC<UserEditManagerProps> = ({ user, roles, authUser
       return 'Contraseña';
     }
 
-    return fieldLabels[field] || field;
+    return fieldLabels[field] ?? field;
   };
 
   return (

@@ -8,17 +8,11 @@ interface IconProps extends Omit<LucideProps, 'ref'> {
 export function Icon({ iconNode, name, className, ...props }: Readonly<IconProps>) {
   if (name) {
     const LucideIconComponent = icons[name];
-    if (!LucideIconComponent) {
-      return null;
-    }
     return <LucideIconComponent className={className} {...props} />;
   }
 
   if (typeof iconNode === 'string') {
     const LucideIconComponent = icons[iconNode as keyof typeof icons];
-    if (!LucideIconComponent) {
-      return null;
-    }
     return <LucideIconComponent className={className} {...props} />;
   }
 

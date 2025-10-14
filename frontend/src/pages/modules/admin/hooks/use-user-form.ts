@@ -51,10 +51,8 @@ export const extractRoleIds = (user?: StaffUser): string[] => {
   if (!user?.roles) return [];
 
   if (Array.isArray(user.roles)) {
-    return user.roles.map((role) =>
-      typeof role === 'object' && role != null && 'id' in role ? String(role.id) : String(role),
-    );
-  } else if (typeof user.roles === 'object' && user.roles != null && 'id' in user.roles) {
+    return user.roles.map((role) => String(role.id));
+  } else if (typeof user.roles === 'object' && 'id' in user.roles) {
     return [String((user.roles as { id: string | number }).id)];
   }
 

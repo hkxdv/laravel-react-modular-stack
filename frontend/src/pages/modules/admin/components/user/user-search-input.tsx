@@ -61,9 +61,15 @@ export default function UsersSearchInput({
           placeholder="Buscar por nombre, email o rol..."
           className="h-10 border-0 bg-transparent pr-10 pl-10 focus-visible:ring-0 focus-visible:ring-offset-0"
           value={searchTermValue}
-          onChange={(e) => onSearchTermChange(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onChange={(e) => {
+            onSearchTermChange(e.target.value);
+          }}
+          onFocus={() => {
+            setIsFocused(true);
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+          }}
         />
         {searchTermValue && (
           <Button

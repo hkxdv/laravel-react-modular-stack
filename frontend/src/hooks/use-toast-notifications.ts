@@ -25,8 +25,7 @@ export function useToastNotifications() {
   const { theme } = useTheme();
   const isDarkMode =
     theme === 'dark' ||
-    (theme === 'system' &&
-      globalThis.window?.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
+    (theme === 'system' && globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   // Opciones comunes para las notificaciones toast
   const defaultOptions: ToastOptions = useMemo(

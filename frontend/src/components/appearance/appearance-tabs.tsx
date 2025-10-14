@@ -25,7 +25,8 @@ export default function AppearanceToggleTab({
     e.preventDefault();
     const dir = e.key === 'ArrowRight' ? 1 : -1;
     const nextIndex = (currentIndex + dir + tabs.length) % tabs.length;
-    setTheme(tabs[nextIndex].value);
+    const nextTab = tabs[nextIndex];
+    if (nextTab) setTheme(nextTab.value);
   }
 
   return (
@@ -49,7 +50,9 @@ export default function AppearanceToggleTab({
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onKeyDown={onKeyDown}
-              onClick={() => setTheme(value)}
+              onClick={() => {
+                setTheme(value);
+              }}
               className={cn(
                 'group relative flex min-w-[5rem] flex-col items-center px-2 pt-3 pb-2 transition-colors outline-none',
                 isActive

@@ -87,9 +87,9 @@ export default function Module01IndexPanel() {
     <ModuleIndexPage
       user={userData}
       breadcrumbs={computedBreadcrumbs}
-      contextualNavItems={contextualNavItems}
+      contextualNavItems={contextualNavItems ?? []}
       pageTitle={pageTitle ?? ''}
-      description={description}
+      description={description ?? ''}
       staffUserName={userData?.name ?? ''}
       stats={statsSection}
       mainContent={mainContent}

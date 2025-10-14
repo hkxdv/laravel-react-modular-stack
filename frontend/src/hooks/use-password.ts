@@ -79,7 +79,9 @@ export function usePassword(options: UsePasswordOptions = {}) {
     inputProps: {
       type: showPassword ? 'text' : 'password',
       value: password,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value),
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.target.value);
+      },
     },
   };
 }

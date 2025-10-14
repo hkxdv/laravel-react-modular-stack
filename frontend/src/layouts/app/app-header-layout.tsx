@@ -10,7 +10,7 @@ export default function AppHeaderLayout({
 }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
   return (
     <AppShell>
-      <AppHeader breadcrumbs={breadcrumbs} />
+      <AppHeader breadcrumbs={breadcrumbs ?? []} />
       <AppContent>{children}</AppContent>
     </AppShell>
   );

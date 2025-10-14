@@ -48,7 +48,11 @@ export function ImageUploadDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <ImageUpload onFileSelect={setSelectedFile} initialFile={initialFile} accept={accept} />
+          <ImageUpload
+            onFileSelect={setSelectedFile}
+            initialFile={initialFile ?? null}
+            accept={accept ?? 'image/*'}
+          />
         </div>
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleCancel}>

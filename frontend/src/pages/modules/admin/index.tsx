@@ -105,7 +105,7 @@ export default function AdminIndexPage() {
               Seleccione una opción para gestionar el sistema.
             </p>
           </div>
-          <ModuleNavCards items={panelItems ?? []} getIconComponent={getLucideIcon} />
+          <ModuleNavCards items={panelItems} getIconComponent={getLucideIcon} />
         </div>
       ),
     [isNavigating, panelItems],
@@ -115,11 +115,11 @@ export default function AdminIndexPage() {
     <AppLayout
       user={userData}
       breadcrumbs={computedBreadcrumbs}
-      mainNavItems={mainNavItems}
-      moduleNavItems={moduleNavItems}
-      contextualNavItems={contextualNavItems}
-      globalNavItems={globalNavItems}
-      pageTitle={pageTitle}
+      mainNavItems={mainNavItems ?? []}
+      moduleNavItems={moduleNavItems ?? []}
+      contextualNavItems={contextualNavItems ?? []}
+      globalNavItems={globalNavItems ?? []}
+      pageTitle={pageTitle ?? ''}
     >
       <Head title={pageTitle ?? ''} />
 

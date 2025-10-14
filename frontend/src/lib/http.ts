@@ -16,7 +16,7 @@ let isRefreshingCSRF = false;
  */
 export const setupAxios = (): void => {
   // Establece la URL base para todas las solicitudes de Axios desde las variables de entorno de Vite.
-  axios.defaults.baseURL = import.meta.env.VITE_APP_URL ?? 'http://localhost:8080';
+  axios.defaults.baseURL = import.meta.env.VITE_APP_URL || 'http://localhost:8080';
 
   // Habilita el envío de cookies con solicitudes entre sitios. Esencial para Sanctum.
   axios.defaults.withCredentials = true;
@@ -62,11 +62,6 @@ export const setupAxios = (): void => {
     async (error: AxiosError) => {
       const originalRequest = error.config;
 
-      // Si falta la configuración de la solicitud, no podemos reintentar. Lanza el error.
-      if (!originalRequest) {
-        throw error;
-      }
-
       // Maneja la falta de coincidencia del token CSRF (estado 419).
       if (error.response?.status === 419 && !originalRequest._isRetry) {
         if (isRefreshingCSRF) {
@@ -80,7 +75,7 @@ export const setupAxios = (): void => {
         try {
           await getCSRFToken();
           // Después de obtener un nuevo token, se reintenta la solicitud original.
-          return axios(originalRequest);
+          return await axios(originalRequest);
         } finally {
           isRefreshingCSRF = false;
         }

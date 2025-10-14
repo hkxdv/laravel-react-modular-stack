@@ -31,9 +31,9 @@ export default function ProfilePage({
 
   return (
     <AppLayout
-      user={auth.user ? auth.user.data : null}
+      user={userData}
       breadcrumbs={breadcrumbs}
-      contextualNavItems={contextualNavItems}
+      contextualNavItems={contextualNavItems ?? []}
     >
       <Head title="Configuración de perfil" />
 
@@ -49,10 +49,10 @@ export default function ProfilePage({
           <BasicInfoCard
             initialName={initialName}
             initialEmail={initialEmail}
-            mustVerifyEmail={!!mustVerifyEmail}
-            isStaffUser={!!isStaffUser}
+            mustVerifyEmail={mustVerifyEmail}
+            isStaffUser={isStaffUser}
             emailVerifiedAt={userData?.email_verified_at ?? null}
-            status={status}
+            status={status ?? ''}
           />
         </div>
 

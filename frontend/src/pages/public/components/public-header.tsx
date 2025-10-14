@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-commented-code */
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
 import { Link } from '@inertiajs/react';

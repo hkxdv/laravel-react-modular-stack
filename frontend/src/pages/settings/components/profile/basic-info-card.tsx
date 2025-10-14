@@ -16,23 +16,21 @@ export function BasicInfoCard({
 }: Readonly<BasicInfoCardProps>) {
   const { showSuccess, showError } = useToastNotifications();
 
-  const { data, setData, patch, errors, processing, recentlySuccessful, isDirty, reset } = useForm<
-    Required<BasicInfoForm>
-  >({
+  const form = useForm<Required<BasicInfoForm>>({
     name: initialName,
     email: initialEmail,
   });
 
-  const formErrors = errors as Record<string, string | undefined>;
+  const formErrors = form.errors as Record<string, string | undefined>;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(route('internal.settings.profile.update'), {
+    form.patch(route('internal.settings.profile.update'), {
       preserveScroll: true,
       onSuccess: () => {
         showSuccess('Perfil actualizado correctamente.');
-        if (recentlySuccessful) {
-          reset();
+        if (form.recentlySuccessful) {
+          form.reset();
         }
       },
       onError: () => {
@@ -55,17 +53,19 @@ export function BasicInfoCard({
             </Label>
             <Input
               id="name"
-              value={data.name}
-              onChange={(e) => setData((prev) => ({ ...prev, name: e.target.value }))}
+              value={form.data.name}
+              onChange={(e) => {
+                form.setData((prev) => ({ ...prev, name: e.target.value }));
+              }}
               required
               autoComplete="name"
               placeholder="Nombre completo"
-              aria-invalid={!!formErrors.name}
-              className={`bg-muted/40 h-11 px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${formErrors.name ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+              aria-invalid={!!formErrors['name']}
+              className={`bg-muted/40 h-11 px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${formErrors['name'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
             />
-            {formErrors.name && (
+            {formErrors['name'] && (
               <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
-                <span>{formErrors.name}</span>
+                <span>{formErrors['name']}</span>
               </div>
             )}
           </div>
@@ -77,17 +77,19 @@ export function BasicInfoCard({
             <Input
               id="email"
               type="email"
-              value={data.email}
-              onChange={(e) => setData((prev) => ({ ...prev, email: e.target.value }))}
+              value={form.data.email}
+              onChange={(e) => {
+                form.setData((prev) => ({ ...prev, email: e.target.value }));
+              }}
               required
               autoComplete="username"
               placeholder="Correo electrónico"
-              aria-invalid={!!formErrors.email}
-              className={`bg-muted/40 h-11 px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${formErrors.email ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+              aria-invalid={!!formErrors['email']}
+              className={`bg-muted/40 h-11 px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${formErrors['email'] ? 'border-red-500 ring-1 ring-red-500' : ''}`}
             />
-            {formErrors.email && (
+            {formErrors['email'] && (
               <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
-                <span>{formErrors.email}</span>
+                <span>{formErrors['email']}</span>
               </div>
             )}
           </div>
@@ -116,10 +118,10 @@ export function BasicInfoCard({
           <div className="flex items-center gap-4 pt-4">
             <Button
               type="submit"
-              disabled={processing || !isDirty}
+              disabled={form.processing || !form.isDirty}
               className="h-11 rounded-md bg-black font-medium text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
             >
-              {processing ? 'Guardando...' : 'Guardar perfil'}
+              {form.processing ? 'Guardando...' : 'Guardar perfil'}
             </Button>
           </div>
         </form>

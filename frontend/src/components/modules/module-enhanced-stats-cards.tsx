@@ -37,13 +37,11 @@ export function EnhancedStatsCards({ stats }: Readonly<{ stats: EnhancedStat[] }
           >
             <div className="flex items-center p-5">
               <div className="border-border bg-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border">
-                {IconComponent && (
-                  <IconComponent
-                    className="text-muted-foreground h-6 w-6"
-                    aria-hidden="true"
-                    strokeWidth={2}
-                  />
-                )}
+                <IconComponent
+                  className="text-muted-foreground h-6 w-6"
+                  aria-hidden="true"
+                  strokeWidth={2}
+                />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>

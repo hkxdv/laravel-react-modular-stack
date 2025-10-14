@@ -49,7 +49,7 @@ export function getUserDisplayName(user: PotentiallyNestedUser): string {
     return DEFAULT_USER_NAME;
   }
   // Simplificado: solo StaffUser
-  return userData.name ?? DEFAULT_USER_NAME;
+  return userData.name || DEFAULT_USER_NAME;
 }
 
 /**
@@ -80,5 +80,5 @@ export function getUserName(user: StaffUser | null): string {
     return 'Usuario Desconocido';
   }
   // Simplificado: solo StaffUser
-  return user.name ?? DEFAULT_USER_NAME;
+  return user.name || DEFAULT_USER_NAME;
 }

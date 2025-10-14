@@ -12,10 +12,9 @@ import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AppLayout from '@/layouts/app-layout';
 import { ModuleDashboardLayout } from '@/layouts/module-dashboard-layout';
 import { UserActionsCell } from '@/pages/modules/admin/components/user/user-actions-cell';
-import type { StaffUser } from '@/types';
+import type { Paginated, PaginatedLinks, PaginatedMeta, StaffUser } from '@/types';
 import { createBreadcrumbs } from '@/utils/breadcrumbs';
 import { extractUserData } from '@/utils/user-data';
-import { type PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { type ColumnDef, type SortingState } from '@tanstack/react-table';
 import { CreditCard, Info, Mail, PlusCircle, User } from 'lucide-react';
@@ -23,15 +22,137 @@ import { useMemo } from 'react';
 import { route } from 'ziggy-js';
 import type { UserListPageProps } from '../interfaces';
 
+/**
+ * Interfaz para la respuesta paginada estándar de Laravel.
+ * Laravel envía las propiedades de paginación directamente en la raíz del objeto.
+ */
+interface LaravelPaginatedResponse<T> {
+  current_page: number;
+  data: T[];
+  first_page_url: string;
+  from: number | null;
+  last_page: number;
+  last_page_url: string;
+  links: {
+    url: string | null;
+    label: string;
+    active: boolean;
+    page?: number | null;
+  }[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number | null;
+  total: number;
+}
+
+/**
+ * Crea un objeto Paginated vacío con valores por defecto seguros.
+ */
+const makeDefaultPaginated = <T,>(): Paginated<T> => {
+  const meta: PaginatedMeta = {
+    current_page: 1,
+    from: 0,
+    last_page: 1,
+    links: [],
+    path: '',
+    per_page: 10,
+    to: 0,
+    total: 0,
+  };
+  const links: PaginatedLinks = { first: '', last: '', prev: null, next: null };
+  return { data: [], meta, links };
+};
+
+/**
+ * Normaliza la respuesta paginada de Laravel al formato esperado por el frontend.
+ * Transforma la estructura plana de Laravel a la estructura anidada con meta y links.
+ */
+const normalizePaginated = <T,>(
+  input: Paginated<T> | LaravelPaginatedResponse<T> | undefined,
+): Paginated<T> => {
+  // Si no hay input, retornar valores por defecto
+  if (!input) {
+    return makeDefaultPaginated<T>();
+  }
+
+  // Si ya tiene la estructura correcta (meta anidado), retornar tal cual
+  if ('meta' in input && input.meta) {
+    return input;
+  }
+
+  // Si es la respuesta estándar de Laravel (propiedades planas), transformarla
+  const laravelResponse = input as LaravelPaginatedResponse<T>;
+  if ('current_page' in laravelResponse && Array.isArray(laravelResponse.data)) {
+    const meta: PaginatedMeta = {
+      current_page: laravelResponse.current_page,
+      from: laravelResponse.from ?? 0,
+      last_page: laravelResponse.last_page,
+      links: laravelResponse.links.map((link) => ({
+        url: link.url,
+        label: link.label,
+        active: link.active,
+      })),
+      path: laravelResponse.path,
+      per_page: laravelResponse.per_page,
+      to: laravelResponse.to ?? 0,
+      total: laravelResponse.total,
+    };
+
+    const links: PaginatedLinks = {
+      first: laravelResponse.first_page_url,
+      last: laravelResponse.last_page_url,
+      prev: laravelResponse.prev_page_url,
+      next: laravelResponse.next_page_url,
+    };
+
+    return {
+      data: laravelResponse.data,
+      meta,
+      links,
+    };
+  }
+
+  // Si no coincide con ninguna estructura conocida, retornar valores por defecto
+  return makeDefaultPaginated<T>();
+};
+
+/**
+ * Normaliza el objeto filters para asegurar que siempre sea un objeto válido.
+ * Laravel a veces envía un array vacío cuando no hay filtros.
+ */
+const normalizeFilters = (
+  filters: unknown,
+): {
+  search?: string;
+  role?: string;
+  sort_field?: string;
+  sort_direction?: string;
+} => {
+  // Si filters es null, undefined, o un array, retornar objeto vacío
+  if (!filters || Array.isArray(filters)) {
+    return {};
+  }
+
+  // Si es un objeto, asegurar que las propiedades sean strings o undefined
+  const f = filters as Record<string, unknown>;
+  return {
+    search: typeof f['search'] === 'string' ? f['search'] : undefined,
+    role: typeof f['role'] === 'string' ? f['role'] : undefined,
+    sort_field: typeof f['sort_field'] === 'string' ? f['sort_field'] : undefined,
+    sort_direction: typeof f['sort_direction'] === 'string' ? f['sort_direction'] : undefined,
+  };
+};
+
 export default function UserListPage({
   users: initialUsers,
-  filters,
+  filters: rawFilters,
   contextualNavItems,
   breadcrumbs,
   flash,
 }: Readonly<UserListPageProps>) {
-  const { auth } = usePage<PageProps>().props;
-  const users = initialUsers ?? { data: [], meta: {}, links: {} };
+  const { auth } = usePage().props;
   const { showError } = useToastNotifications();
 
   useNavigationProgress({ delayMs: 150 });
@@ -41,19 +162,22 @@ export default function UserListPage({
   useFlashToasts(
     flash
       ? {
-          success: flash.success ?? undefined,
-          error: flash.error ?? undefined,
-          info: flash.info ?? undefined,
-          warning: flash.warning ?? undefined,
+          success: flash.success ?? '',
+          error: flash.error ?? '',
+          info: flash.info ?? '',
+          warning: flash.warning ?? '',
         }
       : undefined,
   );
 
-  // Paginación/contadores desde respuesta del servidor (formato Laravel meta.*)
-  const currentPage: number = users.meta?.current_page ?? 1;
-  const perPage: number = users.meta?.per_page ?? 10;
-  const lastPage: number = users.meta?.last_page ?? 1;
-  const totalUsers: number = users.meta?.total ?? users.data.length;
+  // Normalizar datos paginados y filtros para evitar errores de tipos
+  const normalizedUsers = normalizePaginated<StaffUser>(initialUsers);
+  const filters = normalizeFilters(rawFilters);
+
+  const currentPage: number = normalizedUsers.meta.current_page;
+  const perPage: number = normalizedUsers.meta.per_page;
+  const lastPage: number = normalizedUsers.meta.last_page;
+  const totalUsers: number = normalizedUsers.meta.total;
 
   const initialSorting: SortingState = [
     {
@@ -84,7 +208,9 @@ export default function UserListPage({
       sort_field: sorting[0]?.id,
       sort_direction: sorting[0]?.desc ? 'desc' : 'asc',
     }),
-    onError: () => showError('Error al cargar usuarios. Por favor, intenta de nuevo.'),
+    onError: () => {
+      showError('Error al cargar usuarios. Por favor, intenta de nuevo.');
+    },
   });
 
   const columns: ColumnDef<StaffUser>[] = useMemo(
@@ -151,7 +277,7 @@ export default function UserListPage({
           return (
             <div className="flex flex-wrap gap-1.5">
               {roles.map((role) => {
-                const roleConfig = roleColorMap[role.name.toUpperCase()] || {
+                const roleConfig = roleColorMap[role.name.toUpperCase()] ?? {
                   textColor: 'text-muted-foreground',
                   tooltip: 'Rol estándar del sistema',
                 };
@@ -194,7 +320,7 @@ export default function UserListPage({
     [auth.user],
   );
 
-  const user = auth?.user;
+  const user = auth.user;
 
   if (!user) {
     return (
@@ -226,7 +352,7 @@ export default function UserListPage({
   return (
     <AppLayout
       user={userData}
-      contextualNavItems={contextualNavItems}
+      contextualNavItems={contextualNavItems ?? []}
       breadcrumbs={computedBreadcrumbs}
     >
       <Head title="Lista de Usuarios" />
@@ -271,7 +397,9 @@ export default function UserListPage({
                     placeholder="Buscar por nombre o email..."
                     aria-label="Buscar usuarios por nombre o email"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                    }}
                     className="w-full"
                   />
                 </div>
@@ -279,7 +407,7 @@ export default function UserListPage({
             >
               <TanStackDataTable<StaffUser, unknown>
                 columns={columns}
-                data={Array.isArray(users.data) ? users.data : []}
+                data={normalizedUsers.data}
                 searchable={false}
                 paginated={true}
                 serverPagination={{
@@ -290,7 +418,9 @@ export default function UserListPage({
                 }}
                 pageSizeOptions={[10, 20, 50, 100]}
                 totalItems={totalUsers}
-                onSortingChange={(next) => setSorting(next)}
+                onSortingChange={(next) => {
+                  setSorting(next);
+                }}
                 initialSorting={sorting}
                 loading={isLoading}
                 skeletonRowCount={10}

@@ -129,7 +129,7 @@ export default function ErrorPage() {
 
   // Determinar la ruta de inicio según autenticación
   const getHomeRoute = () => {
-    if (props.auth?.user) {
+    if (props.auth.user) {
       return route('internal.dashboard');
     }
     return route('welcome');
@@ -178,7 +178,9 @@ export default function ErrorPage() {
             <Button
               variant="default"
               size="lg"
-              onClick={() => globalThis.history.back()}
+              onClick={() => {
+                globalThis.history.back();
+              }}
               className="h-12 gap-2 rounded-full px-6 shadow-lg"
             >
               <ArrowLeft className="h-5 w-5" />

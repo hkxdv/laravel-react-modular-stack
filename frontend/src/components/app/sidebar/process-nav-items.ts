@@ -43,7 +43,7 @@ export const processNavItems = (
     // 3. Un elemento se incluye si es un enlace directo o si es un grupo
     //    que, después de filtrar, todavía tiene hijos visibles.
     const isDirectLink = !!item.href;
-    const hasVisibleChildren = processedChildren && processedChildren.length > 0;
+    const hasVisibleChildren = (processedChildren?.length ?? 0) > 0;
 
     if (isDirectLink || hasVisibleChildren) {
       let finalHref = '#';
@@ -55,9 +55,9 @@ export const processNavItems = (
       processedItems.push({
         ...item,
         // 4. Mapear las propiedades al formato final para renderizado.
+        children: processedChildren ?? [],
         href: finalHref,
         icon: getLucideIcon(item.icon),
-        children: processedChildren,
       });
     }
   }

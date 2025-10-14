@@ -65,7 +65,14 @@ Por favor, verifica tu correo electrónico y inicia sesión para cambiar tu cont
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Compartir credenciales</DialogTitle>
@@ -94,7 +101,9 @@ Por favor, verifica tu correo electrónico y inicia sesión para cambiar tu cont
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => copyToClipboard(credentialMessage)}
+                onClick={() => {
+                  copyToClipboard(credentialMessage);
+                }}
               >
                 <Copy className="mr-2 h-4 w-4" />
                 Copiar al portapapeles
@@ -109,7 +118,9 @@ Por favor, verifica tu correo electrónico y inicia sesión para cambiar tu cont
                 id="email-to"
                 type="email"
                 value={emailTo}
-                onChange={(e) => setEmailTo(e.target.value)}
+                onChange={(e) => {
+                  setEmailTo(e.target.value);
+                }}
               />
             </div>
             <div className="space-y-2">
@@ -117,7 +128,9 @@ Por favor, verifica tu correo electrónico y inicia sesión para cambiar tu cont
               <Input
                 id="email-subject"
                 value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
+                onChange={(e) => {
+                  setEmailSubject(e.target.value);
+                }}
               />
             </div>
             <div className="space-y-2">

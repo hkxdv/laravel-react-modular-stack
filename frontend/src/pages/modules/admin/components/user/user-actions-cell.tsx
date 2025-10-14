@@ -104,7 +104,7 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
               icon: <Trash className="h-4 w-4" />,
               variant: 'destructive',
               onClick: openDeleteDialog,
-              disabled: isCurrentUser || hasPrivilegedRole,
+              disabled: !!(isCurrentUser || hasPrivilegedRole),
             },
           ]}
         />
@@ -112,7 +112,9 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
 
       <UserDeleteDialog
         isDialogVisible={isDeleteDialogOpen}
-        onDialogClose={() => setIsDeleteDialogOpen(false)}
+        onDialogClose={() => {
+          setIsDeleteDialogOpen(false);
+        }}
         onConfirmAction={handleDelete}
         isActionInProgress={isDeleting}
         userTargetedForDelete={user}

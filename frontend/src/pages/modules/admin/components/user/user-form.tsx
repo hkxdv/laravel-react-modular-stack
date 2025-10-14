@@ -59,13 +59,13 @@ const UserForm: React.FC<UserFormProps> = ({
 
   // Verificar si el usuario tiene roles privilegiados
   const hasPrivilegedRole = form.data.roles.some((roleId) => {
-    const role = availableRoles?.find((r) => String(r.id) === roleId);
+    const role = availableRoles.find((r) => String(r.id) === roleId);
     return role && PRIVILEGED_ROLES.has(role.name);
   });
 
   // Función para determinar si un rol debe estar deshabilitado
   const isRoleDisabled = (roleId: string): boolean => {
-    const role = availableRoles?.find((r) => String(r.id) === roleId);
+    const role = availableRoles.find((r) => String(r.id) === roleId);
     if (!role) return true;
 
     // Si es un rol privilegiado y no lo tiene asignado, está deshabilitado
@@ -82,7 +82,7 @@ const UserForm: React.FC<UserFormProps> = ({
       handleRoleChange(roleId, checked, isRoleDisabled);
     } else {
       // Obtener el rol por ID
-      const role = availableRoles?.find((r) => String(r.id) === roleId);
+      const role = availableRoles.find((r) => String(r.id) === roleId);
 
       // Si es un rol privilegiado, no permitir cambios
       if (role && PRIVILEGED_ROLES.has(role.name)) {
@@ -145,17 +145,19 @@ const UserForm: React.FC<UserFormProps> = ({
                 id="name"
                 type="text"
                 value={form.data.name}
-                onChange={(e) => form.setData('name', e.target.value)}
+                onChange={(e) => {
+                  form.setData('name', e.target.value);
+                }}
                 placeholder="Introduce el nombre completo"
-                aria-invalid={!!form.errors.name}
+                aria-invalid={!!form.errors['name']}
                 className={`bg-muted/40 border-input border-b-accent-foreground/50 h-11 border px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${
-                  form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''
+                  form.errors['name'] ? 'border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
-              {form.errors.name && (
+              {form.errors['name'] && (
                 <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4" />
-                  <span>{form.errors.name}</span>
+                  <span>{form.errors['name']}</span>
                 </div>
               )}
             </div>
@@ -168,17 +170,19 @@ const UserForm: React.FC<UserFormProps> = ({
                 id="email"
                 type="email"
                 value={form.data.email}
-                onChange={(e) => form.setData('email', e.target.value)}
+                onChange={(e) => {
+                  form.setData('email', e.target.value);
+                }}
                 placeholder="Introduce el correo electrónico"
-                aria-invalid={!!form.errors.email}
+                aria-invalid={!!form.errors['email']}
                 className={`bg-muted/40 border-input border-b-accent-foreground/50 h-11 border px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${
-                  form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''
+                  form.errors['email'] ? 'border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
-              {form.errors.email && (
+              {form.errors['email'] && (
                 <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4" />
-                  <span>{form.errors.email}</span>
+                  <span>{form.errors['email']}</span>
                 </div>
               )}
             </div>
@@ -190,9 +194,9 @@ const UserForm: React.FC<UserFormProps> = ({
                   <Checkbox
                     id="auto_verify_email"
                     checked={form.data.auto_verify_email}
-                    onCheckedChange={(checked) =>
-                      form.setData('auto_verify_email', checked === true)
-                    }
+                    onCheckedChange={(checked) => {
+                      form.setData('auto_verify_email', checked === true);
+                    }}
                   />
                   <Label htmlFor="auto_verify_email" className="cursor-pointer text-sm font-normal">
                     Verificar email automáticamente
@@ -224,8 +228,10 @@ const UserForm: React.FC<UserFormProps> = ({
                 id="password"
                 label="Contraseña"
                 value={form.data.password}
-                onChange={(newPassword) => form.setData('password', newPassword)}
-                error={form.errors.password}
+                onChange={(newPassword) => {
+                  form.setData('password', newPassword);
+                }}
+                error={form.errors['password'] ?? ''}
                 required
                 showStrengthIndicator
                 showStrengthDetails={showPasswordDetails}
@@ -236,8 +242,10 @@ const UserForm: React.FC<UserFormProps> = ({
                 id="password_confirmation"
                 label="Confirmar Contraseña"
                 value={form.data.password_confirmation}
-                onChange={(newPassword) => form.setData('password_confirmation', newPassword)}
-                error={form.errors.password_confirmation}
+                onChange={(newPassword) => {
+                  form.setData('password_confirmation', newPassword);
+                }}
+                error={form.errors['password_confirmation'] ?? ''}
                 required
                 showStrengthIndicator={false}
                 showGenerateButton={false}
@@ -262,16 +270,16 @@ const UserForm: React.FC<UserFormProps> = ({
             )}
 
             {/* Mensaje si no hay roles disponibles */}
-            {!availableRoles?.length && (
+            {availableRoles.length === 0 && (
               <div className="mb-4 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
                 No se han cargado roles. Verifica la conexión con el backend.
               </div>
             )}
 
             <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
-              {availableRoles?.map((role) => {
+              {availableRoles.map((role) => {
                 // Verificar que el rol tenga un ID válido
-                if (!role?.id) {
+                if (!role.id) {
                   return null;
                 }
 
@@ -288,10 +296,16 @@ const UserForm: React.FC<UserFormProps> = ({
                           tabIndex={isDisabled ? -1 : 0}
                           aria-pressed={isSelected}
                           aria-disabled={isDisabled}
-                          onClick={() => !isDisabled && localHandleRoleChange(roleId, !isSelected)}
-                          onKeyDown={(e) =>
-                            !isDisabled && localHandleKeyDown(e, roleId, isSelected)
-                          }
+                          onClick={() => {
+                            if (!isDisabled) {
+                              localHandleRoleChange(roleId, !isSelected);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (!isDisabled) {
+                              localHandleKeyDown(e, roleId, isSelected);
+                            }
+                          }}
                           className={`flex cursor-pointer items-center rounded-md border p-2 transition-all ${
                             isSelected
                               ? 'border-gray-500 bg-gray-50 dark:border-gray-500 dark:bg-gray-950/30'
@@ -319,8 +333,8 @@ const UserForm: React.FC<UserFormProps> = ({
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-xs">
                         <p>
-                          {typeof role.description === 'string'
-                            ? role.description
+                          {typeof role['description'] === 'string'
+                            ? role['description']
                             : `Rol de ${role.name}`}
                           {PRIVILEGED_ROLES.has(role.name) &&
                             ' (Este rol tiene privilegios especiales y no puede ser asignado manualmente)'}
@@ -334,10 +348,10 @@ const UserForm: React.FC<UserFormProps> = ({
                 );
               })}
             </div>
-            {form.errors.roles && (
+            {form.errors['roles'] && (
               <div className="mt-2 flex items-center gap-1 text-sm text-red-500">
                 <AlertCircle className="h-4 w-4" />
-                <span>{form.errors.roles}</span>
+                <span>{form.errors['roles']}</span>
               </div>
             )}
           </div>

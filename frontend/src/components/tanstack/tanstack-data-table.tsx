@@ -144,7 +144,7 @@ export function TanStackDataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: serverPagination ? undefined : getPaginationRowModel(),
+    ...(serverPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
@@ -240,14 +240,18 @@ export function TanStackDataTable<TData, TValue>({
                 <Input
                   placeholder={searchPlaceholder}
                   value={globalFilter}
-                  onChange={(e) => setGlobalFilter(String(e.target.value))}
+                  onChange={(e) => {
+                    setGlobalFilter(e.target.value);
+                  }}
                   className="max-w-sm"
                 />
                 {globalFilter && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setGlobalFilter('')}
+                    onClick={() => {
+                      setGlobalFilter('');
+                    }}
                     className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
@@ -312,7 +316,7 @@ export function TanStackDataTable<TData, TValue>({
                 ))}
               </TableHeader>
               <TableBody>
-                {rows?.length ? (
+                {rows.length > 0 ? (
                   rows.map((row, rowIndex) => (
                     <TableRow
                       key={row.id}
@@ -375,7 +379,9 @@ export function TanStackDataTable<TData, TValue>({
               <Pagination
                 currentPage={serverPagination.pageIndex + 1}
                 totalPages={serverPagination.pageCount}
-                onPageChange={(page) => handleServerPaginationChange(page - 1)}
+                onPageChange={(page) => {
+                  handleServerPaginationChange(page - 1);
+                }}
                 perPageOptions={pageSizeOptions}
                 perPage={serverPagination.pageSize}
                 onPerPageChange={handleServerPageSizeChange}
@@ -386,19 +392,21 @@ export function TanStackDataTable<TData, TValue>({
               <Pagination
                 currentPage={table.getState().pagination.pageIndex + 1}
                 totalPages={table.getPageCount()}
-                onPageChange={(page) => table.setPageIndex(page - 1)}
+                onPageChange={(page) => {
+                  table.setPageIndex(page - 1);
+                }}
                 perPageOptions={pageSizeOptions}
                 perPage={table.getState().pagination.pageSize}
-                onPerPageChange={(size: number) => table.setPageSize(size)}
+                onPerPageChange={(size: number) => {
+                  table.setPageSize(size);
+                }}
                 totalItems={totalItems ?? data.length}
                 rightActions={footerActions}
               />
             )}
 
             {/* Fallback para casos no paginados o cuando no se renderiza Pagination */}
-            {!paginated && footerActions && (
-              <div className="flex items-center gap-x-2">{footerActions}</div>
-            )}
+            {footerActions && <div className="flex items-center gap-x-2">{footerActions}</div>}
           </div>
         </div>
       )}

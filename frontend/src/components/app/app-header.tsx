@@ -19,7 +19,6 @@ import { UserMenuContent } from '@/components/user/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import type { BreadcrumbItem, NavItemDefinition } from '@/types';
 import { cn } from '@/utils/cn';
-import type { PageProps } from '@inertiajs/core';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo, { AppLogoIcon } from './app-logo';
@@ -52,7 +51,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ breadcrumbs = [] }: Readonly<AppHeaderProps>) {
-  const { props } = usePage<PageProps>();
+  const { props } = usePage();
   const { auth } = props;
   const user = auth.user;
   const getInitials = useInitials();
@@ -60,11 +59,11 @@ export function AppHeader({ breadcrumbs = [] }: Readonly<AppHeaderProps>) {
   let displayName = 'Usuario';
 
   // Simplificado: asumimos StaffUser
-  if (user?.data?.name) {
+  if (user?.data.name) {
     displayName = user.data.name;
   }
 
-  const avatarSrc = user?.data?.avatar;
+  const avatarSrc = user?.data.avatar;
 
   return (
     <>
@@ -135,14 +134,14 @@ export function AppHeader({ breadcrumbs = [] }: Readonly<AppHeaderProps>) {
                       href={item.href}
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        props.url === item.href && activeItemStyles,
+                        props['url'] === item.href && activeItemStyles,
                         'h-9 cursor-pointer px-3',
                       )}
                     >
                       {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
                       {item.title}
                     </Link>
-                    {props.url === item.href && (
+                    {props['url'] === item.href && (
                       <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
                     )}
                   </NavigationMenuItem>

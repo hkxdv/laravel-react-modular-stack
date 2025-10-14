@@ -38,10 +38,10 @@ export function useGenericMutation<TVariables, TData, TError = unknown, TContext
   return useMutation({
     mutationFn,
     ...options,
-    onSettled: (data, error, variables, context) => {
+    onSettled: (data, error, variables, context, mutation) => {
       // Permitir comportamiento personalizado si existe
       if (options?.onSettled) {
-        options.onSettled(data, error, variables, context);
+        options.onSettled(data, error, variables, context, mutation);
       }
     },
   });

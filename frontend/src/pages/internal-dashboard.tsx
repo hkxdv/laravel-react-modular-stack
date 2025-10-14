@@ -115,7 +115,7 @@ export default function DashboardPage() {
     name: module.name,
     description: module.description ?? '',
     href: module.href,
-    icon: module.icon ? (module.icon as IconName) : undefined,
+    icon: module.icon as IconName,
   }));
 
   // Usar únicamente navegación contextual si viene del backend
@@ -237,18 +237,18 @@ export default function DashboardPage() {
   return (
     <AppLayout
       user={userData}
-      breadcrumbs={breadcrumbs}
-      mainNavItems={mainNavItems}
-      moduleNavItems={moduleNavItems}
-      contextualNavItems={contextualNavItems}
-      globalNavItems={globalNavItems}
-      pageTitle={pageTitle}
-      pageDescription={description}
+      breadcrumbs={breadcrumbs ?? []}
+      mainNavItems={mainNavItems ?? []}
+      moduleNavItems={moduleNavItems ?? []}
+      contextualNavItems={contextualNavItems ?? []}
+      globalNavItems={globalNavItems ?? []}
+      pageTitle={pageTitle ?? ''}
+      pageDescription={description ?? ''}
     >
       <Head title={pageTitle ?? ''} />
       <ModuleDashboardLayout
         title={pageTitle ?? ''}
-        description={description}
+        description={description ?? ''}
         userName={userData?.name ?? ''}
         stats={statsSection}
         mainContent={mainContent}

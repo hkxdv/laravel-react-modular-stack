@@ -3,10 +3,11 @@ import { Toaster as SonnerPrimitive, type ToasterProps } from 'sonner';
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
+  const safeTheme = theme as NonNullable<ToasterProps['theme']>;
 
   return (
     <SonnerPrimitive
-      theme={theme as ToasterProps['theme']}
+      theme={safeTheme}
       className="toaster group"
       toastOptions={{
         classNames: {
