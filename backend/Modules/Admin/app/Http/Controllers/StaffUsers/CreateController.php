@@ -132,10 +132,9 @@ final class CreateController extends AdminBaseController
 
             // Mensaje de error amigable para el usuario en solicitudes normales
             return redirect()->back()
-                ->withInput($request->except([
-                    'password',
-                    'password_confirmation',
-                ]))
+                ->withInput(
+                    $request->except(['password', 'password_confirmation'])
+                )
                 ->with(
                     'error',
                     'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.'

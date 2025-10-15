@@ -19,7 +19,7 @@ final class ProfileController extends BaseSettingsController
      */
     public function edit(Request $request): Response
     {
-        $user = $this->requireStaffUser($request);
+        $this->requireStaffUser($request);
 
         return Inertia::render('settings/profile', [
             // El modelo StaffUsers implementa MustVerifyEmail; siempre verdadero

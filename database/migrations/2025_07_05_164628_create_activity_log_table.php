@@ -6,7 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-final class CreateActivityLogTable extends Migration
+return new final class extends Migration
 {
     public function up(): void
     {
@@ -15,7 +15,7 @@ final class CreateActivityLogTable extends Migration
         /** @var string|null $tableName */
         $tableName = config('activitylog.table_name');
 
-        throw_unless(is_string($tableName), new RuntimeException('Invalid activitylog.table_name configuration'));
+        throw_unless(is_string($tableName), RuntimeException::class, 'Invalid activitylog.table_name configuration');
 
         Schema::connection(is_string($connection) ? $connection : null)
             ->create($tableName, function (Blueprint $table): void {
@@ -31,7 +31,6 @@ final class CreateActivityLogTable extends Migration
                 $table->index('log_name');
             });
     }
-
     public function down(): void
     {
         /** @var string|null $connection */
@@ -39,8 +38,8 @@ final class CreateActivityLogTable extends Migration
         /** @var string|null $tableName */
         $tableName = config('activitylog.table_name');
 
-        throw_unless(is_string($tableName), new RuntimeException('Invalid activitylog.table_name configuration'));
+        throw_unless(is_string($tableName), RuntimeException::class, 'Invalid activitylog.table_name configuration');
 
         Schema::connection(is_string($connection) ? $connection : null)->dropIfExists($tableName);
     }
-}
+};

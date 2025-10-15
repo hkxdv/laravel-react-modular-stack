@@ -30,9 +30,7 @@ abstract class Controller extends BaseController
         /** @var StaffUsers|null $user */
         $user = $request->user('staff');
 
-        if (! $user instanceof StaffUsers) {
-            abort(403, 'Usuario no autenticado');
-        }
+        abort_unless($user instanceof StaffUsers, 403, 'Usuario no autenticado');
 
         return $user;
     }

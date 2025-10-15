@@ -100,7 +100,7 @@ final class InternalDashboardController extends Controller
             // Construir los ítems de navegación principales usando el servicio
             $mainNavItems = $this->navigationBuilderService->buildNavItems(
                 $indexedModules,
-                fn (string $permission) => $this->can($permission)
+                fn (string $permission): bool => $this->can($permission)
             );
 
             // Verificar si necesita cambiar contraseña
@@ -113,7 +113,7 @@ final class InternalDashboardController extends Controller
                     availableModules: $indexedModules,
                     permissionChecker: fn (
                         string $permission
-                    ) => $this->can($permission),
+                    ): bool => $this->can($permission),
                     request: $request
                 );
 
@@ -178,7 +178,7 @@ final class InternalDashboardController extends Controller
                 $request->session()->regenerateToken();
             }
 
-            return redirect()->route('login')
+            return to_route('login')
                 ->with('status', 'Sesión cerrada exitosamente.');
         } catch (Exception $e) {
             Log::error(
@@ -189,7 +189,7 @@ final class InternalDashboardController extends Controller
                 ]
             );
 
-            return redirect()->route('login');
+            return to_route('login');
         }
     }
 
@@ -217,7 +217,7 @@ final class InternalDashboardController extends Controller
         try {
             // Solo intentar persistir si la columna existe en la tabla
             if (Schema::hasColumn('staff_users', 'last_activity')) {
-                $now = Carbon::now();
+                $now = \Illuminate\Support\Facades\Date::now();
                 /** @var \Illuminate\Support\Carbon|null $lastActivity */
                 $lastActivity = $user->getAttribute('last_activity');
 
@@ -261,8 +261,8 @@ final class InternalDashboardController extends Controller
 
         /** @var \Illuminate\Support\Carbon|string|int|float|null $passwordChangedAt */
         $passwordChangedAt = $user->password_changed_at;
-        $passwordAge = Carbon::parse($passwordChangedAt)
-            ->diffInDays(Carbon::now());
+        $passwordAge = \Illuminate\Support\Facades\Date::parse($passwordChangedAt)
+            ->diffInDays(\Illuminate\Support\Facades\Date::now());
 
         return $passwordAge >= $maxAge;
     }
@@ -270,7 +270,7 @@ final class InternalDashboardController extends Controller
     /**
      * Obtener información del último login.
      *
-     * @return array{datetime: Carbon, ip: string, user_agent: string}|null
+     * @return array{datetime: \Carbon\CarbonImmutable, ip: string, user_agent: string}|null
      */
     private function getLastLoginInfo(StaffUsers $user): ?array
     {
@@ -282,12 +282,12 @@ final class InternalDashboardController extends Controller
         $lastLoginAt = $user->last_login_at;
 
         return [
-            'datetime' => Carbon::parse($lastLoginAt),
+            'datetime' => \Illuminate\Support\Facades\Date::parse($lastLoginAt),
             'ip' => is_string($user->getAttribute('last_login_ip'))
-                ? (string) $user->getAttribute('last_login_ip')
+                ? $user->getAttribute('last_login_ip')
                 : 'Desconocida',
             'user_agent' => is_string($user->getAttribute('last_login_user_agent'))
-                ? (string) $user->getAttribute('last_login_user_agent')
+                ? $user->getAttribute('last_login_user_agent')
                 : 'Desconocido',
         ];
     }
@@ -295,7 +295,7 @@ final class InternalDashboardController extends Controller
     /**
      * Obtener información de la sesión actual.
      *
-     * @return array{ip: string|null, user_agent: string|null, session_id: string, started_at: Carbon}
+     * @return array{ip: string|null, user_agent: string|null, session_id: string, started_at: \Carbon\CarbonImmutable}
      */
     private function getSessionInfo(Request $request): array
     {
@@ -308,7 +308,7 @@ final class InternalDashboardController extends Controller
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'session_id' => Session::getId(),
-            'started_at' => Carbon::createFromTimestamp($timestamp),
+            'started_at' => \Illuminate\Support\Facades\Date::createFromTimestamp($timestamp),
         ];
     }
 }

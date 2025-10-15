@@ -71,7 +71,7 @@ final class RouteFilterService
                 $routes,
                 static fn ($key): bool => array_any(
                     $allowedPrefixes,
-                    fn ($prefix): bool => str_starts_with((string) $key, (string) $prefix)
+                    fn ($prefix): bool => str_starts_with($key, $prefix)
                 ),
                 ARRAY_FILTER_USE_KEY
             );

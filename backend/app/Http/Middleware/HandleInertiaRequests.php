@@ -82,8 +82,8 @@ final class HandleInertiaRequests extends Middleware
             $passwordChangedAt = $staffUser->password_changed_at;
             $passwordChangeRequired = false;
             if ($passwordChangedAt) {
-                $passwordAge = Carbon::parse($passwordChangedAt)
-                    ->diffInDays(Carbon::now());
+                $passwordAge = \Illuminate\Support\Facades\Date::parse($passwordChangedAt)
+                    ->diffInDays(\Illuminate\Support\Facades\Date::now());
                 $passwordChangeRequired = $passwordAge >= $maxAgeDays;
             }
             $sharedData['passwordChangeRequired'] = $passwordChangeRequired;

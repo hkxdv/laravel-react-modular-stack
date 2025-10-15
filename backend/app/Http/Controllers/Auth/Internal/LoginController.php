@@ -139,7 +139,7 @@ final class LoginController extends Controller
         }
 
         // Redirige el usuario a la página de inicio de sesión con mensaje de confirmación
-        return redirect()->route('login')
+        return to_route('login')
             ->with('status', 'Tu sesión ha sido cerrada correctamente');
     }
 }

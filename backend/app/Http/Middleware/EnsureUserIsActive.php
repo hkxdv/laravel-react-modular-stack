@@ -95,7 +95,7 @@ final class EnsureUserIsActive
             default => 'welcome'
         };
 
-        return redirect()->route($redirectRoute)
+        return to_route($redirectRoute)
             ->withErrors([
                 'email' => 'Tu cuenta ha sido desactivada. Contacta al administrador para más información.',
             ]);

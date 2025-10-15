@@ -76,7 +76,11 @@ final class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             // Por defecto, solo los usuarios con roles de 'ADMIN' o 'DEV' pueden acceder a Telescope.
             // Esto previene la exposición de datos sensibles a usuarios no autorizados.
             if (method_exists($user, 'hasRole')) {
-                return $user->hasRole('ADMIN') || $user->hasRole('DEV');
+                if ($user->hasRole('ADMIN')) {
+                    return true;
+                }
+
+                return (bool) $user->hasRole('DEV');
             }
 
             return false;

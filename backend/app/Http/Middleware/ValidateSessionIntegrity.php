@@ -179,7 +179,7 @@ final class ValidateSessionIntegrity
             default => 'welcome'
         };
 
-        return redirect()->route($redirectRoute)
+        return to_route($redirectRoute)
             ->withErrors([
                 'email' => 'Tu sesión ha sido invalidada por motivos de seguridad. Por favor, inicia sesión nuevamente.',
             ]);

@@ -8,7 +8,6 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
@@ -85,7 +84,7 @@ final class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
 
         return URL::temporarySignedRoute(
             'verification.verify',
-            Carbon::now()->addMinutes($expireMinutes),
+            \Illuminate\Support\Facades\Date::now()->addMinutes($expireMinutes),
             [
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($email),

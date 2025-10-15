@@ -35,5 +35,16 @@
   },
 
   // --- Other Useful Settings ---
-  "typescript.updateImportsOnFileMove.enabled": "always"
+  "typescript.updateImportsOnFileMove.enabled": "always",
+
+  // --- PHP Intelephense Settings ---
+  "intelephense.format.enable": true,
+  "intelephense.format.braces": "per",
+  "php.suggest.basic": false,
+  "intelephense.files.maxSize": 5000000,
+  "intelephense.compatibility.correctForBaseClassStaticUnionTypes": true,
+  "intelephense.environment.phpVersion": "8.4",
+  "intelephense.completion.fullyQualifyGlobalConstantsAndFunctions": true,
+  "intelephense.completion.insertUseDeclaration": true,
+  "intelephense.trace.server": "messages"
 }

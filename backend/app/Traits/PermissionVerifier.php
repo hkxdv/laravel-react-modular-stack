@@ -38,13 +38,7 @@ trait PermissionVerifier
                     return (bool) $user->hasAnyPermissionCross($permissionName);
                 }
 
-                foreach ($permissionName as $perm) {
-                    if ($user->hasPermissionToCross($perm)) {
-                        return true;
-                    }
-                }
-
-                return false;
+                return array_any($permissionName, fn ($perm): bool => $user->hasPermissionToCross($perm));
             }
 
             return $user->hasPermissionToCross($permissionName);
@@ -52,14 +46,7 @@ trait PermissionVerifier
 
         // Fallback a la verificación de permisos nativa de Laravel/Spatie si el trait no está.
         if (is_array($permissionName)) {
-            foreach ($permissionName as $perm) {
-                /** @disregard P1013 [hasPermissionTo proviene de Spatie HasRoles en el modelo de usuario] */
-                if ($user->hasPermissionTo($perm)) {
-                    return true;
-                }
-            }
-
-            return false;
+            return array_any($permissionName, fn ($perm) => $user->hasPermissionTo($perm));
         }
 
         // Verificación única

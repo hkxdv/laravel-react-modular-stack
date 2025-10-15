@@ -29,7 +29,7 @@ Route::get(
  */
 Route::get(
     '/register',
-    fn (): RedirectResponse => redirect()->route('login')
+    fn (): RedirectResponse => to_route('login')
 )->name('register.redirect');
 
 /**
