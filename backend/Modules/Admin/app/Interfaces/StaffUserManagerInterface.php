@@ -18,7 +18,13 @@ interface StaffUserManagerInterface
     /**
      * Parámetros de ordenación permitidos.
      */
-    public const ALLOWED_SORT_FIELDS = ['id', 'name', 'email', 'created_at', 'updated_at'];
+    public const ALLOWED_SORT_FIELDS = [
+        'id',
+        'name',
+        'email',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Obtiene una lista paginada de todos los usuarios con sus roles.
@@ -32,7 +38,10 @@ interface StaffUserManagerInterface
      * @param  int  $perPage  Número predeterminado de elementos por página
      * @return LengthAwarePaginator Lista paginada de usuarios
      */
-    public function getAllUsers(array $params = [], int $perPage = 10): LengthAwarePaginator;
+    public function getAllUsers(
+        array $params = [],
+        int $perPage = 10
+    ): LengthAwarePaginator;
 
     /**
      * Crea un nuevo usuario con los datos proporcionados.

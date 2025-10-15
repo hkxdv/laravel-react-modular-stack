@@ -15,7 +15,7 @@ use Inertia\Response as InertiaResponse;
  * Se encarga de renderizar la vista principal que se muestra a los visitantes
  * antes de que inicien sesión.
  */
-class WelcomeController extends Controller
+final class WelcomeController extends Controller
 {
     /**
      * Muestra la página de bienvenida.

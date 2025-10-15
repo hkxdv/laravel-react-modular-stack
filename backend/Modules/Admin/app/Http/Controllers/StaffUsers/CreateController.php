@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Http\Controllers\StaffUsers;
 
+use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,7 @@ use Modules\Admin\App\Http\Requests\UserRequest;
 /**
  * Controlador para la creación de usuarios del personal administrativo.
  */
-class CreateController extends AdminBaseController
+final class CreateController extends AdminBaseController
 {
     /**
      * Muestra el formulario de creación de un nuevo usuario.
@@ -50,16 +51,24 @@ class CreateController extends AdminBaseController
         try {
             $validatedData = $request->validated();
             $validatedData['password'] = bcrypt($validatedData['password']);
+            // Registrar fecha de establecimiento inicial de la contraseña
+            $validatedData['password_changed_at'] = now();
             $user = $this->staffUserManager->createUser($validatedData);
 
             if ($request->has('roles')) {
-                $this->staffUserManager->syncRoles($user, $request->input('roles', []));
+                $this->staffUserManager->syncRoles(
+                    $user,
+                    $request->input('roles', [])
+                );
             }
 
             // Si es una solicitud de Inertia, devolver una respuesta Inertia en lugar de redireccionar
             if ($request->header('X-Inertia')) {
                 // Actualizar la sesión flash manualmente
-                session()->flash('success', "Usuario '{$user->name}' creado exitosamente.");
+                session()->flash(
+                    'success',
+                    "Usuario '{$user->name}' creado exitosamente."
+                );
 
                 // Obtener todos los roles para el formulario
                 $roles = $this->staffUserManager->getAllRoles();
@@ -81,17 +90,26 @@ class CreateController extends AdminBaseController
 
             // Para solicitudes normales, redirigir como antes
             return redirect()->route('internal.admin.users.index')
-                ->with('success', "Usuario '{$user->name}' creado exitosamente.");
-        } catch (\Exception $e) {
+                ->with(
+                    'success',
+                    "Usuario '{$user->name}' creado exitosamente."
+                );
+        } catch (Exception $e) {
             // Loguear el error para análisis posterior
-            Log::error('Error al crear usuario: ' . $e->getMessage(), [
-                'data' => $request->except(['password', 'password_confirmation']),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error(
+                'Error al crear usuario: '.$e->getMessage(),
+                [
+                    'data' => $request->except(['password', 'password_confirmation']),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
 
             // Si es una solicitud de Inertia, devolver una respuesta Inertia con errores
             if ($request->header('X-Inertia')) {
-                session()->flash('error', 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.');
+                session()->flash(
+                    'error',
+                    'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.'
+                );
 
                 // Obtener todos los roles para el formulario
                 $roles = $this->staffUserManager->getAllRoles();
@@ -114,8 +132,14 @@ class CreateController extends AdminBaseController
 
             // Mensaje de error amigable para el usuario en solicitudes normales
             return redirect()->back()
-                ->withInput($request->except(['password', 'password_confirmation']))
-                ->with('error', 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.');
+                ->withInput($request->except([
+                    'password',
+                    'password_confirmation',
+                ]))
+                ->with(
+                    'error',
+                    'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.'
+                );
         }
     }
 }

@@ -103,7 +103,7 @@ return [
 
     'previous_keys' => [
         ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
+            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
 
@@ -124,5 +124,17 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | HTTPS Force (App)
+    |--------------------------------------------------------------------------
+    |
+    | Centraliza el uso de APP_FORCE_HTTPS para que el código de aplicación
+    | no llame a env() fuera del directorio config.
+    |
+    */
+
+    'force_https' => env('APP_FORCE_HTTPS', false),
 
 ];

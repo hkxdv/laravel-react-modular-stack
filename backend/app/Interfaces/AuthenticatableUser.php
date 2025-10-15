@@ -27,13 +27,21 @@ interface AuthenticatableUser extends Authenticatable
 
     /**
      * Determina si el usuario tiene un rol específico.
+     *
+     * @param  string|string[]  $roles
      */
-    public function hasRole(string|array $roles, ?string $guardName = null): bool;
+    public function hasRole(
+        string|array $roles,
+        ?string $guardName = null
+    ): bool;
 
     /**
      * Determina si el usuario tiene un permiso específico.
      */
-    public function hasPermissionTo(string $permission, ?string $guardName = null): bool;
+    public function hasPermissionTo(
+        string $permission,
+        ?string $guardName = null
+    ): bool;
 
     /**
      * Determina si el usuario tiene un permiso específico de forma transversal entre guards.

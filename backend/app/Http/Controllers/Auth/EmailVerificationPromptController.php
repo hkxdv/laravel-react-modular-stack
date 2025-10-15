@@ -17,7 +17,7 @@ use Inertia\Response;
  * protegida por el middleware 'verified' sin tener su correo verificado. Su única
  * responsabilidad es mostrar la página que le pide al usuario que verifique su correo.
  */
-class EmailVerificationPromptController extends Controller
+final class EmailVerificationPromptController extends Controller
 {
     /**
      * Muestra la página de aviso de verificación de correo o redirige si el usuario ya está verificado.
@@ -28,8 +28,8 @@ class EmailVerificationPromptController extends Controller
     public function __invoke(Request $request): Response|RedirectResponse
     {
         // Se comprueba si el usuario ya ha verificado su correo electrónico.
-        // Si es así, se le redirige a su destino previsto para no interrumpir su flujo.
-        if ($request->user()->hasVerifiedEmail()) {
+        $user = $this->requireStaffUser($request);
+        if ($user->hasVerifiedEmail()) {
             return redirect()->intended(route('internal.dashboard', absolute: false));
         }
 

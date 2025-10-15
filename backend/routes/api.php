@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Grupo de rutas para la API con limitador de peticiones global.
-Route::middleware(['throttle:api', 'api'])->group(function () {
+Route::middleware(['throttle:api', 'api'])->group(function (): void {
 
     /**
      * Endpoint para la autenticación de usuarios y generación de tokens Sanctum.
@@ -25,9 +25,10 @@ Route::middleware(['throttle:api', 'api'])->group(function () {
      *
      * POST /api/sanctum/token
      */
-    Route::post('/sanctum/token', [ApiAuthController::class, 'login'])
-        ->middleware('throttle:6,1') // 6 intentos por minuto
-        ->name('api.login');
+    Route::post(
+        '/sanctum/token',
+        [ApiAuthController::class, 'login']
+    )->middleware('throttle:6,1')->name('api.login');
 
     /**
      * Endpoint para obtener la información del usuario autenticado.
@@ -35,8 +36,10 @@ Route::middleware(['throttle:api', 'api'])->group(function () {
      *
      * GET /api/user
      */
-    Route::middleware('auth:sanctum')->get('/user', [ApiAuthController::class, 'user'])
-        ->name('api.user');
+    Route::middleware('auth:sanctum')->get(
+        '/user',
+        [ApiAuthController::class, 'user']
+    )->name('api.user');
 });
 
 /**
@@ -45,6 +48,7 @@ Route::middleware(['throttle:api', 'api'])->group(function () {
  *
  * GET /api/health
  */
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
-})->name('api.health');
+Route::get('/health', fn () => response()->json([
+    'status' => 'ok',
+    'timestamp' => now()->toIso8601String(),
+]))->name('api.health');

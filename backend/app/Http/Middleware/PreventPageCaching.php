@@ -14,19 +14,19 @@ use Symfony\Component\HttpFoundation\Response;
  * Este middleware es especialmente útil para páginas que contienen información
  * sensible como dashboards, configuraciones de usuario, o datos personales.
  */
-class PreventPageCaching
+final class PreventPageCaching
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
         // Solo aplicar a respuestas HTML exitosas
-        if ($response->isSuccessful() && !$request->expectsJson()) {
+        if ($response->isSuccessful() && ! $request->expectsJson()) {
             // Prevenir almacenamiento en caché del navegador
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
             $response->headers->set('Pragma', 'no-cache');
@@ -39,7 +39,7 @@ class PreventPageCaching
             // cuando el usuario navega hacia atrás
             $response->headers->set(
                 'Cache-Control',
-                $response->headers->get('Cache-Control') . ', no-store'
+                $response->headers->get('Cache-Control').', no-store'
             );
         }
 

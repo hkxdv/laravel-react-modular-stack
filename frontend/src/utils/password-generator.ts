@@ -4,12 +4,17 @@
  * @returns Un número aleatorio entre 0 (inclusivo) y max (exclusivo)
  */
 export const getSecureRandom = (max: number): number => {
+  // Validar rango de entrada para evitar resultados no definidos
+  if (max <= 0) {
+    return 0;
+  }
   // Usar crypto.getRandomValues cuando esté disponible (navegadores modernos)
-  if (globalThis.crypto?.getRandomValues) {
+  if ('crypto' in globalThis) {
     const randomBuffer = new Uint32Array(1);
     globalThis.crypto.getRandomValues(randomBuffer);
     // Convertir el valor aleatorio a un número entre 0 y max-1
-    return randomBuffer[0] % max;
+    const value = randomBuffer.at(0) ?? 0;
+    return value % max;
   }
   // Fallback a Math.random si crypto API no está disponible
   // Nota: Este es un fallback seguro para este caso de uso específico
@@ -109,10 +114,16 @@ export const generatePassword = (options?: PasswordOptions): string => {
 
   // Mezclar los caracteres para que la contraseña sea más aleatoria
   // Fisher-Yates shuffle
-  const chars = [...password];
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread
+  const chars: string[] = [...password];
   for (let i = chars.length - 1; i > 0; i--) {
     const j = getSecureRandom(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
+    const a = chars[i];
+    const b = chars[j];
+    if (a !== undefined && b !== undefined) {
+      chars[i] = b;
+      chars[j] = a;
+    }
   }
 
   return chars.join('');

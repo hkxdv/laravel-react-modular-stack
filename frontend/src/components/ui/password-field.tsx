@@ -102,7 +102,7 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
 
   const passwordHook = usePassword({
     initialPassword: value,
-    passwordOptions,
+    passwordOptions: passwordOptions ?? {},
   });
 
   // Actualizar el valor interno solo cuando el prop value cambia
@@ -144,7 +144,7 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
         .then(() => {
           showSuccess('Contraseña copiada al portapapeles');
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error('Error al copiar la contraseña:', error);
         });
     }
@@ -163,7 +163,9 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
           id={id}
           type={passwordHook.showPassword ? 'text' : 'password'}
           value={passwordHook.password}
-          onChange={(e) => handlePasswordChange(e.target.value)}
+          onChange={(e) => {
+            handlePasswordChange(e.target.value);
+          }}
           placeholder={placeholder}
           aria-invalid={!!error}
           className={`bg-muted/40 h-11 px-4 pr-16 focus-visible:ring-1 focus-visible:ring-offset-0 ${

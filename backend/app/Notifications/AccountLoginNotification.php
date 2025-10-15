@@ -17,14 +17,14 @@ use Illuminate\Support\Facades\URL;
  * Proporciona al usuario detalles sobre el inicio de sesión y acciones rápidas para asegurar su cuenta,
  * como marcar el dispositivo como confiable o cambiar la contraseña.
  */
-class AccountLoginNotification extends Notification implements ShouldQueue
+final class AccountLoginNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * La fecha y hora en que ocurrió el inicio de sesión.
      */
-    public \Illuminate\Support\Carbon $time;
+    public \Carbon\CarbonInterface $time;
 
     /**
      * Crea una nueva instancia de la notificación.
@@ -59,29 +59,52 @@ class AccountLoginNotification extends Notification implements ShouldQueue
     /**
      * Construye la representación por correo electrónico de la notificación.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación (generalmente el usuario).
-     * @return \Illuminate\Notifications\Messages\MailMessage El mensaje de correo electrónico configurado.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable  $notifiable  La entidad que recibe la notificación (generalmente el usuario).
+     * @return MailMessage El mensaje de correo electrónico configurado.
      */
     public function toMail(object $notifiable): MailMessage
     {
         // --- Construcción del Mensaje Principal ---
+        $nameValue = $notifiable->getAttribute('name');
+        $nameSafe = is_string($nameValue) ? $nameValue : '';
+
         $message = (new MailMessage)
-            ->subject('¡Alerta de seguridad! Nuevo dispositivo detectado')
-            ->greeting("¡Hola {$notifiable->name}!")
-            ->line('**Hemos detectado un inicio de sesión desde un dispositivo o ubicación que no habías usado antes.**')
-            ->line('Si fuiste tú, no hay problema. Si no reconoces esta actividad, tu cuenta podría estar en riesgo.')
-            ->line('**Detalles del inicio de sesión:**')
-            ->line("- **Fecha y hora:** {$this->time->format('d/m/Y H:i:s')}")
-            ->when($this->ipAddress, function ($message) {
-                return $message->line("- **Dirección IP:** {$this->ipAddress}");
-            })
-            ->when($this->userAgent, function ($message) {
-                return $message->line("- **Dispositivo:** {$this->userAgent}");
-            })
-            ->line("- **Ubicación aproximada:** {$this->location}");
+            ->subject(
+                '¡Alerta de seguridad! Nuevo dispositivo detectado'
+            )
+            ->greeting(
+                "¡Hola {$nameSafe}!"
+            )
+            ->line(
+                '**Hemos detectado un inicio de sesión desde un dispositivo o ubicación que no habías usado antes.**'
+            )
+            ->line(
+                'Si fuiste tú, no hay problema. Si no reconoces esta actividad, tu cuenta podría estar en riesgo.'
+            )
+            ->line(
+                '**Detalles del inicio de sesión:**'
+            )
+            ->line(
+                "- **Fecha y hora:** {$this->time->format('d/m/Y H:i:s')}"
+            )
+            ->when(
+                $this->ipAddress,
+                fn ($message) => $message->line(
+                    "- **Dirección IP:** {$this->ipAddress}"
+                )
+            )
+            ->when(
+                $this->userAgent,
+                fn ($message) => $message->line(
+                    "- **Dispositivo:** {$this->userAgent}"
+                )
+            )
+            ->line(
+                "- **Ubicación aproximada:** {$this->location}"
+            );
 
         // --- Acción para Marcar Dispositivo como Confiable (Opcional) ---
-        if ($this->loginId) {
+        if ($this->loginId !== null && $this->loginId !== 0) {
             $trustUrl = URL::temporarySignedRoute(
                 'internal.login.trust-device',
                 now()->addDays(7),
@@ -89,18 +112,36 @@ class AccountLoginNotification extends Notification implements ShouldQueue
             );
 
             $message->line('**¿Fuiste tú?**')
-                ->line('Si reconoces este inicio de sesión, puedes marcarlo como dispositivo de confianza para no recibir más alertas cuando lo uses:')
-                ->action('Este dispositivo es mío', $trustUrl);
+                ->line(
+                    'Si reconoces este inicio de sesión, puedes marcarlo como dispositivo de confianza para no recibir más alertas cuando lo uses:'
+                )
+                ->action(
+                    'Este dispositivo es mío',
+                    $trustUrl
+                );
         }
 
         // --- Recomendaciones de Seguridad y Acciones ---
         $message->line('**¿No fuiste tú?**')
-            ->line('Si no reconoces esta actividad, te recomendamos:')
-            ->line('1. Cambiar tu contraseña inmediatamente.')
-            ->line('2. Revisar la configuración de seguridad de tu cuenta.')
-            ->line('3. Contactar con soporte si necesitas ayuda.')
-            ->action('Cambiar mi contraseña', route('password.request'))
-            ->line('Este es un correo electrónico automático de seguridad. Por favor, no respondas a este mensaje.');
+            ->line(
+                'Si no reconoces esta actividad, te recomendamos:'
+            )
+            ->line(
+                '1. Cambiar tu contraseña inmediatamente.'
+            )
+            ->line(
+                '2. Revisar la configuración de seguridad de tu cuenta.'
+            )
+            ->line(
+                '3. Contactar con soporte si necesitas ayuda.'
+            )
+            ->action(
+                'Cambiar mi contraseña',
+                route('password.request')
+            )
+            ->line(
+                'Este es un correo electrónico automático de seguridad. Por favor, no respondas a este mensaje.'
+            );
 
         return $message;
     }

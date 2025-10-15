@@ -9,13 +9,13 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Services\SecurityAuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Controlador para gestionar la autenticación del personal interno.
@@ -23,7 +23,7 @@ use Inertia\Response;
  * Se encarga de mostrar el formulario de login, procesar el inicio de sesión
  * y gestionar el cierre de sesión para los usuarios del panel de administración.
  */
-class LoginController extends Controller
+final class LoginController extends Controller
 {
     /**
      * Crea una nueva instancia del controlador.
@@ -31,10 +31,10 @@ class LoginController extends Controller
      * Inyecta el servicio de auditoría de seguridad para ser utilizado
      * en los métodos de almacenamiento y destrucción de la sesión.
      *
-     * @param  \App\Services\SecurityAuditService  $securityService  El servicio para manejar la auditoría de seguridad.
+     * @param  SecurityAuditService  $securityService  El servicio para manejar la auditoría de seguridad.
      */
     public function __construct(
-        protected SecurityAuditService $securityService
+        private readonly SecurityAuditService $securityService
     ) {}
 
     /**
@@ -45,10 +45,16 @@ class LoginController extends Controller
      */
     public function create(): Response
     {
+        $errors = session('errors');
+        $errorMessages = (object) [];
+        if ($errors instanceof \Illuminate\Support\ViewErrorBag) {
+            $errorMessages = (object) $errors->getBag('default')->getMessages();
+        }
+
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
-            'errors' => session('errors') ? session('errors')->getBag('default')->getMessages() : (object) [],
+            'errors' => $errorMessages,
             'postUrl' => route('login'),
             // Textos genéricos y neutrales
             'pageTitle' => 'Iniciar sesión',
@@ -68,9 +74,9 @@ class LoginController extends Controller
     /**
      * Maneja una solicitud de autenticación entrante.
      *
-     * @param  \App\Http\Requests\Auth\LoginRequest  $request  La solicitud de login validada.
+     * @param  LoginRequest  $request  La solicitud de login validada.
      */
-    public function store(LoginRequest $request): IlluminateResponse
+    public function store(LoginRequest $request): SymfonyResponse
     {
         // 1. Autenticar al usuario.
         // El LoginRequest se encarga de la validación y de intentar la autenticación.
@@ -127,7 +133,8 @@ class LoginController extends Controller
         }
 
         // Limpiar cookies si existen
-        if ($cookieName = config('session.cookie')) {
+        $cookieName = config('session.cookie');
+        if (is_string($cookieName)) {
             Cookie::forget($cookieName);
         }
 

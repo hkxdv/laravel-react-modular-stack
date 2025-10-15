@@ -30,10 +30,10 @@ export default function AppearancePage() {
 
   // Procesar mensajes flash del backend
   useEffect(() => {
-    if (flash?.success) {
+    if (flash.success) {
       showSuccess(flash.success);
     }
-    if (flash?.error) {
+    if (flash.error) {
       showError(flash.error);
     }
   }, [flash, showSuccess, showError]);
@@ -42,7 +42,7 @@ export default function AppearancePage() {
     <AppLayout
       user={extractUserData(auth.user)}
       breadcrumbs={breadcrumbs}
-      contextualNavItems={contextualNavItems}
+      contextualNavItems={contextualNavItems ?? []}
     >
       <Head title="Configuración de apariencia" />
 

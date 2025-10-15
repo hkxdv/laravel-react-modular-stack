@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * Se encarga de procesar la solicitud para marcar un dispositivo como confiable,
  * generalmente a través de un enlace firmado enviado por correo electrónico.
  */
-class LoginDeviceController extends Controller
+final class LoginDeviceController extends Controller
 {
     /**
      * Marca un dispositivo como confiable a través de un enlace firmado.
@@ -26,8 +26,8 @@ class LoginDeviceController extends Controller
      * este método debe estar protegida por el middleware 'signed' para prevenir ataques
      * de manipulación de URL y 'auth' para asegurar que el usuario esté autenticado.
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP entrante.
-     * @param  \App\Models\StaffUsersLoginInfo  $loginInfo  El registro de inicio de sesión inyectado por la ruta.
+     * @param  Request  $request  La solicitud HTTP entrante.
+     * @param  StaffUsersLoginInfo  $loginInfo  El registro de inicio de sesión inyectado por la ruta.
      */
     public function trust(Request $request, StaffUsersLoginInfo $loginInfo): RedirectResponse
     {

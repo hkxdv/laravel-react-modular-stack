@@ -6,12 +6,13 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Spatie\Permission\Models\Role;
 
 /**
  * Transforma el modelo Role en un array para respuestas API.
  * Este recurso expone de forma segura los datos de un rol del sistema.
  */
-class RoleResource extends JsonResource
+final class RoleResource extends JsonResource
 {
     /**
      * Transforma el recurso en un array.
@@ -20,12 +21,15 @@ class RoleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var Role $role */
+        $role = $this->resource;
+
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'guard_name' => $this->guard_name,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'id' => $role->id,
+            'name' => $role->name,
+            'guard_name' => $role->guard_name,
+            'created_at' => $role->created_at,
+            'updated_at' => $role->updated_at,
         ];
     }
 }

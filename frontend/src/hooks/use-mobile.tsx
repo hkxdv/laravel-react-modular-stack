@@ -38,7 +38,9 @@ export function useIsMobile(): boolean {
     handleResize();
 
     // Limpia el listener al desmontar el componente para evitar fugas de memoria.
-    return () => mediaQuery.removeEventListener('change', handleResize);
+    return () => {
+      mediaQuery.removeEventListener('change', handleResize);
+    };
   }, []);
 
   return isMobile;

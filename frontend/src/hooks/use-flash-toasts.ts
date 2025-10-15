@@ -17,6 +17,7 @@ export function useFlashToasts(flash?: FlashBag | null): void {
 
   useEffect(() => {
     if (!flash) return;
+
     if (flash.success) {
       showSuccess(flash.success);
     }

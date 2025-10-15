@@ -26,7 +26,7 @@ export const getMainNavItemsDefinition = (_user: User | null): NavItemDefinition
       title: 'Inicio',
       href: route('internal.dashboard'),
       icon: 'Home',
-      permission: undefined,
+      permission: undefined as unknown as string | string[],
     },
   ];
 };

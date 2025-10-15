@@ -15,6 +15,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 /**
  * Controlador para gestionar el restablecimiento de contraseñas.
@@ -22,7 +23,7 @@ use Inertia\Response;
  * Este controlador maneja la fase final del proceso de restablecimiento de contraseña,
  * mostrando el formulario y procesando la nueva contraseña del usuario.
  */
-class NewPasswordController extends Controller
+final class NewPasswordController extends Controller
 {
     /**
      * Muestra la vista para restablecer la contraseña.
@@ -45,12 +46,13 @@ class NewPasswordController extends Controller
      * el token y actualizar la contraseña del usuario de forma segura.
      *
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'token' => ['required'],
+        /** @var array{token:string,email:string,password:string,password_confirmation?:string} $data */
+        $data = $request->validate([
+            'token' => ['required', 'string'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -58,17 +60,30 @@ class NewPasswordController extends Controller
         // Se utiliza el broker `Password` de Laravel para manejar el proceso de restablecimiento.
         // Este método abstrae la lógica de verificar el token y encontrar al usuario asociado.
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
+            [
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'password_confirmation' => $data['password_confirmation'] ?? '',
+                'token' => $data['token'],
+            ],
+            function (
+                \App\Models\StaffUsers $user
+            ) use ($data): void {
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
+                    'password' => Hash::make($data['password']),
                     'remember_token' => Str::random(60),
+                    'password_changed_at' => now(),
                 ])->save();
 
                 // Se dispara el evento `PasswordReset` para que otros listeners puedan reaccionar (ej. enviar notificación).
                 event(new PasswordReset($user));
             }
         );
+
+        // Asegurar el tipo de $status para el traductor
+        if (! is_string($status)) {
+            throw new RuntimeException('Tipo inesperado de estado devuelto por Password::reset');
+        }
 
         // Si el broker confirma que la contraseña fue reseteada (`PASSWORD_RESET`),
         // se redirige al usuario a la página de login con un mensaje de estado traducido.

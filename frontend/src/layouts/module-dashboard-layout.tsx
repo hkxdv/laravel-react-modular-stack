@@ -38,7 +38,7 @@ export function ModuleDashboardLayout({
           {title && (
             <ModuleHeader
               title={title}
-              description={description}
+              description={description ?? ''}
               userName={userName}
               showGreeting={showGreeting}
             />

@@ -144,5 +144,5 @@ export const getLucideIcon = (iconName?: string | LucideIcon | null): LucideIcon
     xcircle: XCircle,
   };
 
-  return lucideIconMap[normalizedName] || null;
+  return lucideIconMap[normalizedName] ?? null;
 };

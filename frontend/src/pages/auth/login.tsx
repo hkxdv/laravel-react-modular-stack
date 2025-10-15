@@ -49,7 +49,7 @@ const errorMessages: Record<string, string> = {
 // Función para obtener mensajes de error amigables
 const getErrorMessage = (error?: string) => {
   if (!error) return '';
-  return errorMessages[error] || error;
+  return errorMessages[error] ?? error;
 };
 
 export default function Login({
@@ -69,7 +69,7 @@ export default function Login({
   blockquoteText,
   blockquoteFooter,
 }: Readonly<LoginProps>) {
-  const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
+  const form = useForm<Required<LoginForm>>({
     email: '',
     password: '',
     remember: false,
@@ -103,7 +103,7 @@ export default function Login({
       }, 1000);
     }
     return () => {
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
     };
   }, [isLocked, lockCountdown]);
 
@@ -167,7 +167,7 @@ export default function Login({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    if (!data.email) {
+    if (!form.data.email) {
       showErrorToast(
         'Campo requerido',
         'El correo electrónico es necesario para iniciar sesión',
@@ -175,7 +175,7 @@ export default function Login({
       );
       return;
     }
-    if (!data.password) {
+    if (!form.data.password) {
       showErrorToast(
         'Campo requerido',
         'La contraseña es necesaria para iniciar sesión',
@@ -183,7 +183,7 @@ export default function Login({
       );
       return;
     }
-    if (data.password.length < 6) {
+    if (form.data.password.length < 6) {
       showErrorToast(
         'Contraseña inválida',
         'La contraseña debe tener al menos 6 caracteres',
@@ -192,12 +192,14 @@ export default function Login({
       return;
     }
     shownErrors.current.clear();
-    post(postUrl, {
-      onFinish: () => reset('password'),
+    form.post(postUrl, {
+      onFinish: () => {
+        form.reset('password');
+      },
       preserveScroll: true,
       preserveState: true,
       onError: (errorResponse) => {
-        const errorKey = errorResponse.email ?? errorResponse.password;
+        const errorKey = errorResponse['email'] ?? errorResponse['password'];
         if (errorKey) {
           const isThrottled = errorKey === 'auth.throttle';
           handleFailedAttempt(isThrottled);
@@ -254,7 +256,7 @@ export default function Login({
             {formDescription && <p className="text-muted-foreground text-sm">{formDescription}</p>}
           </div>
 
-          <Head title={pageTitle} />
+          <Head title={pageTitle ?? ''} />
 
           {status && (
             <div
@@ -284,15 +286,17 @@ export default function Login({
                   type={emailFieldType}
                   required
                   autoComplete={emailFieldAutoComplete}
-                  value={data.email}
-                  onChange={(e) => setData('email', e.target.value)}
+                  value={form.data.email}
+                  onChange={(e) => {
+                    form.setData('email', e.target.value);
+                  }}
                   placeholder={emailFieldPlaceholder}
                   className={
-                    errors.email
+                    form.errors.email
                       ? 'border-red-500 focus-visible:ring-red-500'
                       : 'focus:border-primary focus-visible:ring-primary/30'
                   }
-                  disabled={isLocked || processing}
+                  disabled={isLocked || form.processing}
                   maxLength={100}
                 />
               </div>
@@ -314,15 +318,17 @@ export default function Login({
                   type="password"
                   required
                   autoComplete="current-password"
-                  value={data.password}
-                  onChange={(e) => setData('password', e.target.value)}
+                  value={form.data.password}
+                  onChange={(e) => {
+                    form.setData('password', e.target.value);
+                  }}
                   placeholder="Contraseña"
                   className={
-                    errors.password
+                    form.errors.password
                       ? 'border-red-500 focus-visible:ring-red-500'
                       : 'focus:border-primary focus-visible:ring-primary/30'
                   }
-                  disabled={isLocked || processing}
+                  disabled={isLocked || form.processing}
                   maxLength={100}
                 />
               </div>
@@ -331,9 +337,11 @@ export default function Login({
                 <Checkbox
                   id="remember"
                   name="remember"
-                  checked={data.remember}
-                  onClick={() => setData('remember', !data.remember)}
-                  disabled={isLocked || processing}
+                  checked={form.data.remember}
+                  onClick={() => {
+                    form.setData('remember', !form.data.remember);
+                  }}
+                  disabled={isLocked || form.processing}
                 />
                 <Label htmlFor="remember" className="text-sm">
                   Recordarme
@@ -343,10 +351,10 @@ export default function Login({
               <Button
                 type="submit"
                 className="w-full font-medium transition-all hover:shadow-md"
-                disabled={isLocked || processing}
+                disabled={isLocked || form.processing}
                 size="lg"
               >
-                {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                 {isLocked ? `Bloqueado (${lockCountdown}s)` : submitButtonText}
               </Button>
 

@@ -7,7 +7,7 @@ namespace App\Helpers;
 /**
  * Helper para gestionar activos protegidos
  */
-class AssetHelper
+final class AssetHelper
 {
     /**
      * Genera una URL para un activo protegido
@@ -17,7 +17,7 @@ class AssetHelper
      */
     public static function protectedAsset(string $path): string
     {
-        return url('/assets/' . ltrim($path, '/'));
+        return url('/assets/'.mb_ltrim($path, '/'));
     }
 
     /**
@@ -27,16 +27,22 @@ class AssetHelper
      * @param  string  $targetPath  Ruta dentro de la carpeta de activos protegidos
      * @return bool Éxito o fracaso de la operación
      */
-    public static function moveToProtectedAssets(string $sourcePath, string $targetPath): bool
-    {
+    public static function moveToProtectedAssets(
+        string $sourcePath,
+        string $targetPath
+    ): bool {
         // Asegurarse de que la carpeta de destino existe
-        $targetDir = storage_path('app/protected/assets/' . dirname($targetPath));
-        if (!is_dir($targetDir)) {
+        $targetDir = storage_path(
+            'app/protected/assets/'.dirname($targetPath)
+        );
+        if (! is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
 
         // Mover el archivo
-        $fullTargetPath = storage_path('app/protected/assets/' . $targetPath);
+        $fullTargetPath = storage_path(
+            'app/protected/assets/'.$targetPath
+        );
 
         return rename($sourcePath, $fullTargetPath);
     }
@@ -48,16 +54,22 @@ class AssetHelper
      * @param  string  $targetPath  Ruta dentro de la carpeta de activos protegidos
      * @return bool Éxito o fracaso de la operación
      */
-    public static function copyToProtectedAssets(string $sourcePath, string $targetPath): bool
-    {
+    public static function copyToProtectedAssets(
+        string $sourcePath,
+        string $targetPath
+    ): bool {
         // Asegurarse de que la carpeta de destino existe
-        $targetDir = storage_path('app/protected/assets/' . dirname($targetPath));
-        if (!is_dir($targetDir)) {
+        $targetDir = storage_path(
+            'app/protected/assets/'.dirname($targetPath)
+        );
+        if (! is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
 
         // Copiar el archivo
-        $fullTargetPath = storage_path('app/protected/assets/' . $targetPath);
+        $fullTargetPath = storage_path(
+            'app/protected/assets/'.$targetPath
+        );
 
         return copy($sourcePath, $fullTargetPath);
     }

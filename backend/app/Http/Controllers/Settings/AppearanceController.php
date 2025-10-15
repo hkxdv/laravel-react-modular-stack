@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Settings;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class AppearanceController extends BaseSettingsController
+final class AppearanceController extends BaseSettingsController
 {
     /**
      * Muestra la página de configuración de apariencia.

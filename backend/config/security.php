@@ -201,7 +201,12 @@ return [
             'expiration_minutes' => env('MEDIA_SIGNED_URLS_TTL', 60),
         ],
         'check_referrer' => env('MEDIA_CHECK_REFERRER', false),
-        'allowed_referrer_hosts' => array_filter(explode(',', env('MEDIA_ALLOWED_REFERRERS', 'localhost,127.0.0.1'))),
+        'allowed_referrer_hosts' => array_filter(
+            explode(',', (string) env(
+                'MEDIA_ALLOWED_REFERRERS',
+                'localhost,127.0.0.1'
+            ))
+        ),
         'cache' => [
             'visibility' => env('MEDIA_CACHE_VISIBILITY', 'private'),
             'max_age' => env('MEDIA_CACHE_MAX_AGE', 3600),

@@ -18,14 +18,12 @@ use Tighten\Ziggy\Ziggy;
  * configurar los patrones de ruta globales, definir los limitadores de velocidad (rate limiters)
  * y registrar cualquier configuración relacionada con el enrutamiento.
  */
-class RouteServiceProvider extends ServiceProvider
+final class RouteServiceProvider extends ServiceProvider
 {
     /**
      * La ruta a la que se redirige a los usuarios después de la autenticación.
-     *
-     * @var string
      */
-    public const HOME = '/internal/dashboard';
+    public const string HOME = '/internal/dashboard';
 
     /**
      * Define los enlaces de modelos de ruta, filtros de patrones y otra configuración de rutas.
@@ -48,7 +46,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureZiggyRouteGroups();
 
         // Carga los archivos de rutas de la aplicación.
-        $this->routes(function () {
+        $this->routes(function (): void {
             // Rutas de API: usan el middleware 'api' y el prefijo '/api'.
             Route::middleware('api')
                 ->prefix('api')
@@ -69,34 +67,35 @@ class RouteServiceProvider extends ServiceProvider
      * Define diferentes políticas de limitación para proteger la aplicación contra
      * ataques de fuerza bruta o uso excesivo de la API.
      */
-    protected function configureRateLimiting(): void
+    private function configureRateLimiting(): void
     {
         // Límite general para la API: 60 solicitudes por minuto.
         // Se identifica por el ID del usuario autenticado o, si es un invitado, por su IP.
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)
-                ->by(
-                    $request->user()?->id ?: $request->ip()
-                );
-        });
+        RateLimiter::for(
+            'api',
+            fn (Request $request) => Limit::perMinute(60)
+                ->by($request->user()?->id ?: $request->ip())
+        );
 
         // Límite para intentos de autenticación: 5 por minuto por IP.
         // Esto ayuda a prevenir ataques de fuerza bruta en el formulario de login.
-        RateLimiter::for('auth', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
-        });
+        RateLimiter::for(
+            'auth',
+            fn (Request $request) => Limit::perMinute(5)->by($request->ip())
+        );
 
         // Límite para operaciones con Sanctum (ej. emisión de tokens).
-        RateLimiter::for('sanctum', function (Request $request) {
-            return Limit::perMinute(10)->by($request->ip());
-        });
+        RateLimiter::for(
+            'sanctum',
+            fn (Request $request) => Limit::perMinute(10)->by($request->ip())
+        );
     }
 
     /**
      * Define los grupos de rutas para Ziggy
      * Esto permite que podamos filtrar qué rutas se envían al frontend
      */
-    protected function configureZiggyRouteGroups(): void
+    private function configureZiggyRouteGroups(): void
     {
         // Rutas públicas (accesibles para visitantes no autenticados)
         config(['ziggy.groups.public' => [
@@ -126,14 +125,22 @@ class RouteServiceProvider extends ServiceProvider
      * Esta ruta permite al frontend solicitar las rutas de Laravel que necesita,
      * filtradas por grupos para mayor seguridad y eficiencia.
      */
-    protected function registerZiggyRoutes(): void
+    private function registerZiggyRoutes(): void
     {
         Route::get('/api/routes', function (Request $request) {
-            $groupsInput = $request->input('groups', '');
+            $groupsRaw = $request->input('groups');
+            $groupsInput = is_string($groupsRaw) ? $groupsRaw : '';
 
-            $requestedGroups = !empty($groupsInput)
-                ? explode(',', $groupsInput)
-                : [];
+            /** @var array<int, string> $requestedGroups */
+            $requestedGroups = $groupsInput === ''
+                ? []
+                : array_filter(
+                    array_map(
+                        static fn (string $g): string => mb_trim($g),
+                        explode(',', $groupsInput)
+                    ),
+                    static fn (string $g): bool => $g !== ''
+                );
 
             // Asegura que el grupo 'public' (que contiene rutas como 'welcome') siempre esté disponible
             // para cualquier solicitud, evitando que el frontend se rompa si no lo solicita explícitamente.
@@ -144,7 +151,9 @@ class RouteServiceProvider extends ServiceProvider
                 )
             );
 
-            return app('ziggy')->filter($groupsToFilter)->toArray();
+            return app(Ziggy::class)
+                ->filter($groupsToFilter)
+                ->toArray();
         })->middleware('web');
     }
 }

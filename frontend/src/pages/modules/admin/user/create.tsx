@@ -30,8 +30,7 @@ export default function UserCreatePage({
   moduleNavItems,
   globalNavItems,
   breadcrumbs,
-  _errors = {},
-  flash = {},
+  flash,
 }: Readonly<UserCreatePageProps>) {
   useNavigationProgress({ delayMs: 150 });
 
@@ -40,10 +39,10 @@ export default function UserCreatePage({
   useFlashToasts(
     flash
       ? {
-          success: flash.success ?? undefined,
-          error: flash.error ?? undefined,
-          info: flash.info ?? undefined,
-          warning: flash.warning ?? undefined,
+          success: flash.success ?? '',
+          error: flash.error ?? '',
+          info: flash.info ?? '',
+          warning: flash.warning ?? '',
         }
       : undefined,
   );
@@ -58,10 +57,10 @@ export default function UserCreatePage({
     <AppLayout
       breadcrumbs={computedBreadcrumbs}
       user={userData}
-      contextualNavItems={contextualNavItems}
-      mainNavItems={mainNavItems}
-      moduleNavItems={moduleNavItems}
-      globalNavItems={globalNavItems}
+      contextualNavItems={contextualNavItems ?? []}
+      mainNavItems={mainNavItems ?? []}
+      moduleNavItems={moduleNavItems ?? []}
+      globalNavItems={globalNavItems ?? []}
     >
       <Head title="Crear Nuevo Usuario" />
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -132,7 +131,7 @@ const UserCreateManager: React.FC<UserCreateManagerProps> = ({ roles, authUserId
     // Convertir IDs de roles a nombres de roles
     const rolesAsNames = data.roles
       .map((roleId) => {
-        const role = roles?.find((r) => String(r.id) === roleId);
+        const role = roles.find((r) => String(r.id) === roleId);
         return role?.name ?? '';
       })
       .filter(Boolean);
@@ -163,7 +162,7 @@ const UserCreateManager: React.FC<UserCreateManagerProps> = ({ roles, authUserId
         showSuccess('Usuario creado con éxito');
 
         // Si NO se verificará automáticamente, avisar que se envió el correo de verificación
-        if (data.auto_verify_email === false) {
+        if (!data.auto_verify_email) {
           showInfo(
             `Se envió un correo de verificación a ${data.email}. El usuario deberá verificar su correo para poder iniciar sesión.`,
           );
@@ -220,7 +219,7 @@ const UserCreateManager: React.FC<UserCreateManagerProps> = ({ roles, authUserId
       return 'Contraseña';
     }
 
-    return fieldLabels[field] || field;
+    return fieldLabels[field] ?? field;
   };
 
   // Funciones para controlar el diálogo de compartir credenciales

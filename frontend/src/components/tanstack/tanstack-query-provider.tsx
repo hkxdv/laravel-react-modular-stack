@@ -48,11 +48,11 @@ export function TanStackQueryProvider({
           },
           mutations: {
             // Determinar si se debe registrar errores en la consola
-            onError: logErrors
-              ? (error: unknown) => {
-                  console.error('Error de mutación:', error);
-                }
-              : undefined,
+            ...(logErrors && {
+              onError: (error: Error) => {
+                console.error('Error de mutación:', error);
+              },
+            }),
           },
         },
       }),

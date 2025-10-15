@@ -22,19 +22,20 @@ trait PermissionVerifier
      */
     public function can(string|array $permissionName): bool
     {
-        /** @var \App\Models\StaffUsers|\App\Interfaces\AuthenticatableUser|null $user */
+        /** @var \App\Interfaces\AuthenticatableUser|\Illuminate\Contracts\Auth\Authenticatable|null $user */
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
-        // Prioriza la verificación cross-guard si el método existe.
-        // Este método ya incluye la lógica de super-admin (ADMIN/DEV) y el cacheo.
-        if (method_exists($user, 'hasPermissionToCross')) {
+        // Si el usuario implementa el contrato de permisos cross-guard, úsalo.
+        // Este camino ya incluye la lógica de super-admin (ADMIN/DEV) y el cacheo.
+        if ($user instanceof \App\Interfaces\AuthenticatableUser) {
             if (is_array($permissionName)) {
-                // Usar implementación nativa si existe, de lo contrario iterar por cada permiso.
+                // Intentar método optimizado si existe; si no, iterar manualmente.
                 if (method_exists($user, 'hasAnyPermissionCross')) {
-                    return $user->hasAnyPermissionCross($permissionName);
+                    /** @disregard P1013 [hasAnyPermissionCross proviene de CrossGuardPermissions (runtime correcto)] */
+                    return (bool) $user->hasAnyPermissionCross($permissionName);
                 }
 
                 foreach ($permissionName as $perm) {
@@ -52,7 +53,8 @@ trait PermissionVerifier
         // Fallback a la verificación de permisos nativa de Laravel/Spatie si el trait no está.
         if (is_array($permissionName)) {
             foreach ($permissionName as $perm) {
-                if ($user->can($perm)) {
+                /** @disregard P1013 [hasPermissionTo proviene de Spatie HasRoles en el modelo de usuario] */
+                if ($user->hasPermissionTo($perm)) {
                     return true;
                 }
             }
@@ -60,6 +62,8 @@ trait PermissionVerifier
             return false;
         }
 
-        return $user->can($permissionName);
+        // Verificación única
+        /** @disregard P1013 [hasPermissionTo proviene de Spatie HasRoles en el modelo de usuario] */
+        return (bool) $user->hasPermissionTo($permissionName);
     }
 }

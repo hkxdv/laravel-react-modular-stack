@@ -46,11 +46,11 @@ const AppLayout = ({
 }: ExtendedAppLayoutProps) => (
   <AppLayoutTemplate
     user={user}
-    breadcrumbs={breadcrumbs}
-    mainNavItems={mainNavItems}
-    moduleNavItems={moduleNavItems}
-    contextualNavItems={contextualNavItems}
-    globalNavItems={globalNavItems}
+    breadcrumbs={breadcrumbs ?? []}
+    mainNavItems={mainNavItems ?? []}
+    moduleNavItems={moduleNavItems ?? []}
+    contextualNavItems={contextualNavItems ?? []}
+    globalNavItems={globalNavItems ?? []}
     headerActions={headerActions}
     {...props}
   >

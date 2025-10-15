@@ -49,13 +49,15 @@ function parseTimeToMinutes(hhmm: string | undefined, fallbackMinutes: number): 
   const [h, m] = hhmm.split(':').map((n) => Number.parseInt(n, 10));
   const hours = Number.isFinite(h) ? h : 0;
   const minutes = Number.isFinite(m) ? m : 0;
-  return hours * 60 + minutes;
+  return (hours ?? 0) * 60 + (minutes ?? 0);
 }
 
 /**
  * Convierte minutos totales a cadena HH:mm (24h).
+ * Si el valor es inválido/undefined, retorna el valor de respaldo.
  */
-function minutesToHHmm(total: number): string {
+function minutesToHHmm(total: number | undefined, fallbackHHmm: string): string {
+  if (!total) return fallbackHHmm;
   const h = Math.floor(total / 60);
   const m = total % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -173,7 +175,7 @@ export function TimePickerConstrained({
     const total =
       Number.parseInt(format(date, 'HH'), 10) * 60 + Number.parseInt(format(date, 'mm'), 10);
     const clamped = Math.min(Math.max(total, minTotal), maxTotal);
-    return minutesToHHmm(clamped);
+    return minutesToHHmm(clamped, '00:00');
   }, [date, minTotal, maxTotal]);
 
   return (
@@ -197,7 +199,11 @@ export function TimePickerConstrained({
       </PopoverTrigger>
       <PopoverContent className="w-auto p-2">
         <div className="flex items-center gap-2">
-          <Select value={format(date, 'HH')} onValueChange={handleHourChange} disabled={disabled}>
+          <Select
+            value={format(date, 'HH')}
+            onValueChange={handleHourChange}
+            disabled={disabled ?? false}
+          >
             <SelectTrigger className="w-[80px]">
               <SelectValue />
             </SelectTrigger>
@@ -210,7 +216,11 @@ export function TimePickerConstrained({
             </SelectContent>
           </Select>
           <span>:</span>
-          <Select value={format(date, 'mm')} onValueChange={handleMinuteChange} disabled={disabled}>
+          <Select
+            value={format(date, 'mm')}
+            onValueChange={handleMinuteChange}
+            disabled={disabled ?? false}
+          >
             <SelectTrigger className="w-[80px]">
               <SelectValue />
             </SelectTrigger>

@@ -8,6 +8,7 @@ use App\Interfaces\ApiResponseFormatterInterface;
 use App\Interfaces\ModuleRegistryInterface;
 use App\Interfaces\NavigationBuilderInterface;
 use App\Interfaces\ViewComposerInterface;
+use App\Models\StaffUsers;
 use App\Services\ApiResponseService;
 use App\Services\JsonbQueryService;
 use App\Services\ModuleRegistryService;
@@ -24,7 +25,7 @@ use Illuminate\Support\ServiceProvider;
  * configurar observadores de modelos, definir gates de autorización y realizar otras
  * tareas de arranque esenciales para la aplicación.
  */
-class AppServiceProvider extends ServiceProvider
+final class AppServiceProvider extends ServiceProvider
 {
     /**
      * Registra los servicios de la aplicación en el contenedor de dependencias.
@@ -41,26 +42,40 @@ class AppServiceProvider extends ServiceProvider
         // Establece una ruta personalizada para la base de datos.
         // Esto es útil para que los comandos Artisan como 'migrate' encuentren la
         // base de datos en la estructura de directorios del proyecto.
-        $app->useDatabasePath(realpath(__DIR__ . '/../../../database'));
+        $app->useDatabasePath(base_path('../database'));
 
         // Registra Telescope solo en entornos de no producción para depuración.
-        if ($this->app->environment() !== 'production') {
-            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
-            $this->app->register(\App\Providers\TelescopeServiceProvider::class);
+        if (! $this->app->environment('production')) {
+            $this->app->register(
+                \Laravel\Telescope\TelescopeServiceProvider::class
+            );
+            $this->app->register(TelescopeServiceProvider::class);
         }
 
         // Registrar las interfaces del sistema con sus implementaciones concretas.
         // Esto permite la inyección de dependencias y desacopla los componentes.
-        $this->app->singleton(ApiResponseFormatterInterface::class, ApiResponseService::class);
+        $this->app->singleton(
+            ApiResponseFormatterInterface::class,
+            ApiResponseService::class
+        );
         $this->app->singleton(JsonbQueryService::class);
         $this->app->singleton(ModuleRegistryService::class);
         $this->app->singleton(NavigationBuilderService::class);
         $this->app->singleton(RouteFilterService::class);
 
         // Bindings adicionales para interfaces
-        $this->app->bind(ModuleRegistryInterface::class, ModuleRegistryService::class);
-        $this->app->bind(NavigationBuilderInterface::class, NavigationBuilderService::class);
-        $this->app->bind(ViewComposerInterface::class, ViewComposerService::class);
+        $this->app->bind(
+            ModuleRegistryInterface::class,
+            ModuleRegistryService::class
+        );
+        $this->app->bind(
+            NavigationBuilderInterface::class,
+            NavigationBuilderService::class
+        );
+        $this->app->bind(
+            ViewComposerInterface::class,
+            ViewComposerService::class
+        );
     }
 
     /**
@@ -74,11 +89,15 @@ class AppServiceProvider extends ServiceProvider
         // Define una regla global 'before' para la autorización.
         // Esta función se ejecuta antes de cualquier otra verificación de Gate o Política.
         // Otorga acceso total a los super-administradores para simplificar la gestión de permisos.
-        Gate::before(function ($user, $ability) {
-            // Si el usuario tiene el rol 'ADMIN' o 'DEV', se le otorgan todos los permisos.
-            // Se comprueba si el método 'hasRole' existe para evitar errores con modelos de usuario
-            // que no implementen este sistema de roles (ej. usuarios de otros guards).
-            if (method_exists($user, 'hasRole') && ($user->hasRole('ADMIN') || $user->hasRole('DEV'))) {
+        Gate::before(function (
+            \Illuminate\Contracts\Auth\Authenticatable $user,
+            string $ability
+        ): ?bool {
+            // Si es nuestro modelo StaffUsers y tiene rol ADMIN o DEV, otorga acceso total
+            if (
+                $user instanceof StaffUsers
+                && ($user->hasRole('ADMIN') || $user->hasRole('DEV'))
+            ) {
                 return true;
             }
 

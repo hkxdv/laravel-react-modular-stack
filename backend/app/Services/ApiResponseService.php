@@ -14,7 +14,11 @@ use App\Traits\ApiResponseFormatter;
  * ApiResponseFormatter para proporcionar una implementación concreta y reutilizable
  * para generar respuestas JSON consistentes en toda la aplicación.
  */
-class ApiResponseService implements ApiResponseFormatterInterface
+final class ApiResponseService implements ApiResponseFormatterInterface
 {
-    use ApiResponseFormatter;
+    use ApiResponseFormatter {
+        successResponse as public successResponse;
+        errorResponse as public errorResponse;
+        paginatedResponse as public paginatedResponse;
+    }
 }

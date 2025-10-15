@@ -19,5 +19,8 @@ interface StatsServiceInterface
      * @param  Authenticatable|null  $user  Usuario autenticado (si aplica).
      * @return EnhancedStat[]
      */
-    public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array;
+    public function getPanelStats(
+        string $moduleSlug,
+        ?Authenticatable $user = null
+    ): array;
 }

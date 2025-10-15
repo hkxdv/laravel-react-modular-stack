@@ -20,7 +20,7 @@ export default function UsersTable({ table, totalItems }: Readonly<UsersTablePro
   // Asegurar que pageCount nunca sea negativo o cero
   const pageCount = Math.max(table.getPageCount(), 1);
   const currentPage = table.getState().pagination.pageIndex + 1;
-  const hasData = table.getRowModel().rows?.length > 0;
+  const hasData = table.getRowModel().rows.length > 0;
   const perPage = table.getState().pagination.pageSize;
   const perPageOptions = [10, 20, 50, 100];
 

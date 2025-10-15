@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
  * Provider para el registro de rutas del módulo Module02.
  * Define cómo se cargarán las rutas web y API del módulo.
  */
-class RouteServiceProvider extends ServiceProvider
+final class RouteServiceProvider extends ServiceProvider
 {
     /**
      * El namespace del controlador del módulo.

@@ -1,12 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import React, { type FormEventHandler } from 'react';
-
-import { useToastNotifications } from '@/hooks/use-toast-notifications';
 
 interface ResetPasswordProps {
   token: string;
@@ -21,7 +20,7 @@ interface ResetPasswordForm {
 }
 
 export default function ResetPassword({ token, email }: Readonly<ResetPasswordProps>) {
-  const { data, setData, post, processing, errors, reset } = useForm<Required<ResetPasswordForm>>({
+  const form = useForm<Required<ResetPasswordForm>>({
     token: token,
     email: email,
     password: '',
@@ -40,22 +39,32 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    post(route('password.store'), {
-      onFinish: () => reset('password', 'password_confirmation'),
-      onSuccess: () => showSuccess('Tu contraseña ha sido restablecida correctamente.'),
+    form.post(route('password.store'), {
+      onFinish: () => {
+        form.reset('password', 'password_confirmation');
+      },
+      onSuccess: () => {
+        showSuccess('Tu contraseña ha sido restablecida correctamente.');
+      },
       onError: (resp) => {
-        const first = resp.email || resp.password || resp.password_confirmation;
+        const first = resp['email'] ?? resp['password'] ?? resp['password_confirmation'];
         const msg = mapError(first) || 'No se pudo restablecer la contraseña. Inténtalo de nuevo.';
         showError('Error al restablecer', { description: msg });
       },
     });
   };
 
-  const emailError = React.useMemo(() => mapError(errors.email), [errors.email, mapError]);
-  const passwordError = React.useMemo(() => mapError(errors.password), [errors.password, mapError]);
+  const emailError = React.useMemo(
+    () => mapError(form.errors.email),
+    [form.errors.email, mapError],
+  );
+  const passwordError = React.useMemo(
+    () => mapError(form.errors.password),
+    [form.errors.password, mapError],
+  );
   const passwordConfError = React.useMemo(
-    () => mapError(errors.password_confirmation),
-    [errors.password_confirmation, mapError],
+    () => mapError(form.errors.password_confirmation),
+    [form.errors.password_confirmation, mapError],
   );
 
   const anyError = emailError || passwordError || passwordConfError;
@@ -86,10 +95,12 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
               type="email"
               name="email"
               autoComplete="email"
-              value={data.email}
+              value={form.data.email}
               className="mt-1 block w-full"
               readOnly
-              onChange={(e) => setData('email', e.target.value)}
+              onChange={(e) => {
+                form.setData('email', e.target.value);
+              }}
               aria-invalid={Boolean(emailError)}
             />
           </div>
@@ -101,9 +112,11 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
               type="password"
               name="password"
               autoComplete="new-password"
-              value={data.password}
+              value={form.data.password}
               className="mt-1 block w-full"
-              onChange={(e) => setData('password', e.target.value)}
+              onChange={(e) => {
+                form.setData('password', e.target.value);
+              }}
               placeholder="Contraseña"
               aria-invalid={Boolean(passwordError)}
             />
@@ -116,9 +129,11 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
               type="password"
               name="password_confirmation"
               autoComplete="new-password"
-              value={data.password_confirmation}
+              value={form.data.password_confirmation}
               className="mt-1 block w-full"
-              onChange={(e) => setData('password_confirmation', e.target.value)}
+              onChange={(e) => {
+                form.setData('password_confirmation', e.target.value);
+              }}
               placeholder="Confirmar contraseña"
               aria-invalid={Boolean(passwordConfError)}
             />
@@ -127,11 +142,11 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
           <Button
             type="submit"
             className="mt-4 w-full font-medium"
-            disabled={processing}
-            aria-busy={processing}
+            disabled={form.processing}
+            aria-busy={form.processing}
           >
-            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-            {processing ? 'Restableciendo…' : 'Restablecer contraseña'}
+            {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+            {form.processing ? 'Restableciendo…' : 'Restablecer contraseña'}
           </Button>
         </div>
       </form>

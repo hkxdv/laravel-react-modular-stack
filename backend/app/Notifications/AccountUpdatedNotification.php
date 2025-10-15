@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notification;
  * sobre los campos que han cambiado, mostrando los valores antiguos y nuevos cuando
  * sea aplicable, y proporciona un enlace para revisar la cuenta.
  */
-class AccountUpdatedNotification extends Notification implements ShouldQueue
+final class AccountUpdatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -35,7 +35,6 @@ class AccountUpdatedNotification extends Notification implements ShouldQueue
     /**
      * Obtiene los canales de entrega de la notificación.
      *
-     * @param  mixed  $notifiable
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -46,16 +45,25 @@ class AccountUpdatedNotification extends Notification implements ShouldQueue
     /**
      * Construye la representación por correo electrónico de la notificación.
      *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return \Illuminate\Notifications\Messages\MailMessage El mensaje de correo electrónico configurado.
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable  $notifiable  La entidad que recibe la notificación.
+     * @return MailMessage El mensaje de correo electrónico configurado.
      */
     public function toMail(object $notifiable): MailMessage
     {
         // --- Construcción del Mensaje Principal ---
+        $nameValue = $notifiable->getAttribute('name');
+        $nameSafe = is_string($nameValue) ? $nameValue : '';
+
         $message = (new MailMessage)
-            ->subject('Alerta de Seguridad: Cambios en tu cuenta')
-            ->greeting("¡Hola {$notifiable->name}!")
-            ->line('Hemos detectado que se han realizado los siguientes cambios en tu cuenta:');
+            ->subject(
+                'Alerta de Seguridad: Cambios en tu cuenta'
+            )
+            ->greeting(
+                "¡Hola {$nameSafe}!"
+            )
+            ->line(
+                'Hemos detectado que se han realizado los siguientes cambios en tu cuenta:'
+            );
 
         // --- Detalle de los Cambios ---
         // Itera sobre los cambios y los añade al cuerpo del correo.
@@ -77,17 +85,46 @@ class AccountUpdatedNotification extends Notification implements ShouldQueue
         }
 
         // --- Información Adicional y Acciones ---
-        $message->line('Estos cambios se realizaron el ' . now()->format('d/m/Y') . ' a las ' . now()->format('H:i:s') . '.');
+        $message->line(
+            'Estos cambios se realizaron el '.now()->format('d/m/Y').' a las '.now()->format('H:i:s').'.'
+        );
 
-        if ($this->ipAddress) {
-            $message->line("Cambios realizados desde la dirección IP: {$this->ipAddress}.");
+        if ($this->ipAddress !== null && $this->ipAddress !== '' && $this->ipAddress !== '0') {
+            $message->line(
+                "Cambios realizados desde la dirección IP: {$this->ipAddress}."
+            );
         }
 
-        $message->line('Si no reconoces estos cambios, por favor contacta inmediatamente con soporte.')
-            ->action('Ir a mi cuenta', route('settings.profile'))
-            ->line('Este es un correo electrónico automático de seguridad. Por favor, no respondas a este mensaje.');
+        $message->line(
+            'Si no reconoces estos cambios, por favor contacta inmediatamente con soporte.'
+        )
+            ->action(
+                'Ir a mi cuenta',
+                route('settings.profile')
+            )
+            ->line(
+                'Este es un correo electrónico automático de seguridad. Por favor, no respondas a este mensaje.'
+            );
 
         return $message;
+    }
+
+    /**
+     * Obtiene la representación de la notificación como un array.
+     *
+     * Esto es útil para almacenar la notificación en la base de datos o para enviarla
+     * a través de canales que no son de correo, como Web Push.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model&\Illuminate\Contracts\Auth\Authenticatable  $notifiable  La entidad que recibe la notificación.
+     * @return array<string, mixed> Los datos de la notificación.
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'changes' => $this->changes,
+            'ip_address' => $this->ipAddress,
+            'time' => now()->toIso8601String(),
+        ];
     }
 
     /**
@@ -99,7 +136,7 @@ class AccountUpdatedNotification extends Notification implements ShouldQueue
      * @param  string  $field  El nombre del campo de la base de datos.
      * @return string El nombre del campo formateado para el usuario.
      */
-    protected function getFieldName(string $field): string
+    private function getFieldName(string $field): string
     {
         $names = [
             'name' => 'Nombre',
@@ -125,34 +162,30 @@ class AccountUpdatedNotification extends Notification implements ShouldQueue
      * @param  mixed  $value  El valor a formatear.
      * @return string El valor formateado y seguro para mostrar.
      */
-    protected function formatValue(string $field, $value): string
+    private function formatValue(string $field, $value): string
     {
         if ($field === 'password') {
             return '********';
         }
-
         if (is_array($value)) {
             return implode(', ', $value);
         }
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if ($value === null) {
+            return 'null';
+        }
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string) $value;
+        }
 
-        return (string) $value;
-    }
-
-    /**
-     * Obtiene la representación de la notificación como un array.
-     *
-     * Esto es útil para almacenar la notificación en la base de datos o para enviarla
-     * a través de canales que no son de correo, como Web Push.
-     *
-     * @param  mixed  $notifiable  La entidad que recibe la notificación.
-     * @return array<string, mixed> Los datos de la notificación.
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'changes' => $this->changes,
-            'ip_address' => $this->ipAddress,
-            'time' => now()->toIso8601String(),
-        ];
+        return '[dato]';
     }
 }

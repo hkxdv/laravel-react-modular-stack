@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
  * Maneja el inicio de sesión de usuarios y la obtención de datos del usuario autenticado
  * a través de tokens de API de Sanctum.
  */
-class ApiAuthController extends Controller
+final class ApiAuthController extends Controller
 {
     /**
      * Maneja la solicitud de inicio de sesión y genera un token de API.
@@ -27,39 +27,52 @@ class ApiAuthController extends Controller
      * y, si todo es correcto, emite un nuevo token de Sanctum. El `device_name`
      * se utiliza para identificar el token y revocar tokens antiguos del mismo dispositivo.
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP con las credenciales.
-     * @return \Illuminate\Http\JsonResponse La respuesta JSON con el token de acceso.
+     * @param  Request  $request  La solicitud HTTP con las credenciales.
+     * @return JsonResponse La respuesta JSON con el token de acceso.
      *
-     * @throws \Illuminate\Validation\ValidationException Si la validación falla.
+     * @throws ValidationException Si la validación falla.
      */
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
+        /**
+         * @var array{email:string,password:string,device_name:string} $data
+         */
+        $data = $request->validate([
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
             'device_name' => ['required', 'string', 'max:255'],
         ]);
 
-        $user = StaffUsers::where('email', $request->email)->first();
+        $email = $data['email'];
+        $password = $data['password'];
+        $deviceName = $data['device_name'];
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
+        $user = StaffUsers::query()->where('email', $email)->first();
+
+        $hashedPassword = $user?->password;
+        throw_if(
+            ! $user || ! is_string($hashedPassword) || ! Hash::check(
+                $password,
+                $hashedPassword
+            ),
+            ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas son incorrectas.'],
-            ]);
-        }
+            ])
+        );
 
-        if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail()) {
-            throw ValidationException::withMessages([
+        throw_if(
+            ! $user->hasVerifiedEmail(),
+            ValidationException::withMessages([
                 'email' => ['Debes verificar tu correo electrónico antes de continuar.'],
-            ]);
-        }
+            ])
+        );
 
-        $user->tokens()->where('name', $request->device_name)->delete();
-        $token = $user->createToken($request->device_name, ['basic'], now()->addDays(30));
+        $user->tokens()->where('name', $deviceName)->delete();
+        $token = $user->createToken($deviceName, ['basic'], now()->addDays(30));
 
         Log::info('Token API generado', [
-            'user_id' => $user->id,
-            'device' => $request->device_name,
+            'user_id' => $user->getAuthIdentifier(),
+            'device' => $deviceName,
             'ip' => $request->ip(),
         ]);
 
@@ -69,12 +82,19 @@ class ApiAuthController extends Controller
     /**
      * Obtiene la información del usuario actualmente autenticado.
      *
-     * @param  \Illuminate\Http\Request  $request  La solicitud HTTP.
-     * @return array Un array con los datos públicos del usuario.
+     * @param  Request  $request  La solicitud HTTP.
+     * @return array<string, mixed> Un array con los datos públicos del usuario.
      */
     public function user(Request $request): array
     {
-        return $request->user()->only([
+        /** @var StaffUsers|null $user */
+        $user = $request->user();
+
+        if (! $user instanceof StaffUsers) {
+            return [];
+        }
+
+        return $user->only([
             'id',
             'name',
             'email',

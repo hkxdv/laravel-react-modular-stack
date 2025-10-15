@@ -40,7 +40,7 @@ const AdminFeatureNavigationCards: React.FC<AdminFeatureNavigationCardsProps> = 
   panelItems,
   getIconComponent,
 }) => {
-  if (!panelItems || panelItems.length === 0) {
+  if (panelItems.length === 0) {
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center p-6">

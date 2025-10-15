@@ -6,15 +6,16 @@ namespace App\Services;
 
 use App\Models\StaffUsers;
 use App\Notifications\AccountLoginNotification;
+use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Agent;
 
-class SecurityAuditService
+final readonly class SecurityAuditService
 {
-    public function __construct(protected readonly Agent $agent) {}
+    public function __construct(private Agent $agent) {}
 
     /**
      * Prepara la sesión después de una autenticación exitosa.
@@ -32,9 +33,11 @@ class SecurityAuditService
      * Maneja la notificación de inicio de sesión para inicios de sesión sospechosos.
      * Por el momento solo se aplica a los usuarios de tipo StaffUsers.
      */
-    public function handleSuspiciousLoginNotification(Authenticatable $user, Request $request): void
-    {
-        if (!$user instanceof StaffUsers || !method_exists($user, 'notify')) {
+    public function handleSuspiciousLoginNotification(
+        Authenticatable $user,
+        Request $request
+    ): void {
+        if (! $user instanceof StaffUsers) {
             return;
         }
 
@@ -54,26 +57,46 @@ class SecurityAuditService
             ];
 
             // Primero, registra siempre el intento de login.
-            $loginInfo = $user->recordLogin($ipAddress, $userAgent, $deviceInfo);
+            $loginInfo = $user->recordLogin(
+                $ipAddress,
+                $userAgent,
+                $deviceInfo
+            );
 
-            $deviceDescription = trim($deviceInfo['platform'] . ' ' . $deviceInfo['browser']);
-            $deviceDescription = $deviceDescription ?: 'Dispositivo desconocido';
+            $deviceDescription = mb_trim(
+                $deviceInfo['platform'].' '.$deviceInfo['browser']
+            );
+            $deviceDescription = $deviceDescription !== '' && $deviceDescription !== '0'
+                ? $deviceDescription : 'Dispositivo desconocido';
 
             // Luego, si el login es sospechoso, envía la notificación.
             if ($user->isSuspiciousLogin($ipAddress, $userAgent)) {
-                $user->notify(new AccountLoginNotification(
-                    $ipAddress,
-                    $deviceDescription,
-                    'Ubicación desconocida',
-                    $loginInfo->id
-                ));
+                $user->notify(
+                    new AccountLoginNotification(
+                        $ipAddress,
+                        $deviceDescription,
+                        'Ubicación desconocida',
+                        $loginInfo->id
+                    )
+                );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Loguea el error con más contexto para facilitar la depuración.
-            Log::warning('Error al procesar notificación de login para el usuario: ' . $user->id, [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            $id = $user->getAuthIdentifier();
+            $uid = is_string($id)
+                ? $id
+                : (is_int($id)
+                    ? (string) $id
+                    : 'desconocido'
+                );
+
+            Log::warning(
+                'Error al procesar notificación de login para el usuario: '.$uid,
+                [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
         }
     }
 
@@ -96,17 +119,20 @@ class SecurityAuditService
         }
 
         // Limpiar las cookies relacionadas con la sesión
-        if ($cookieName = config('session.cookie')) {
-            $cookiePrefix = config('session.cookie_prefix', '');
+        $cookieName = config('session.cookie');
+        if (is_string($cookieName)) {
             $request->cookies->remove($cookieName);
 
             // Si estamos en modo debug, loguear información
             if (config('app.debug')) {
-                Log::info('Sesión cerrada para guard: ' . $guard, [
-                    'cookie_name' => $cookieName,
-                    'session_id' => $request->session()->getId(),
-                    'cookie_removed' => true,
-                ]);
+                Log::info(
+                    'Sesión cerrada para guard: '.$guard,
+                    [
+                        'cookie_name' => $cookieName,
+                        'session_id' => $request->session()->getId(),
+                        'cookie_removed' => true,
+                    ]
+                );
             }
         }
     }

@@ -69,7 +69,9 @@ export function Pagination({
             <span className="text-muted-foreground text-sm">Mostrar</span>
             <Select
               value={perPage.toString()}
-              onValueChange={(value) => onPerPageChange(Number.parseInt(value))}
+              onValueChange={(value) => {
+                onPerPageChange(Number.parseInt(value));
+              }}
               disabled={disabled}
             >
               <SelectTrigger className="h-8 w-[80px]" aria-label="Elementos por página">
@@ -102,7 +104,9 @@ export function Pagination({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onPageChange(1)}
+                  onClick={() => {
+                    onPageChange(1);
+                  }}
                   disabled={!canGoPrev}
                   aria-label="Primera página"
                   className="h-8 w-8"
@@ -119,7 +123,9 @@ export function Pagination({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onPageChange(currentPage - 1)}
+                  onClick={() => {
+                    onPageChange(currentPage - 1);
+                  }}
                   disabled={!canGoPrev}
                   aria-label="Página anterior"
                   className="h-8 w-8"
@@ -143,7 +149,9 @@ export function Pagination({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onPageChange(currentPage + 1)}
+                  onClick={() => {
+                    onPageChange(currentPage + 1);
+                  }}
                   disabled={!canGoNext}
                   aria-label="Página siguiente"
                   className="h-8 w-8"
@@ -160,7 +168,9 @@ export function Pagination({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onPageChange(safeTotalPages)}
+                  onClick={() => {
+                    onPageChange(safeTotalPages);
+                  }}
                   disabled={!canGoNext}
                   aria-label="Última página"
                   className="h-8 w-8"

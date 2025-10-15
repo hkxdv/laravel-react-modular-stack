@@ -9,9 +9,7 @@ import React, { type FormEventHandler } from 'react';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 
 export default function ConfirmPassword() {
-  const { data, setData, post, processing, errors, reset } = useForm<
-    Required<{ password: string }>
-  >({
+  const form = useForm<Required<{ password: string }>>({
     password: '',
   });
   const { showError, showSuccess } = useToastNotifications();
@@ -19,25 +17,29 @@ export default function ConfirmPassword() {
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
 
-    post(route('password.confirm'), {
-      onFinish: () => reset(),
+    form.post(route('password.confirm'), {
+      onFinish: () => {
+        form.reset();
+      },
       onError: () => {
         const message =
-          errors.password === 'validation.required'
+          form.errors.password === 'validation.required'
             ? 'La contraseña es obligatoria.'
-            : (errors.password ?? 'Error al confirmar contraseña.');
+            : (form.errors.password ?? 'Error al confirmar contraseña.');
         showError('No se pudo confirmar', { description: message });
       },
-      onSuccess: () => showSuccess('Contraseña confirmada correctamente.'),
+      onSuccess: () => {
+        showSuccess('Contraseña confirmada correctamente.');
+      },
     });
   };
 
   const errorMessage = React.useMemo(() => {
-    const code = errors.password;
+    const code = form.errors.password;
     if (!code) return '';
     if (code === 'validation.required') return 'La contraseña es obligatoria.';
     return code;
-  }, [errors.password]);
+  }, [form.errors.password]);
 
   return (
     <AuthLayout
@@ -66,16 +68,22 @@ export default function ConfirmPassword() {
               name="password"
               placeholder="Contraseña"
               autoComplete="current-password"
-              value={data.password}
-              onChange={(e) => setData('password', e.target.value)}
+              value={form.data.password}
+              onChange={(e) => {
+                form.setData('password', e.target.value);
+              }}
               aria-invalid={Boolean(errorMessage)}
             />
           </div>
 
           <div className="flex items-center">
-            <Button className="w-full font-medium" disabled={processing} aria-busy={processing}>
-              {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-              {processing ? 'Confirmando…' : 'Confirmar Contraseña'}
+            <Button
+              className="w-full font-medium"
+              disabled={form.processing}
+              aria-busy={form.processing}
+            >
+              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+              {form.processing ? 'Confirmando…' : 'Confirmar Contraseña'}
             </Button>
           </div>
         </div>

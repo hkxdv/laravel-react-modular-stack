@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\StaffUsers;
+use Exception;
 use Illuminate\Console\Command;
 
-class SyncGuardPermissionsCommand extends Command
+final class SyncGuardPermissionsCommand extends Command
 {
     /**
      * El nombre y la firma del comando de consola.
@@ -26,7 +27,7 @@ class SyncGuardPermissionsCommand extends Command
     /**
      * Ejecuta el comando de consola.
      */
-    public function handle()
+    public function handle(): int
     {
         $this->info('Iniciando sincronización de roles y permisos entre guards...');
 
@@ -37,8 +38,8 @@ class SyncGuardPermissionsCommand extends Command
             $this->info('Sincronización completada exitosamente.');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Error durante la sincronización: ' . $e->getMessage());
+        } catch (Exception $e) {
+            $this->error('Error durante la sincronización: '.$e->getMessage());
 
             return Command::FAILURE;
         }

@@ -11,7 +11,9 @@ export default function DeleteUser() {
   const handleDeleteConfirm = () => {
     destroy(route('internal.settings.profile.destroy'), {
       preserveScroll: true,
-      onSuccess: () => setIsConfirmingDelete(false),
+      onSuccess: () => {
+        setIsConfirmingDelete(false);
+      },
       onError: () => {
         setIsConfirmingDelete(false);
       },
@@ -31,13 +33,20 @@ export default function DeleteUser() {
         </p>
       </header>
 
-      <Button variant="destructive" onClick={() => setIsConfirmingDelete(true)}>
+      <Button
+        variant="destructive"
+        onClick={() => {
+          setIsConfirmingDelete(true);
+        }}
+      >
         Eliminar cuenta
       </Button>
 
       <ConfirmationDialog
         isOpen={isConfirmingDelete}
-        onClose={() => setIsConfirmingDelete(false)}
+        onClose={() => {
+          setIsConfirmingDelete(false);
+        }}
         onConfirm={handleDeleteConfirm}
         title="¿Estás seguro de que quieres eliminar tu cuenta?"
         description="Una vez que tu cuenta sea eliminada, todos sus recursos y datos también serán eliminados permanentemente. Esta acción no se puede deshacer."

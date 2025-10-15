@@ -25,7 +25,7 @@ interface PasswordPageProps extends PageProps {
 export default function PasswordPage() {
   // Obtener contextualNavItems y flash de las props de la página
   const { auth, contextualNavItems, flash } = usePage<PasswordPageProps>().props;
-  const { data, setData, errors, put, reset, processing, recentlySuccessful, isDirty } = useForm({
+  const form = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
@@ -44,23 +44,23 @@ export default function PasswordPage() {
 
   // Procesar mensajes flash del backend
   useEffect(() => {
-    if (flash?.success) {
+    if (flash.success) {
       showSuccess(flash.success);
-      if (recentlySuccessful) {
-        reset();
+      if (form.recentlySuccessful) {
+        form.reset();
       }
     }
-    if (flash?.error) {
+    if (flash.error) {
       showError(flash.error);
     }
-  }, [flash, recentlySuccessful, reset, showSuccess, showError]);
+  }, [flash, form.recentlySuccessful, showSuccess, showError, form]);
 
   const validateClientSide = (): boolean => {
     let isValid = true;
     const newClientErrors = { password_confirmation: '' };
 
     // Comprobar si la confirmación de contraseña está vacía cuando hay contraseña
-    if (data.password && !data.password_confirmation) {
+    if (form.data.password && !form.data.password_confirmation) {
       // eslint-disable-next-line sonarjs/no-hardcoded-passwords
       newClientErrors.password_confirmation = 'Debes confirmar la nueva contraseña';
       isValid = false;
@@ -68,9 +68,9 @@ export default function PasswordPage() {
 
     // Comprobar si las contraseñas coinciden
     if (
-      data.password &&
-      data.password_confirmation &&
-      data.password !== data.password_confirmation
+      form.data.password &&
+      form.data.password_confirmation &&
+      form.data.password !== form.data.password_confirmation
     ) {
       // eslint-disable-next-line sonarjs/no-hardcoded-passwords
       newClientErrors.password_confirmation = 'La confirmación de contraseña no coincide';
@@ -92,10 +92,10 @@ export default function PasswordPage() {
       return;
     }
 
-    put(route('internal.settings.password.update'), {
+    form.put(route('internal.settings.password.update'), {
       preserveScroll: true,
       onSuccess: () => {
-        reset();
+        form.reset();
         showSuccess('Contraseña actualizada correctamente');
       },
       onError: (errs: Record<string, string>) => {
@@ -115,7 +115,7 @@ export default function PasswordPage() {
     <AppLayout
       user={extractUserData(auth.user)}
       breadcrumbs={breadcrumbs}
-      contextualNavItems={contextualNavItems}
+      contextualNavItems={contextualNavItems ?? []}
     >
       <Head title="Configuración de contraseña" />
 
@@ -138,9 +138,11 @@ export default function PasswordPage() {
                   <PasswordField
                     id="current_password"
                     label="Contraseña actual"
-                    value={data.current_password}
-                    onChange={(value) => setData('current_password', value)}
-                    error={errors.current_password}
+                    value={form.data.current_password}
+                    onChange={(value) => {
+                      form.setData('current_password', value);
+                    }}
+                    error={form.errors.current_password ?? ''}
                     required
                     showStrengthIndicator={false}
                     showGenerateButton={false}
@@ -153,9 +155,11 @@ export default function PasswordPage() {
                   <PasswordField
                     id="password"
                     label="Nueva contraseña"
-                    value={data.password}
-                    onChange={(value) => setData('password', value)}
-                    error={errors.password}
+                    value={form.data.password}
+                    onChange={(value) => {
+                      form.setData('password', value);
+                    }}
+                    error={form.errors.password ?? ''}
                     required
                     showStrengthIndicator={true}
                     showStrengthDetails={showPasswordDetails}
@@ -178,9 +182,11 @@ export default function PasswordPage() {
                   <PasswordField
                     id="password_confirmation"
                     label="Confirmar contraseña"
-                    value={data.password_confirmation}
-                    onChange={(value) => setData('password_confirmation', value)}
-                    error={errors.password_confirmation ?? clientErrors.password_confirmation}
+                    value={form.data.password_confirmation}
+                    onChange={(value) => {
+                      form.setData('password_confirmation', value);
+                    }}
+                    error={form.errors.password_confirmation ?? clientErrors.password_confirmation}
                     required
                     showStrengthIndicator={false}
                     showGenerateButton={false}
@@ -191,10 +197,10 @@ export default function PasswordPage() {
                 <div className="flex items-center gap-4 pt-4">
                   <Button
                     type="submit"
-                    disabled={processing || !isDirty}
+                    disabled={form.processing || !form.isDirty}
                     className="h-11 rounded-md bg-black font-medium text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                   >
-                    {processing ? 'Actualizando...' : 'Guardar contraseña'}
+                    {form.processing ? 'Actualizando...' : 'Guardar contraseña'}
                   </Button>
                 </div>
               </form>

@@ -24,10 +24,10 @@ export function ImageUpload({ onFileSelect, initialFile, accept }: Readonly<Imag
     handleFileChange,
     handleRemove: baseHandleRemove,
   } = useImageUpload({
-    onUpload: (url: string, file: File) => {
+    onUpload: (_url: string, file: File) => {
       onFileSelect(file);
     },
-    initialFile,
+    initialFile: initialFile ?? null,
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -47,7 +47,7 @@ export function ImageUpload({ onFileSelect, initialFile, accept }: Readonly<Imag
       handleDragEvent(e);
       setIsDragging(false);
 
-      const file = e.dataTransfer.files?.[0];
+      const file = e.dataTransfer.files[0];
       // If accept is provided, enforce by extension or mime
       if (file) {
         const allowAllImages = !accept || accept.includes('image/');
@@ -138,7 +138,9 @@ export function ImageUpload({ onFileSelect, initialFile, accept }: Readonly<Imag
           role="button"
           tabIndex={0}
           onClick={handleThumbnailClick}
-          onKeyDown={(e) => e.key === 'Enter' && handleThumbnailClick()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleThumbnailClick();
+          }}
           onDragOver={handleDragEvent}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

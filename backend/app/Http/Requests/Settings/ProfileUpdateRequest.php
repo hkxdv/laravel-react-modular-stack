@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 /**
  * Valida los datos para la actualización del perfil de un usuario del personal.
  */
-class ProfileUpdateRequest extends FormRequest
+final class ProfileUpdateRequest extends FormRequest
 {
     /**
      * Determina si el usuario está autorizado para realizar esta solicitud.
@@ -38,7 +38,9 @@ class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                Rule::unique(User::class)->ignore(
+                    ($this->user() instanceof User) ? $this->user()->id : null
+                ),
             ],
         ];
     }

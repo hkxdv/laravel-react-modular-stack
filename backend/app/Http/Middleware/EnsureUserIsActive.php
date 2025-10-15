@@ -15,15 +15,18 @@ use Symfony\Component\HttpFoundation\Response;
  * Verifica que el usuario no haya sido deshabilitado o suspendido
  * después de la autenticación inicial.
  */
-class EnsureUserIsActive
+final class EnsureUserIsActive
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, ?string $guard = null): Response
-    {
+    public function handle(
+        Request $request,
+        Closure $next,
+        ?string $guard = null
+    ): Response {
         $authGuard = Auth::guard($guard);
 
         if ($authGuard->guest()) {
@@ -31,22 +34,18 @@ class EnsureUserIsActive
         }
 
         $user = $authGuard->user();
+        if ($user === null) {
+            return $this->handleUnauthenticated($request);
+        }
 
-        // Verificar si el usuario tiene un campo 'is_active' o 'status'
-        if (method_exists($user, 'isActive')) {
-            /** @disregard Undefined method 'isActive'.intelephense(P1013) */
-            if (!$user->isActive()) {
-                return $this->handleInactiveUser($request, $guard);
-            }
-        } elseif (isset($user->is_active) && !$user->is_active) {
-            return $this->handleInactiveUser($request, $guard);
-        } elseif (isset($user->status) && $user->status !== 'active') {
+        /** @var \App\Models\StaffUsers $user */
+        // Verificar si el usuario está activo
+        if (! $user->isActive()) {
             return $this->handleInactiveUser($request, $guard);
         }
 
         // Verificar si el usuario ha sido eliminado (soft delete)
-        /** @disregard Undefined method 'trashed'.intelephense(P1013) */
-        if (method_exists($user, 'trashed') && $user->trashed()) {
+        if ($user->trashed()) {
             return $this->handleInactiveUser($request, $guard);
         }
 
@@ -71,8 +70,10 @@ class EnsureUserIsActive
     /**
      * Maneja el caso cuando el usuario está inactivo.
      */
-    private function handleInactiveUser(Request $request, ?string $guard): Response
-    {
+    private function handleInactiveUser(
+        Request $request,
+        ?string $guard
+    ): Response {
         // Cerrar la sesión del usuario inactivo
         Auth::guard($guard)->logout();
 

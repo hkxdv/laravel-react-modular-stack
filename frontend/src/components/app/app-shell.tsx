@@ -1,5 +1,4 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
-import type { PageProps } from '@inertiajs/core';
 import { usePage } from '@inertiajs/react';
 
 interface AppShellProps {
@@ -8,7 +7,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, variant = 'header' }: Readonly<AppShellProps>) {
-  const isOpen = usePage<PageProps>().props.sidebarOpen;
+  const isOpen = usePage().props.sidebarOpen;
 
   if (variant === 'header') {
     return <div className="flex min-h-screen w-full flex-col">{children}</div>;

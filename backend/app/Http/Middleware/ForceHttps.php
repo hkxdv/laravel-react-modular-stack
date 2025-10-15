@@ -14,17 +14,17 @@ use Symfony\Component\HttpFoundation\Response;
  * Redirige automáticamente las solicitudes HTTP a HTTPS cuando
  * la aplicación está en modo de producción.
  */
-class ForceHttps
+final class ForceHttps
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         // Solo forzar HTTPS en producción
-        if (!app()->isProduction()) {
+        if (! app()->isProduction()) {
             return $next($request);
         }
 
@@ -47,7 +47,7 @@ class ForceHttps
         }
 
         // Redirigir a HTTPS
-        $httpsUrl = 'https://' . $request->getHost() . $request->getRequestUri();
+        $httpsUrl = 'https://'.$request->getHost().$request->getRequestUri();
 
         return redirect($httpsUrl, 301);
     }
@@ -65,12 +65,6 @@ class ForceHttps
             'HTTP_CLOUDFRONT_FORWARDED_PROTO' => 'https',
         ];
 
-        foreach ($sslHeaders as $header => $value) {
-            if ($request->server($header) === $value) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($sslHeaders, fn ($value, $header): bool => $request->server($header) === $value);
     }
 }

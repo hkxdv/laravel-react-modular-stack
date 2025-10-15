@@ -71,28 +71,30 @@ export function DataTable<TData, TValue>({
       <TanStackDataTable
         columns={columns}
         data={data?.data ?? []}
-        serverPagination={pagination}
+        {...(pagination ? { serverPagination: pagination } : {})}
         searchable={false} // La búsqueda se maneja externamente
         paginated={!!pagination}
         noDataMessage={noDataMessage}
-        noDataTitle={noDataTitle}
+        noDataTitle={noDataTitle ?? ''}
         loading={loading}
-        skeletonRowCount={skeletonRowCount}
-        footerActions={
-          search?.term ? (
-            <button
-              type="button"
-              onClick={search.onClear}
-              className="text-primary text-sm hover:underline"
-            >
-              Limpiar búsqueda y mostrar todo
-            </button>
-          ) : undefined
-        }
-        onSortingChange={onSortingChange}
-        totalItems={data?.total}
-        showNativeSortIcon={showNativeSortIcon}
-        verticalDividers={verticalDividers}
+        {...(skeletonRowCount === undefined ? {} : { skeletonRowCount })}
+        {...(search?.term
+          ? {
+              footerActions: (
+                <button
+                  type="button"
+                  onClick={search.onClear}
+                  className="text-primary text-sm hover:underline"
+                >
+                  Limpiar búsqueda y mostrar todo
+                </button>
+              ),
+            }
+          : {})}
+        {...(onSortingChange ? { onSortingChange } : {})}
+        {...(data?.total === undefined ? {} : { totalItems: data.total })}
+        {...(showNativeSortIcon === undefined ? {} : { showNativeSortIcon })}
+        {...(verticalDividers === undefined ? {} : { verticalDividers })}
       />
     </div>
   );

@@ -17,7 +17,7 @@ interface ViewComposerInterface
      * Prepara los datos comunes para las vistas del módulo.
      *
      * @param  string  $moduleSlug  Slug del módulo
-     * @param  array<string, mixed>  $panelItemsConfig  Configuración de los ítems del panel
+     * @param  array<int, array<string, mixed>>|array<string, mixed>  $panelItemsConfig  Configuración de los ítems del panel (lista de ítems o un solo ítem)
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  string  $functionalName  Nombre funcional del módulo
      * @param  array<string, mixed>|null  $stats  Estadísticas del módulo

@@ -17,7 +17,7 @@ use Inertia\Response;
  * Se encarga de mostrar el formulario para solicitar el enlace y de procesar
  * dicha solicitud, enviando el correo electrónico correspondiente.
  */
-class PasswordResetLinkController extends Controller
+final class PasswordResetLinkController extends Controller
 {
     /**
      * Muestra la vista para solicitar el enlace de restablecimiento de contraseña.

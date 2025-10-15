@@ -35,7 +35,7 @@ export function ModuleIndexPage({
       pageTitle={pageTitle}
       pageDescription={description}
     >
-      <Head title={pageTitle ?? ''} />
+      <Head title={pageTitle} />
       <ModuleDashboardLayout
         title={pageTitle}
         description={description}

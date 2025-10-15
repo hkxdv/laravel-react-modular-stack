@@ -39,19 +39,31 @@ export default function AppearanceToggleDropdown({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTheme('light')}>
+          <DropdownMenuItem
+            onClick={() => {
+              setTheme('light');
+            }}
+          >
             <span className="flex items-center gap-2">
               <Sun className="h-5 w-5" />
               Claro
             </span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('dark')}>
+          <DropdownMenuItem
+            onClick={() => {
+              setTheme('dark');
+            }}
+          >
             <span className="flex items-center gap-2">
               <Moon className="h-5 w-5" />
               Oscuro
             </span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('system')}>
+          <DropdownMenuItem
+            onClick={() => {
+              setTheme('system');
+            }}
+          >
             <span className="flex items-center gap-2">
               <Monitor className="h-5 w-5" />
               Sistema

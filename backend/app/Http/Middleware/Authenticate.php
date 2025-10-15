@@ -8,17 +8,17 @@ use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class Authenticate extends Middleware
+final class Authenticate extends Middleware
 {
     /**
      * Handle an unauthenticated user.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
+     * @param  Request  $request
+     * @param  list<string>  $guards
      *
      * @throws \Illuminate\Auth\AuthenticationException
      */
-    protected function unauthenticated($request, array $guards)
+    protected function unauthenticated($request, array $guards): void
     {
         // Log del intento de acceso no autorizado para auditoría
         Log::info('Intento de acceso no autorizado', [

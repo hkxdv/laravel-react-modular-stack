@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Session\DatabaseSessionHandler;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use UnitEnum;
 
 /**
  * Proveedor de servicios para la gestión de sesiones.
@@ -15,7 +17,7 @@ use Illuminate\Support\ServiceProvider;
  * Este proveedor personaliza el comportamiento del manejador de sesiones de base de datos
  * de Laravel para que funcione con la columna `staff_user_id` en lugar de la `user_id` estándar.
  */
-class SessionServiceProvider extends ServiceProvider
+final class SessionServiceProvider extends ServiceProvider
 {
     /**
      * Registra los servicios de sesión personalizados.
@@ -25,20 +27,56 @@ class SessionServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->resolving('session', function ($sessionManager) {
-            $sessionManager->extend('database', function ($app, $config) {
-                $table = $config['table'] ?? $app['config']['session.table'];
-                $lifetime = $config['lifetime'] ?? $app['config']['session.lifetime'];
-                $connection = $config['connection'] ?? $app['config']['session.connection'];
+        $this->app->resolving(
+            'session',
+            function (
+                \Illuminate\Session\SessionManager $sessionManager
+            ): void {
+                $sessionManager->extend(
+                    'database',
+                    function (
+                        \Illuminate\Contracts\Container\Container $app
+                    ): CustomDatabaseSessionHandler {
+                        /** @var \Illuminate\Contracts\Config\Repository $configRepo */
+                        $configRepo = $app->make(\Illuminate\Contracts\Config\Repository::class);
 
-                return new CustomDatabaseSessionHandler(
-                    $app['db']->connection($connection),
-                    $table,
-                    $lifetime,
-                    $app
+                        /** @var array<string, mixed> $config */
+                        $config = (array) $configRepo->get('session', []);
+
+                        $tableValue = $config['table'] ?? $configRepo->get('session.table');
+                        $table = is_string($tableValue) ? $tableValue : 'sessions';
+
+                        $lifetimeValue = $config['lifetime'] ?? $configRepo->get('session.lifetime');
+                        $lifetime = is_int($lifetimeValue)
+                            ? $lifetimeValue
+                            : (is_string($lifetimeValue)
+                                ? (int) $lifetimeValue
+                                : 120
+                            );
+
+                        $connectionValue = $config['connection'] ?? $configRepo->get('session.connection');
+
+                        /** @var string|UnitEnum|null $connection */
+                        $connection = $connectionValue instanceof UnitEnum || is_string($connectionValue)
+                            ? $connectionValue
+                            : null;
+
+                        /** @var \Illuminate\Database\DatabaseManager $db */
+                        $db = $app->make(\Illuminate\Database\DatabaseManager::class);
+
+                        /** @var \Illuminate\Database\ConnectionInterface $connectionInstance */
+                        $connectionInstance = $db->connection($connection);
+
+                        return new CustomDatabaseSessionHandler(
+                            $connectionInstance,
+                            $table,
+                            $lifetime,
+                            $app
+                        );
+                    }
                 );
-            });
-        });
+            }
+        );
     }
 
     /**
@@ -49,18 +87,49 @@ class SessionServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // El contenedor de la aplicación está disponible en los ServiceProviders
+        // y no es nulo en tiempo de ejecución.
+
         // Escucha el evento de login para sincronizar el 'user_id' en entornos SQLite.
-        Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
-            // Esta lógica es una solución temporal para cuando se usa SQLite en pruebas.
-            // Algunas partes de Laravel o paquetes de terceros pueden depender de la columna 'user_id',
-            // y este listener asegura que se rellene después del login, aunque nuestro manejador
-            // personalizado se centre en 'staff_user_id'.
-            if ($event->user && DB::connection(config('session.connection'))->getDriverName() === 'sqlite') {
-                DB::table(config('session.table'))
-                    ->where('id', $this->app['session']->getId())
-                    ->update(['user_id' => $event->user->id]);
+        Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            function (\Illuminate\Auth\Events\Login $event): void {
+                // Esta lógica es una solución temporal para cuando se usa SQLite en pruebas.
+                // Algunas partes de Laravel o paquetes de terceros pueden depender de la columna 'user_id',
+                // y este listener asegura que se rellene después del login, aunque nuestro manejador
+                // personalizado se centre en 'staff_user_id'.
+
+                /** @var \Illuminate\Contracts\Config\Repository $configRepo */
+                $configRepo = $this->app->make(\Illuminate\Contracts\Config\Repository::class);
+
+                $sessionConnectionValue = $configRepo->get(
+                    'session.connection'
+                );
+                /** @var string|UnitEnum|null $sessionConnection */
+                $sessionConnection = $sessionConnectionValue
+                    instanceof UnitEnum || is_string($sessionConnectionValue)
+                    ? $sessionConnectionValue
+                    : null;
+
+                $driver = DB::connection($sessionConnection)->getDriverName();
+
+                /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
+                $user = $event->user;
+
+                if ($driver === 'sqlite') {
+                    $tableValue = $configRepo->get('session.table');
+                    $table = is_string($tableValue) ? $tableValue : 'sessions';
+                    DB::table($table)
+                        ->where(
+                            'id',
+                            $this->app->make(\Illuminate\Session\SessionManager::class)->getId()
+                        )
+                        ->update(
+                            ['user_id' => $user->getAuthIdentifier()]
+                        );
+                }
             }
-        });
+        );
     }
 }
 
@@ -71,17 +140,17 @@ class SessionServiceProvider extends ServiceProvider
  * para usuarios autenticados con el guard de staff. Esto permite que el sistema de sesiones
  * funcione correctamente con el modelo de usuarios del personal.
  */
-class CustomDatabaseSessionHandler extends DatabaseSessionHandler
+final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
 {
     /**
      * Añade la información del usuario al payload de la sesión.
      *
-     * @param  array  &$payload  El payload de la sesión, pasado por referencia.
+     * @param  array<string, mixed>  $payload
      * @return $this
      */
     protected function addUserInformation(&$payload)
     {
-        if ($this->container->bound('auth')) {
+        if ($this->container && $this->container->bound('auth')) {
             $userId = $this->userId();
             if ($userId) {
                 // Determinar el tipo de usuario basado en el guard activo
@@ -102,18 +171,15 @@ class CustomDatabaseSessionHandler extends DatabaseSessionHandler
     /**
      * Realiza la actualización de una sesión existente en la base de datos.
      *
-     * @param  string  $sessionId  El ID de la sesión a actualizar.
-     * @param  string  $data  Los datos serializados de la sesión.
-     * @return int El número de filas afectadas.
+     * @param  string  $sessionId
+     * @param  array<string, mixed>  $payload
      */
-    protected function performUpdate($sessionId, $data)
+    protected function performUpdate($sessionId, $payload)
     {
-        $updateData = [
-            'payload' => base64_encode($data),
-            'last_activity' => $this->currentTime(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ];
+        // Partir del payload por defecto generado por el manejador base
+        $updateData = $payload;
+        $updateData['ip_address'] = request()->ip();
+        $updateData['user_agent'] = request()->userAgent();
 
         if ($userId = $this->userId()) {
             $currentGuard = $this->getCurrentGuard();
@@ -132,19 +198,16 @@ class CustomDatabaseSessionHandler extends DatabaseSessionHandler
     /**
      * Realiza la inserción de una nueva sesión en la base de datos.
      *
-     * @param  string  $sessionId  El ID de la nueva sesión.
-     * @param  string  $data  Los datos serializados de la sesión.
-     * @return bool True si la inserción fue exitosa, false en caso contrario.
+     * @param  string  $sessionId
+     * @param  array<string, mixed>  $payload
      */
-    protected function performInsert($sessionId, $data)
+    protected function performInsert($sessionId, $payload)
     {
-        $insertData = [
-            'id' => $sessionId,
-            'payload' => base64_encode($data),
-            'last_activity' => $this->currentTime(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ];
+        // Partir del payload por defecto generado por el manejador base
+        $insertData = $payload;
+        $insertData['id'] = $sessionId;
+        $insertData['ip_address'] = request()->ip();
+        $insertData['user_agent'] = request()->userAgent();
 
         if ($userId = $this->userId()) {
             $currentGuard = $this->getCurrentGuard();
@@ -157,15 +220,27 @@ class CustomDatabaseSessionHandler extends DatabaseSessionHandler
             $insertData['user_id'] = $userId;
         }
 
-        return $this->getQuery()->insert($insertData);
+        try {
+            return $this->getQuery()->insert($insertData);
+        } catch (QueryException) {
+            $this->performUpdate($sessionId, $insertData);
+
+            return null;
+        }
     }
 
     /**
      * Obtiene el guard actualmente autenticado.
      */
-    protected function getCurrentGuard(): ?string
+    private function getCurrentGuard(): ?string
     {
-        $auth = $this->container->make('auth');
+        if (! $this->container) {
+            return null;
+        }
+
+        $auth = $this->container->make(
+            \Illuminate\Contracts\Auth\Factory::class
+        );
 
         // Verificar guard staff
         if ($auth->guard('staff')->check()) {

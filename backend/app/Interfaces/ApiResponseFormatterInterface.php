@@ -18,29 +18,43 @@ interface ApiResponseFormatterInterface
      * @param  mixed  $data  Los datos a incluir en la respuesta
      * @param  string|null  $message  Mensaje opcional
      * @param  int  $statusCode  Código HTTP de estado
-     * @param  array  $meta  Metadatos adicionales
+     * @param  array<string, mixed>  $meta  Metadatos adicionales
      * @return JsonResponse Respuesta JSON
      */
-    public function successResponse($data = null, ?string $message = null, int $statusCode = 200, array $meta = []): JsonResponse;
+    public function successResponse(
+        $data = null,
+        ?string $message = null,
+        int $statusCode = 200,
+        array $meta = []
+    ): JsonResponse;
 
     /**
      * Genera una respuesta JSON de error.
      *
      * @param  string  $message  Mensaje de error
      * @param  int  $statusCode  Código HTTP de estado
-     * @param  array  $errors  Errores detallados
+     * @param  array<string, mixed>  $errors  Errores detallados
      * @return JsonResponse Respuesta JSON
      */
-    public function errorResponse(string $message, int $statusCode, array $errors = []): JsonResponse;
+    public function errorResponse(
+        string $message,
+        int $statusCode,
+        array $errors = []
+    ): JsonResponse;
 
     /**
      * Genera una respuesta JSON con paginación.
      *
      * @param  mixed  $data  Datos paginados
-     * @param  array  $paginationInfo  Información de paginación
+     * @param  array<string, mixed>  $paginationInfo  Información de paginación
      * @param  string|null  $message  Mensaje opcional
      * @param  int  $statusCode  Código HTTP de estado
      * @return JsonResponse Respuesta JSON
      */
-    public function paginatedResponse($data, array $paginationInfo, ?string $message = null, int $statusCode = 200): JsonResponse;
+    public function paginatedResponse(
+        $data,
+        array $paginationInfo,
+        ?string $message = null,
+        int $statusCode = 200
+    ): JsonResponse;
 }

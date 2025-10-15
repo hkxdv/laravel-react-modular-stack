@@ -8,7 +8,7 @@ export function ZiggyDebug() {
   const [isOpen, setIsOpen] = useState(false);
   const { ziggy } = usePage().props;
 
-  const routeCount = ziggy?.routes ? Object.keys(ziggy.routes).length : 0;
+  const routeCount = Object.keys(ziggy.routes).length;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -29,14 +29,14 @@ export function ZiggyDebug() {
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 font-medium">Current URL:</h3>
-              <pre className="bg-muted rounded p-2 text-xs">{ziggy?.location}</pre>
+              <pre className="bg-muted rounded p-2 text-xs">{ziggy.location}</pre>
             </div>
 
             <div>
               <h3 className="mb-2 font-medium">Available Routes:</h3>
               <pre className="bg-muted rounded p-2 text-xs whitespace-pre-wrap">
                 {JSON.stringify(
-                  Object.keys(ziggy?.routes || {}).sort((a, b) => a.localeCompare(b)),
+                  Object.keys(ziggy.routes).sort((a, b) => a.localeCompare(b)),
                   null,
                   2,
                 )}

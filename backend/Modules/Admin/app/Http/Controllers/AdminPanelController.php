@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Response as InertiaResponse;
 use Spatie\Activitylog\Models\Activity;
 
 /**
  * Controlador principal del panel de administración.
  * Gestiona la visualización del dashboard administrativo y sus funcionalidades generales.
+ *
+ * NOTA: Este controlador hereda el método showModulePanel() de ModuleOrchestrationController,
+ * el cual está marcado como 'final' y no debe ser sobrescrito. Para personalizar el
+ * comportamiento del panel, implementa los métodos de extensión:
+ * - getModuleStats(): para definir las estadísticas específicas del módulo
+ * - getAdditionalPanelData(): para agregar datos adicionales al panel
  */
-class AdminPanelController extends AdminBaseController
+final class AdminPanelController extends AdminBaseController
 {
-    /**
-     * Alias: muestra el panel del módulo de administración.
-     */
-    public function showModulePanel(Request $request): InertiaResponse
-    {
-        return parent::showModulePanel($request);
-    }
-
     /**
      * Obtiene la actividad reciente para mostrar en el panel de administración.
      *
@@ -35,15 +31,14 @@ class AdminPanelController extends AdminBaseController
      */
     protected function getRecentActivity(): array
     {
-        $activities = Activity::with('causer')
-            ->latest()
-            ->take(5)
-            ->get();
+        $activities = Activity::with('causer')->latest()->take(5)->get();
 
         return $activities->map(function (Activity $activity) {
             return [
                 'id' => $activity->id,
-                'user' => ['name' => $activity->causer?->name ?? 'Sistema'],
+                'user' => [
+                    'name' => $activity->causer?->name ?? 'Sistema',
+                ],
                 'title' => $activity->description,
                 'timestamp' => $activity->created_at->toIso8601String(),
                 'icon' => $this->getIconForEvent($activity->event),
@@ -72,7 +67,7 @@ class AdminPanelController extends AdminBaseController
      */
     protected function getIconForEvent(?string $event): string
     {
-        $e = strtolower((string) $event);
+        $e = mb_strtolower((string) $event);
 
         return match ($e) {
             'created', 'create' => 'fileplus2',
@@ -95,7 +90,10 @@ class AdminPanelController extends AdminBaseController
     protected function getModuleStats(): ?array
     {
         // Exponer las estadísticas del módulo como EnhancedStat[]
-        $stats = $this->statsService->getPanelStats($this->getModuleSlug(), $this->getAuthenticatedUser());
+        $stats = $this->statsService->getPanelStats(
+            $this->getModuleSlug(),
+            $this->getAuthenticatedUser()
+        );
 
         return $stats;
     }

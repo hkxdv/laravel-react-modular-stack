@@ -15,7 +15,7 @@ use Laravel\Telescope\TelescopeApplicationServiceProvider;
  * Este proveedor configura el comportamiento de Telescope, incluyendo el registro de entradas,
  * la ofuscación de datos sensibles y el control de acceso al panel de Telescope.
  */
-class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
+final class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
     /**
      * Registra los servicios de la aplicación para Telescope.
@@ -36,13 +36,50 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         // Define qué entradas deben ser registradas por Telescope.
         // En entornos locales, se registra todo. En otros entornos, solo se registran
         // excepciones, peticiones fallidas, trabajos fallidos, tareas programadas y etiquetas monitoreadas.
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
-            return $isLocal ||
-                   $entry->isReportableException() ||
-                   $entry->isFailedRequest() ||
-                   $entry->isFailedJob() ||
-                   $entry->isScheduledTask() ||
-                   $entry->hasMonitoredTag();
+        Telescope::filter(
+            function (IncomingEntry $entry) use ($isLocal): bool {
+                if ($isLocal) {
+                    return true;
+                }
+                if ($entry->isReportableException()) {
+                    return true;
+                }
+                if ($entry->isFailedRequest()) {
+                    return true;
+                }
+                if ($entry->isFailedJob()) {
+                    return true;
+                }
+                if ($entry->isScheduledTask()) {
+                    return true;
+                }
+
+                return $entry->hasMonitoredTag();
+            }
+        );
+    }
+
+    /**
+     * Registra la puerta de acceso (gate) para Telescope.
+     *
+     * Esta puerta determina quién puede acceder a Telescope en entornos no locales.
+     * Es una medida de seguridad crucial para proteger la información de depuración.
+     */
+    protected function gate(): void
+    {
+        Gate::define('viewTelescope', function ($user): bool {
+            // Asegurar que $user es un objeto válido antes de invocar métodos
+            if (! is_object($user)) {
+                return false;
+            }
+
+            // Por defecto, solo los usuarios con roles de 'ADMIN' o 'DEV' pueden acceder a Telescope.
+            // Esto previene la exposición de datos sensibles a usuarios no autorizados.
+            if (method_exists($user, 'hasRole')) {
+                return $user->hasRole('ADMIN') || $user->hasRole('DEV');
+            }
+
+            return false;
         });
     }
 
@@ -52,7 +89,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      * En entornos no locales, se ofuscan parámetros y cabeceras que puedan contener
      * información sensible como tokens o cookies.
      */
-    protected function hideSensitiveRequestDetails(): void
+    private function hideSensitiveRequestDetails(): void
     {
         if ($this->app->environment('local')) {
             return;
@@ -67,24 +104,5 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             'x-csrf-token',
             'x-xsrf-token',
         ]);
-    }
-
-    /**
-     * Registra la puerta de acceso (gate) para Telescope.
-     *
-     * Esta puerta determina quién puede acceder a Telescope en entornos no locales.
-     * Es una medida de seguridad crucial para proteger la información de depuración.
-     */
-    protected function gate(): void
-    {
-        Gate::define('viewTelescope', function ($user) {
-            // Por defecto, solo los usuarios con roles de 'ADMIN' o 'DEV' pueden acceder a Telescope.
-            // Esto previene la exposición de datos sensibles a usuarios no autorizados.
-            if (method_exists($user, 'hasRole')) {
-                return $user->hasRole('ADMIN') || $user->hasRole('DEV');
-            }
-
-            return false;
-        });
     }
 }

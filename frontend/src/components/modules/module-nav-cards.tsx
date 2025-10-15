@@ -9,7 +9,7 @@ import { type ModuleNavCardsProps } from './interfaces';
  * Cada tarjeta representa una sección del módulo y permite navegar a ella.
  */
 export function ModuleNavCards({ items, getIconComponent }: Readonly<ModuleNavCardsProps>) {
-  if (!items || items.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 

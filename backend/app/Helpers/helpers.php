@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Helpers\AssetHelper;
 
-if (!function_exists('protected_asset')) {
+if (! function_exists('protected_asset')) {
     /**
      * Genera una URL para un activo protegido
      *

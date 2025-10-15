@@ -110,7 +110,7 @@ export function RowActionsMenu({
               <DropdownMenuItem
                 key={it.key}
                 asChild
-                disabled={it.disabled}
+                disabled={it.disabled ?? false}
                 className={cn(
                   it.variant === 'destructive' && 'text-destructive focus:text-destructive',
                 )}
@@ -136,7 +136,7 @@ export function RowActionsMenu({
                 it.onClick?.(e as unknown as MouseEvent);
                 setOpen(false);
               }}
-              disabled={it.disabled}
+              disabled={it.disabled ?? false}
               className={cn(
                 it.variant === 'destructive' && 'text-destructive focus:text-destructive',
               )}

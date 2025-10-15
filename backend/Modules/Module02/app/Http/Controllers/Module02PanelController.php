@@ -5,28 +5,24 @@ declare(strict_types=1);
 namespace Modules\Module02\App\Http\Controllers;
 
 use App\DTO\EnhancedStat;
-use Illuminate\Http\Request;
-use Inertia\Response as InertiaResponse;
 
-class Module02PanelController extends Module02BaseController
+/**
+ * Controlador principal del Módulo 02.
+ * Gestiona la visualización del panel y las operaciones relacionadas con este módulo.
+ *
+ * NOTA: Este controlador hereda el método showModulePanel() de ModuleOrchestrationController,
+ * el cual está marcado como 'final' y no debe ser sobrescrito. Para personalizar el
+ * comportamiento del panel, implementa los métodos de extensión:
+ * - getModuleStats(): para definir las estadísticas específicas del módulo
+ * - getAdditionalPanelData(): para agregar datos adicionales al panel
+ */
+final class Module02PanelController extends Module02BaseController
 {
-    /**
-     * Alias: muestra el panel del módulo 02 delegando en el controlador base.
-     * Centraliza la lógica de render y reutiliza las estadísticas del módulo.
-     *
-     * @param  \Illuminate\Http\Request  $request  Solicitud HTTP entrante
-     * @return \Inertia\Response Respuesta Inertia con la vista del panel
-     */
-    public function showModulePanel(Request $request): InertiaResponse
-    {
-        return parent::showModulePanel($request);
-    }
-
     /**
      * Implementación concreta para obtener estadísticas del módulo.
      * Devuelve un array de EnhancedStat consumible por el frontend.
      *
-     * @return array<int, \App\DTO\EnhancedStat>|null
+     * @return array<int, EnhancedStat>|null
      */
     protected function getModuleStats(): ?array
     {
