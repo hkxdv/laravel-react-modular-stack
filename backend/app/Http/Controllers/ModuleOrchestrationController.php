@@ -477,7 +477,7 @@ abstract class ModuleOrchestrationController extends Controller
                 contextualNavItemsConfig: $contextualNavItemsConfig,
                 permissionChecker: fn (
                     string $permission
-                ) => $this->can($permission),
+                ): bool => $this->can($permission),
                 user: $user,
                 functionalName: $functionalName,
                 data: $viewData,

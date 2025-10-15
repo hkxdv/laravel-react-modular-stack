@@ -58,9 +58,8 @@ final class Handler extends ExceptionHandler
     {
         // Si se solicita mostrar errores detallados de Laravel o estamos en modo debug
         if (
-            isset($_GET['show_laravel_errors'])
-            || (bool) ($_ENV['SHOW_LARAVEL_ERRORS']
-                ?? false)
+            \Illuminate\Support\Facades\Request::query('show_laravel_errors') !== null
+            || (bool) (\Illuminate\Support\Env::get('SHOW_LARAVEL_ERRORS', false))
             || config('app.debug')
         ) {
             // Devolver la respuesta predeterminada de Laravel con todos los detalles del error

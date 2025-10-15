@@ -24,8 +24,8 @@ final class TestStaffUsersSeeder extends Seeder
             ]);
 
             $u1->forceFill([
-                'password_changed_at' => Carbon::now(),
-                'last_activity' => Carbon::now()->subMinutes(2),
+                'password_changed_at' => \Illuminate\Support\Facades\Date::now(),
+                'last_activity' => \Illuminate\Support\Facades\Date::now()->subMinutes(2),
             ])->save();
             $this->command->info('Creado: Alice Fresh (password reciente)');
         } else {
@@ -41,8 +41,8 @@ final class TestStaffUsersSeeder extends Seeder
             ]);
 
             $u2->forceFill([
-                'password_changed_at' => Carbon::now()->subDays(120),
-                'last_activity' => Carbon::now()->subDays(1),
+                'password_changed_at' => \Illuminate\Support\Facades\Date::now()->subDays(120),
+                'last_activity' => \Illuminate\Support\Facades\Date::now()->subDays(1),
             ])->save();
             $this->command->info('Creado: Bob Stale (password vencido)');
         } else {
@@ -59,7 +59,7 @@ final class TestStaffUsersSeeder extends Seeder
 
             $u3->forceFill([
                 'password_changed_at' => null,
-                'last_activity' => Carbon::now()->subMinutes(1),
+                'last_activity' => \Illuminate\Support\Facades\Date::now()->subMinutes(1),
             ])->save();
             $this->command->info('Creado: Charlie Missing (sin marca de cambio)');
         } else {

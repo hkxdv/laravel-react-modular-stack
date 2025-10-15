@@ -44,7 +44,7 @@ final class LoginDeviceController extends Controller
 
         // Finalmente, se redirige al usuario al dashboard con un mensaje de estado
         // que confirma que la operación fue exitosa.
-        return redirect()->route('internal.dashboard')
+        return to_route('internal.dashboard')
             ->with('status', 'Dispositivo marcado como confiable. Ya no recibirás alertas cuando inicies sesión desde este dispositivo.');
     }
 }

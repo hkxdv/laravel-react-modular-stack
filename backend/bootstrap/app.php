@@ -26,8 +26,9 @@ use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
 // Verificar si se debe mostrar errores detallados de Laravel en lugar de los personalizados de Inertia
-$showLaravelErrors = isset($_GET['show_laravel_errors'])
-    || (bool) ($_ENV['SHOW_LARAVEL_ERRORS'] ?? false);
+// Importante: Evitar usar Facades antes de que la aplicación esté creada; capturamos la Request directamente.
+$showLaravelErrors = Request::capture()->query('show_laravel_errors') !== null
+    || (bool) (\Illuminate\Support\Env::get('SHOW_LARAVEL_ERRORS', false));
 
 $application = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -97,23 +98,23 @@ $application = Application::configure(basePath: dirname(__DIR__))
 
         // Registro de manejadores usando la clase dedicada
         $exceptions->renderable(
-            fn(UnauthorizedException $e, Request $request) => ErrorPageResponder::unauthorized($request)
+            fn(UnauthorizedException $e, Request $request): \Symfony\Component\HttpFoundation\Response => ErrorPageResponder::unauthorized($request)
         );
 
         $exceptions->renderable(
-            fn(Symfony\Component\HttpKernel\Exception\HttpException $e, Request $request) => ErrorPageResponder::http($e, $request)
+            fn(Symfony\Component\HttpKernel\Exception\HttpException $e, Request $request): \Symfony\Component\HttpFoundation\Response => ErrorPageResponder::http($e, $request)
         );
 
         $exceptions->renderable(
-            fn(Illuminate\Auth\AuthenticationException $e, Request $request) => ErrorPageResponder::authentication($e, $request)
+            fn(Illuminate\Auth\AuthenticationException $e, Request $request): ?\Symfony\Component\HttpFoundation\Response => ErrorPageResponder::authentication($e, $request)
         );
 
         $exceptions->renderable(
-            fn(Illuminate\Validation\ValidationException $e, Request $request) => ErrorPageResponder::validation($request)
+            fn(Illuminate\Validation\ValidationException $e, Request $request): \Symfony\Component\HttpFoundation\Response => ErrorPageResponder::validation($request)
         );
 
         $exceptions->renderable(
-            fn(Throwable $e, Request $request) => ErrorPageResponder::generic($request)
+            fn(Throwable $e, Request $request): ?\Symfony\Component\HttpFoundation\Response => ErrorPageResponder::generic($request)
         );
     })
     ->create();
@@ -134,7 +135,7 @@ try {
     if ($config->get('cache.default') === null) {
         $config->set('cache.default', 'array');
     }
-} catch (Throwable $e) {
+} catch (Throwable) {
     // Silenciar errores aquí para no bloquear el arranque; proveedores lo corregirán
 }
 
@@ -176,11 +177,10 @@ try {
 
 // Determinar archivo .env según contexto (contenedor, entorno, testing)
 $runningInContainer = filter_var(
-    $_ENV['APP_RUNNING_IN_CONTAINER']
-        ?? false,
+    \Illuminate\Support\Env::get('APP_RUNNING_IN_CONTAINER', false),
     FILTER_VALIDATE_BOOL
 );
-$appEnv = $_ENV['APP_ENV'] ?? null;
+$appEnv = \Illuminate\Support\Env::get('APP_ENV');
 
 if ($runningInContainer) {
     $envFile = '.env.docker';

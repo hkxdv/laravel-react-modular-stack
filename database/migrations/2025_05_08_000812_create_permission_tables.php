@@ -19,12 +19,12 @@ return new class extends Migration
         /** @var array<string, mixed>|null $columnNames */
         $columnNames = config('permission.column_names');
 
-        throw_unless(is_array($tableNames), new Exception(
-            'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.'
-        ));
-        throw_unless(is_array($columnNames), new Exception(
-            'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.'
-        ));
+        throw_unless(is_array($tableNames),
+        Exception::class,
+        'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
+        throw_unless(is_array($columnNames),
+        Exception::class,
+        'Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
 
         $pivotRole = is_string(
             $columnNames['role_pivot_key'] ?? null
@@ -36,14 +36,15 @@ return new class extends Migration
 
         throw_if($teams && ! is_string(
             $columnNames['team_foreign_key'] ?? null
-        ), new Exception(
-            'Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.'
-        ));
+        ),
+        Exception::class,
+        'Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
 
         $permissionsTable = $tableNames['permissions'] ?? null;
         throw_unless(
             is_string($permissionsTable),
-            new RuntimeException('Invalid permissions table name')
+            RuntimeException::class,
+            'Invalid permissions table name'
         );
 
         Schema::create($permissionsTable, static function (
@@ -64,7 +65,8 @@ return new class extends Migration
         $rolesTable = $tableNames['roles'] ?? null;
         throw_unless(
             is_string($rolesTable),
-            new RuntimeException('Invalid roles table name')
+            RuntimeException::class,
+            'Invalid roles table name'
         );
 
         Schema::create($rolesTable, static function (
@@ -78,7 +80,8 @@ return new class extends Migration
                 $teamKey = $columnNames['team_foreign_key'];
                 throw_unless(
                     is_string($teamKey),
-                    new RuntimeException('Invalid team_foreign_key')
+                    RuntimeException::class,
+                    'Invalid team_foreign_key'
                 );
                 $table->unsignedBigInteger($teamKey)->nullable();
                 $table->index($teamKey, 'roles_team_foreign_key_index');
@@ -93,7 +96,8 @@ return new class extends Migration
                 $teamKey = $columnNames['team_foreign_key'];
                 throw_unless(
                     is_string($teamKey),
-                    new RuntimeException('Invalid team_foreign_key')
+                    RuntimeException::class,
+                    'Invalid team_foreign_key'
                 );
                 $table->unique([$teamKey, 'name', 'guard_name']);
             } else {
@@ -105,9 +109,8 @@ return new class extends Migration
             ?? null;
         throw_unless(
             is_string($modelHasPermissionsTable),
-            new RuntimeException(
-                'Invalid model_has_permissions table name'
-            )
+            RuntimeException::class,
+            'Invalid model_has_permissions table name'
         );
 
         Schema::create($modelHasPermissionsTable, static function (
@@ -118,7 +121,8 @@ return new class extends Migration
             $modelMorphKey = $columnNames['model_morph_key'];
             throw_unless(
                 is_string($modelMorphKey),
-                new RuntimeException('Invalid model_morph_key')
+                RuntimeException::class,
+                'Invalid model_morph_key'
             );
             $table->unsignedBigInteger($modelMorphKey);
             $table->index(
@@ -134,7 +138,8 @@ return new class extends Migration
                 $teamKey = $columnNames['team_foreign_key'];
                 throw_unless(
                     is_string($teamKey),
-                    new RuntimeException('Invalid team_foreign_key')
+                    RuntimeException::class,
+                    'Invalid team_foreign_key'
                 );
                 $table->unsignedBigInteger($teamKey);
                 $table->index(
@@ -158,7 +163,8 @@ return new class extends Migration
             ?? null;
         throw_unless(
             is_string($modelHasRolesTable),
-            new RuntimeException('Invalid model_has_roles table name')
+            RuntimeException::class,
+            'Invalid model_has_roles table name'
         );
 
         Schema::create($modelHasRolesTable, static function (
@@ -169,7 +175,8 @@ return new class extends Migration
             $modelMorphKey = $columnNames['model_morph_key'];
             throw_unless(
                 is_string($modelMorphKey),
-                new RuntimeException('Invalid model_morph_key')
+                RuntimeException::class,
+                'Invalid model_morph_key'
             );
             $table->unsignedBigInteger($modelMorphKey);
             $table->index(
@@ -184,7 +191,8 @@ return new class extends Migration
                 $teamKey = $columnNames['team_foreign_key'];
                 throw_unless(
                     is_string($teamKey),
-                    new RuntimeException('Invalid team_foreign_key')
+                    RuntimeException::class,
+                    'Invalid team_foreign_key'
                 );
                 $table->unsignedBigInteger($teamKey);
                 $table->index(
@@ -206,9 +214,8 @@ return new class extends Migration
         $roleHasPermissionsTable = $tableNames['role_has_permissions'] ?? null;
         throw_unless(
             is_string($roleHasPermissionsTable),
-            new RuntimeException(
-                'Invalid role_has_permissions table name'
-            )
+            RuntimeException::class,
+            'Invalid role_has_permissions table name'
         );
 
         Schema::create($roleHasPermissionsTable, static function (
@@ -254,9 +261,8 @@ return new class extends Migration
 
         throw_unless(
             is_array($tableNames),
-            new Exception(
-                'Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.'
-            )
+            Exception::class,
+            'Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.'
         );
 
         $required = [
@@ -269,34 +275,40 @@ return new class extends Migration
         foreach ($required as $key) {
             throw_if(
                 ! isset($tableNames[$key]) || ! is_string($tableNames[$key]),
-                new RuntimeException("Invalid table name for '{$key}'")
+                RuntimeException::class,
+                "Invalid table name for '{$key}'"
             );
         }
 
         $roleHasPermissionsTable = $tableNames['role_has_permissions'] ?? null;
         throw_unless(
             is_string($roleHasPermissionsTable),
-            new RuntimeException('Invalid table name for role_has_permissions')
+            RuntimeException::class,
+            'Invalid table name for role_has_permissions'
         );
         $modelHasRolesTable = $tableNames['model_has_roles'] ?? null;
         throw_unless(
             is_string($modelHasRolesTable),
-            new RuntimeException('Invalid table name for model_has_roles')
+            RuntimeException::class,
+            'Invalid table name for model_has_roles'
         );
         $modelHasPermissionsTable = $tableNames['model_has_permissions'] ?? null;
         throw_unless(
             is_string($modelHasPermissionsTable),
-            new RuntimeException('Invalid table name for model_has_permissions')
+            RuntimeException::class,
+            'Invalid table name for model_has_permissions'
         );
         $rolesTable = $tableNames['roles'] ?? null;
         throw_unless(
             is_string($rolesTable),
-            new RuntimeException('Invalid table name for roles')
+            RuntimeException::class,
+            'Invalid table name for roles'
         );
         $permissionsTable = $tableNames['permissions'] ?? null;
         throw_unless(
             is_string($permissionsTable),
-            new RuntimeException('Invalid table name for permissions')
+            RuntimeException::class,
+            'Invalid table name for permissions'
         );
 
         Schema::drop($roleHasPermissionsTable);

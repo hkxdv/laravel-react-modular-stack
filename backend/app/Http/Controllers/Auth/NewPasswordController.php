@@ -81,9 +81,7 @@ final class NewPasswordController extends Controller
         );
 
         // Asegurar el tipo de $status para el traductor
-        if (! is_string($status)) {
-            throw new RuntimeException('Tipo inesperado de estado devuelto por Password::reset');
-        }
+        throw_unless(is_string($status), RuntimeException::class, 'Tipo inesperado de estado devuelto por Password::reset');
 
         // Si el broker confirma que la contraseña fue reseteada (`PASSWORD_RESET`),
         // se redirige al usuario a la página de login con un mensaje de estado traducido.

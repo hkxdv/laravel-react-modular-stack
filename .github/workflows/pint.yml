@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/**"
+      - "database/**"
 
 permissions:
   contents: write
@@ -33,5 +34,7 @@ jobs:
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "style(backend): Format PHP files with Pint"
-          file_pattern: "backend/**/*.php"
+          commit_message: "style: Format PHP files with Pint (backend + database)"
+          file_pattern: |
+            backend/**/*.php
+            database/**/*.php
