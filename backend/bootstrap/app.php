@@ -190,11 +190,23 @@ if ($runningInContainer) {
     $envFile = '.env.local';
 }
 
-// En entorno de pruebas, no cargar archivo .env para evitar warnings si no existe
-if ($appEnv !== 'testing' && file_exists(
-    $application->basePath() . DIRECTORY_SEPARATOR . $envFile
-)) {
-    $application->loadEnvironmentFrom($envFile);
+// Carga de variables de entorno según modo
+if ($appEnv === 'testing') {
+    // En tests, permitir cargar .env.local desde la raíz del monorepo si existe,
+    // sin sobreescribir variables ya definidas por phpunit.xml (Dotenv::safeLoad).
+    $rootPath = dirname($application->basePath());
+    $rootEnvLocal = $rootPath . DIRECTORY_SEPARATOR . '.env.local';
+    if (file_exists($rootEnvLocal)) {
+        $application->useEnvironmentPath($rootPath);
+        $application->loadEnvironmentFrom('.env.local');
+    }
+} else {
+    // En otros entornos, buscar el archivo correspondiente en el backend
+    if (file_exists(
+        $application->basePath() . DIRECTORY_SEPARATOR . $envFile
+    )) {
+        $application->loadEnvironmentFrom($envFile);
+    }
 }
 
 // Cargar variables adicionales desde .env.users en la raíz del monorepo
