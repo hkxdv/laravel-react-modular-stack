@@ -55,7 +55,6 @@ final class SessionServiceProvider extends ServiceProvider
                         $connectionValue = $config['connection']
                             ?? $configRepo->get('session.connection');
 
-                        /** @var string|UnitEnum|null $connection */
                         $connection = $connectionValue instanceof UnitEnum || is_string($connectionValue)
                             ? $connectionValue : null;
 
@@ -100,7 +99,6 @@ final class SessionServiceProvider extends ServiceProvider
                 $sessionConnectionValue = $configRepo->get(
                     'session.connection'
                 );
-                /** @var string|UnitEnum|null $sessionConnection */
                 $sessionConnection = $sessionConnectionValue
                     instanceof UnitEnum || is_string($sessionConnectionValue)
                     ? $sessionConnectionValue

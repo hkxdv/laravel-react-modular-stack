@@ -165,6 +165,7 @@ final class AccountUpdatedNotification extends Notification implements ShouldQue
         }
 
         if (is_array($value)) {
+            /** @var array<string> $value */
             return implode(', ', $value);
         }
 

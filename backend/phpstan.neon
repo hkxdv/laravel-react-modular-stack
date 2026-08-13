@@ -21,3 +21,38 @@ parameters:
     level: max
 
     tmpDir: bootstrap/cache/phpstan
+
+    scanFiles:
+        - ../packages/foundry-php-utils/src/helpers.php
+
+    ignoreErrors:
+        # Pest dynamic properties/methods and Laravel factory mocks are not visible
+        # to PHPStan. These ignores are scoped to test files and reflect
+        # known false positives from Pest's syntax, not runtime bugs.
+        -
+            message: '#Cannot call method .* on mixed#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Cannot access offset .* on mixed#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Cannot access property .* on mixed#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Access to an undefined property Pest\\PendingCalls\\TestCall::.*#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Call to an undefined method Pest\\PendingCalls\\TestCall::.*#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Cannot cast mixed to .*#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Call to an undefined method Mockery\\.*#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Parameter .* of .* expects Illuminate\\Contracts\\Auth\\Authenticatable, mixed given#'
+            path: Modules/Core/tests/*
+        -
+            message: '#Parameter .* of class .* expects .*, Mockery\\MockInterface given#'
+            path: Modules/Core/tests/*

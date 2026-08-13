@@ -335,40 +335,11 @@ return new class extends Migration
             );
         }
 
-        $roleHasPermissionsTable = $tableNames['role_has_permissions'] ?? null;
-        throw_unless(
-            is_string($roleHasPermissionsTable),
-            RuntimeException::class,
-            'Invalid table name for role_has_permissions'
-        );
-
-        $modelHasRolesTable = $tableNames['model_has_roles'] ?? null;
-        throw_unless(
-            is_string($modelHasRolesTable),
-            RuntimeException::class,
-            'Invalid table name for model_has_roles'
-        );
-
-        $modelHasPermissionsTable = $tableNames['model_has_permissions'] ?? null;
-        throw_unless(
-            is_string($modelHasPermissionsTable),
-            RuntimeException::class,
-            'Invalid table name for model_has_permissions'
-        );
-
-        $rolesTable = $tableNames['roles'] ?? null;
-        throw_unless(
-            is_string($rolesTable),
-            RuntimeException::class,
-            'Invalid table name for roles'
-        );
-
-        $permissionsTable = $tableNames['permissions'] ?? null;
-        throw_unless(
-            is_string($permissionsTable),
-            RuntimeException::class,
-            'Invalid table name for permissions'
-        );
+        $roleHasPermissionsTable = $tableNames['role_has_permissions'];
+        $modelHasRolesTable = $tableNames['model_has_roles'];
+        $modelHasPermissionsTable = $tableNames['model_has_permissions'];
+        $rolesTable = $tableNames['roles'];
+        $permissionsTable = $tableNames['permissions'];
 
         Schema::drop($roleHasPermissionsTable);
         Schema::drop($modelHasRolesTable);

@@ -21,7 +21,6 @@ trait NormalizesStaffUserPayload
     protected function buildCreatePayload(StaffUserRequest $request): array
     {
         $validatedData = $request->validated();
-        /** @var mixed $rawPassword */
         $rawPassword = $validatedData['password'] ?? null;
         $validatedData['password'] = is_string($rawPassword)
             ? bcrypt($rawPassword)
@@ -39,7 +38,6 @@ trait NormalizesStaffUserPayload
     protected function buildUpdatePayload(StaffUserRequest $request): array
     {
         $validatedData = $request->validated();
-        /** @var mixed $rawPassword */
         $rawPassword = $validatedData['password'] ?? null;
 
         if (! is_string($rawPassword) || $rawPassword === '') {
