@@ -3,13 +3,9 @@
   "description": "A modular Laravel + React baseline for internal management systems.",
   "version": "0.2.0-alpha",
   "private": true,
-  "author": {
-    "name": "Gera Schz",
-    "username": "gschz",
-    "url": "https://github.com/gschz",
-    "email": "gschz.git@gmail.com"
-  },
+  "author": "Gerardo Sanchez <gschz.git@gmail.com>",
   "license": "MIT",
+  "packageManager": "bun@1.3.14",
   "workspaces": [
     "frontend",
     "backend",
@@ -20,10 +16,10 @@
     "fe": "bun --cwd ./frontend",
     "be": "bun --cwd ./backend",
     "i:all": "bun i && bun run be i && bun run fe i",
-    "dev": "concurrently --handle-input --kill-others-on-fail --success=last -c \"#93c5fd,#c4b5fd,#fdba74\" \"bun run be dev\" \"bun run be ql\" \"bun run fe dev\" --names='SERVER,QUEUE,CLIENT'",
+    "dev": "bun run --parallel 'bun run be dev' 'bun run be ql' 'bun run fe dev'",
     "// DOCKER": "------------------------------------------------------------",
     "dk": "docker-compose --env-file ./.envs/.env.docker",
-    "dk:start": "concurrently -c \"#84cc16,#3b82f6\" \"bun run dk:up:fg\" \"bun run dev:fe:dk\" --names='DOCKER,CLIENT'",
+    "dk:start": "bun run --parallel 'bun run dk:up:fg' 'bun run dev:fe:dk'",
     "dev:fe:dk": "bun run --env-file ./.envs/.env.docker -- bun run fe dev",
     "dk:up:fg": "bun run dk up --remove-orphans",
     "dk:up": "bun run dk up -d",
@@ -33,13 +29,7 @@
     "dk:artisan": "bun run dk exec backend php artisan",
     "dk:sh": "bun run dk exec backend sh",
     "// POSTGRESQL (LOCAL)": "-----------------------------------------------",
-    "pg:dev": "concurrently --handle-input --kill-others-on-fail --success=last -c \"#93c5fd,#c4b5fd,#fdba74\" \"bun run be pg:dev\" \"bun run be pg:ql\" \"bun run fe dev\" --names='SERVER,QUEUE,CLIENT'"
-  },
-  "devDependencies": {
-    "concurrently": "9.2.1"
-  },
-  "engines": {
-    "bun": ">=1.3.0"
+    "pg:dev": "bun run --parallel 'bun run be pg:dev' 'bun run be pg:ql' 'bun run fe dev'"
   },
   "repository": {
     "type": "git",

@@ -9,3 +9,7 @@
 .DS_Store
 .envs/.env*
 !.envs/.env.*.example
+.atl/
+.agents/
+.opencode/
+openspec/
