@@ -12,9 +12,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 
+- Paquete `packages/foundry-php-utils`: helpers tipados `Foundry\Helpers` (config/cache normalizados, `userId`, `fileModificationTime`) conectado vía path repository.
+- `NavigationComposer` con caché de navegación versionada, extraído tras `NavigationComposerInterface`.
+- Clases de estrategia EnvLoader (`backend/bootstrap/EnvLoaders/*`) con resolver (explicit override, testing, docker, production, local).
+- Suite Pest unitaria para Core (`Modules/Core/tests/**`: sync de addons, menú, caché de permisos, auditoría de seguridad, caché de view composer).
+- `scanFiles` para `helpers.php` y reglas de ignore para Pest en `phpstan.neon`.
+
 ### Changed
 
+- Servicios del backend refactorizados para usar `Foundry\Helpers` en lugar de llamadas inline a `config()`/`cache()`.
+- Toolchain frontend actualizado: Vite 8 (rolldown), ESLint 10, react-day-picker 10, TypeScript 6.
+- `manualChunks` de `vite.config.ts` convertido a forma de función para rolldown; migración de `ClassNames` del calendario a las claves de react-day-picker v10.
+- `printWidth` de Prettier fijado en 100.
+- Metadatos de paquete raíz, versión de Bun y adiciones a `.gitignore`.
+
 ### Fixed
+
+- Crash de ESLint (`contextOrFilename.getFilename is not a function`) fijando la versión de React en `eslint.config.js`.
+- (pendiente) Crash de arranque de Inertia v3 en la carga inicial — `backend/config/inertia.php` ahora emite la página inicial como `<script data-page>` (`use_script_element_for_initial_page => true`), requerido por `@inertiajs/react` v3.
+
+### Removed
+
+- Facade `ViewComposer` y `ModuleOrchestrationController` (reemplazados por `NavigationComposer`).
+- Guards `throw_unless` redundantes en la migración de permisos.
 
 ## [0.2.0-alpha] - 2026-01-31
 

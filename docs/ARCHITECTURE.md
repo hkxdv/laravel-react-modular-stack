@@ -1,7 +1,7 @@
 # Arquitectura (alto nivel)
 
 > **Estado:** Desarrollo activo (alpha)  
-> **Última actualización:** 2026-01-31
+> **Última actualización:** 2026-08-13
 
 Este documento describe la arquitectura actual a un nivel alto. La intención es que sirva como “mapa mental” para encontrar dónde vive cada cosa y cuáles son los límites importantes del sistema.
 
@@ -49,6 +49,7 @@ Foundry Stack es un baseline para sistemas internos con:
 **Paquetes (`packages/`)**
 
 - `packages/foundry-installer/`: CLI `@foundry-stack/installer` para bootstrap del template.
+- `packages/foundry-php-utils/`: paquete Composer con helpers tipados `Foundry\Helpers` (normalización de config/cache, `userId`, `fileModificationTime`); conectado al backend vía path repository.
 
 ## Flujos principales (runtime)
 

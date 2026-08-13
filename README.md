@@ -19,7 +19,7 @@ Una base modular para sistemas de gestión internos con:
 - **Módulo Core centralizado**: Auth, permisos cross-guard, navegación dinámica
 - **Arquitectura modular**: Separación de features usando nwidart/laravel-modules
 - **Enfoque staff-first**: Para usuarios internos (backoffice, paneles admin)
-- **Tooling moderno**: Bun, Vite 7, TypeScript, Tailwind 4
+- **Tooling moderno**: Bun, Vite 8, TypeScript, Tailwind 4
 - **Multi-entorno**: Local (SQLite), PostgreSQL, Docker
 
 **No es un producto terminado**, es un experimento arquitectónico funcional.
