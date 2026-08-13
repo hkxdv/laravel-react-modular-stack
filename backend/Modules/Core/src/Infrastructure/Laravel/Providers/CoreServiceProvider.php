@@ -25,6 +25,7 @@ use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
 use Modules\Core\Contracts\Auth\ImpersonatesUsersInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
+use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
@@ -35,6 +36,7 @@ use Modules\Core\Infrastructure\Laravel\Services\AuthService;
 use Modules\Core\Infrastructure\Laravel\Services\LoginAttemptService;
 use Modules\Core\Infrastructure\Laravel\Services\MenuBuilderService;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleOrchestratorService;
+use Modules\Core\Infrastructure\Laravel\Services\NavigationComposer;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionService;
 use Modules\Core\Infrastructure\Laravel\Services\SecurityAuditService;
 use Modules\Core\Infrastructure\Laravel\Services\ViewComposerService;
@@ -67,6 +69,7 @@ final class CoreServiceProvider extends ServiceProvider
             MenuBuilderInterface::class => MenuBuilderService::class,
             ModuleOrchestratorInterface::class => ModuleOrchestratorService::class,
             ViewComposerInterface::class => ViewComposerService::class,
+            NavigationComposerInterface::class => NavigationComposer::class,
             AuditTrailInterface::class => AuditTrailService::class,
             SecurityAuditInterface::class => SecurityAuditService::class,
             LoginAttemptInterface::class => LoginAttemptService::class,
@@ -112,7 +115,6 @@ final class CoreServiceProvider extends ServiceProvider
             'Menu' => \Modules\Core\Infrastructure\Laravel\Facades\Menu::class,
             'Audit' => \Modules\Core\Infrastructure\Laravel\Facades\Audit::class,
             'SecurityAudit' => \Modules\Core\Infrastructure\Laravel\Facades\SecurityAudit::class,
-            'ViewComposer' => \Modules\Core\Infrastructure\Laravel\Facades\ViewComposer::class,
         ];
 
         // Registrar alias de Facades

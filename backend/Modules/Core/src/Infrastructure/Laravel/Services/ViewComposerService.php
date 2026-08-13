@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Services;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
 
 /**
@@ -23,6 +24,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
     public function __construct(
         private MenuBuilderInterface $navigationService,
         private AddonRegistryInterface $moduleRegistry,
+        private NavigationComposerInterface $navigationComposer,
     ) {
         //
     }
@@ -102,7 +104,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
         array $panelItemsConfig,
         array $contextualNavItemsConfig,
         callable $permissionChecker,
-        $user,
+        ?Authenticatable $user,
         ?string $functionalName = null,
         array $data = [],
         ?array $stats = null,
@@ -120,76 +122,20 @@ final readonly class ViewComposerService implements ViewComposerInterface
             );
         $moduleDescription = $moduleConfig['description'] ?? null;
 
-        // Obtener todos los elementos de navegación
-        $prefixRaw = config('core.cache.nav_cache_prefix');
-        $prefix = is_string($prefixRaw) && $prefixRaw !== ''
-            ? $prefixRaw
-            : 'core:nav:';
-        $versionKeyRaw = config('core.cache.nav_version_key');
-        $versionKey = is_string($versionKeyRaw) && $versionKeyRaw !== ''
-            ? $versionKeyRaw
-            : 'core.nav_version';
-        $navVersionRaw = Cache::get($versionKey, 1);
-        $navVersion = is_int($navVersionRaw)
-            ? $navVersionRaw
-            : (is_numeric($navVersionRaw)
-                ? (int) $navVersionRaw
-                : 1
-            );
-        $ttlRaw = config('core.cache.nav_assembled_ttl_seconds');
-        $ttl = is_numeric($ttlRaw)
-            ? (int) $ttlRaw
-            : 300;
-        $userIdRaw = is_object($user) && method_exists($user, 'getAuthIdentifier')
-            ? $user->getAuthIdentifier()
-            : null;
-        $userId = is_string($userIdRaw) || is_int($userIdRaw)
-            ? (string) $userIdRaw
-            : 'anonymous';
-        $permVersionRaw = $userId !== 'anonymous'
-            ? Cache::get('user.'.$userId.'.perm_version', 0)
-            : 0;
-        $permVersion = is_int($permVersionRaw)
-            ? $permVersionRaw
-            : (is_numeric($permVersionRaw)
-                ? (int) $permVersionRaw
-                : 0
-            );
         $suffix = is_string($routeSuffix) && $routeSuffix !== ''
             ? $routeSuffix
             : 'panel';
-        $statusesFileRaw = config('modules.activators.file.statuses-file');
-        $modulesStatusesPath = is_string($statusesFileRaw) && $statusesFileRaw !== ''
-            ? $statusesFileRaw
-            : base_path('modules_statuses.json');
-        $modulesMtime = file_exists($modulesStatusesPath)
-            ? (int) @filemtime($modulesStatusesPath)
-            : 0;
 
-        $cacheKey = sprintf(
-            '%s%s:%s:%s:%d:%d:%d',
-            $prefix,
-            $userId,
-            $moduleSlug,
-            $suffix,
-            $navVersion,
-            $modulesMtime,
-            $permVersion
-        );
-
-        $navigationElements = Cache::remember(
-            $cacheKey,
-            $ttl,
-            fn (): array => $this->navigationService->assembleNavigationStructure(
-                permissionChecker: $permissionChecker,
-                moduleSlug: $moduleSlug,
-                contextualItemsConfig: $contextualNavItemsConfig,
-                user: $user,
-                functionalName: $functionalName,
-                routeSuffix: $suffix,
-                routeParams: $routeParams,
-                viewData: $data
-            )
+        // Delegar composición de navegación con caché versionada
+        $navigationElements = $this->navigationComposer->composeNavigation(
+            moduleSlug: $moduleSlug,
+            contextualNavItemsConfig: $contextualNavItemsConfig,
+            permissionChecker: $permissionChecker,
+            user: $user,
+            functionalName: $functionalName,
+            routeSuffix: $suffix,
+            routeParams: $routeParams,
+            data: $data
         );
 
         // Construir ítems del panel
@@ -227,7 +173,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
      * {@inheritDoc}
      */
     public function composeDashboardViewContext(
-        $user,
+        ?Authenticatable $user,
         array $availableModules,
         callable $permissionChecker,
         Request $request
