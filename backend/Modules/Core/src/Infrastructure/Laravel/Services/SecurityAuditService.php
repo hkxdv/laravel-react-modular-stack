@@ -15,6 +15,9 @@ use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 use Modules\Core\Infrastructure\Laravel\Notifications\AccountLoginNotification;
 use Throwable;
 
+use function Foundry\Helpers\configString;
+use function Foundry\Helpers\userId;
+
 /**
  * Servicio de auditoría y seguridad de sesión para usuarios internos.
  *
@@ -101,13 +104,7 @@ final readonly class SecurityAuditService implements SecurityAuditInterface
             }
         } catch (Exception $exception) {
             // Loguea el error con más contexto para facilitar la depuración.
-            $id = $user->getAuthIdentifier();
-            $uid = is_string($id)
-                ? $id
-                : (is_int($id)
-                    ? (string) $id
-                    : 'desconocido'
-                );
+            $uid = userId($user, 'desconocido');
 
             Log::channel('security_core')->warning(
                 'Error al procesar notificación de login para el usuario: '.$uid,
@@ -141,8 +138,8 @@ final readonly class SecurityAuditService implements SecurityAuditInterface
         }
 
         // Limpiar las cookies relacionadas con la sesión
-        $cookieName = config('session.cookie');
-        if (is_string($cookieName)) {
+        $cookieName = configString('session.cookie');
+        if ($cookieName !== '') {
             $request->cookies->remove($cookieName);
 
             // Si estamos en modo debug, loguear información

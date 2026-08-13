@@ -5,7 +5,7 @@ import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import React, { type FormEventHandler } from 'react';
+import React, { type SubmitEventHandler } from 'react';
 
 interface ResetPasswordProps {
   token: string;
@@ -37,7 +37,7 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
     return code;
   }, []);
 
-  const submit: FormEventHandler = (e) => {
+  const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
     form.post(route('password.store'), {
       onFinish: () => {

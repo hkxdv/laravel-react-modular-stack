@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
 use Modules\Core\Contracts\Auth\ImpersonatesUsersInterface;
 
+use function Foundry\Helpers\configString;
+
 /**
  * Servicio de autenticación.
  * Implementa las interfaces de autenticación y suplantación del Core.
@@ -99,7 +101,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
         $originalUserId = session()->pull(self::IMPERSONATION_SESSION_KEY);
 
         /** @var class-string<\Illuminate\Database\Eloquent\Model> $userModelClass */
-        $userModelClass = config('auth.providers.staff_users.model');
+        $userModelClass = configString('auth.providers.staff_users.model');
 
         /** @var Authenticatable|null $originalUser */
         $originalUser = $userModelClass::query()->find($originalUserId);

@@ -53,9 +53,7 @@ export default function UsersTable({ table, totalItems }: Readonly<UsersTablePro
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className={`${
-                    rowIndex % 2 === 0 ? 'bg-background' : 'bg-muted/40'
-                  } hover:bg-muted/50 ${
+                  className={`${rowIndex % 2 === 0 ? 'bg-background' : 'bg-muted/40'} hover:bg-muted/50 ${
                     rowIndex < table.getRowModel().rows.length - 1 ? 'border-border border-b' : ''
                   }`}
                 >

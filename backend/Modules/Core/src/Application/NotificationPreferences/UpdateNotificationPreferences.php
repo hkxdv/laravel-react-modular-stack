@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\userId;
+
 /**
  * Caso de uso: actualizar preferencias de notificaciones del usuario.
  *
@@ -28,15 +30,11 @@ final readonly class UpdateNotificationPreferences implements UpdateNotification
             }
         }
 
-        $rawId = $user->getAuthIdentifier();
-        $userId = is_string($rawId)
-            ? $rawId : (
-                is_int($rawId) ? (string) $rawId : null
-            );
+        $uid = userId($user);
 
-        if ($userId !== null) {
+        if ($uid !== 'anonymous') {
             Cache::put(
-                'user.'.$userId.'.notification_preferences',
+                'user.'.$uid.'.notification_preferences',
                 $normalized,
                 now()->addDays(30)
             );

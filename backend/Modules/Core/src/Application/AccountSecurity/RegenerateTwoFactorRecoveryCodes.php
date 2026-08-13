@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\RegenerateTwoFactorRecoveryCodesInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\configInt;
+
 /**
  * Caso de uso: regenerar códigos de recuperación de 2FA.
  *
@@ -22,13 +24,7 @@ final readonly class RegenerateTwoFactorRecoveryCodes implements RegenerateTwoFa
      */
     public function handle(StaffUser $user): array
     {
-        $rawCount = config('security.two_factor.staff.backup_codes_count', 10);
-        $count = is_int($rawCount)
-            ? $rawCount
-            : (is_numeric($rawCount)
-                ? (int) $rawCount
-                : 10
-            );
+        $count = configInt('security.two_factor.staff.backup_codes_count', 10);
         $recoveryCodes = $this->generateRecoveryCodes($count);
 
         $user->forceFill([

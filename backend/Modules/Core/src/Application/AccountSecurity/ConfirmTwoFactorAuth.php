@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\configInt;
+
 /**
  * Caso de uso: confirmar el código de 2FA (TOTP) del usuario.
  *
@@ -65,13 +67,7 @@ final readonly class ConfirmTwoFactorAuth implements ConfirmTwoFactorAuthInterfa
         }
 
         $step = 30;
-        $windowSecondsRaw = config('security.two_factor.staff.totp_window', 30);
-        $windowSeconds = is_int($windowSecondsRaw)
-            ? $windowSecondsRaw
-            : (is_numeric($windowSecondsRaw)
-                ? (int) $windowSecondsRaw
-                : 30
-            );
+        $windowSeconds = configInt('security.two_factor.staff.totp_window', 30);
         $windowSteps = max(0, (int) floor($windowSeconds / $step));
 
         $now = Date::now()->getTimestamp();

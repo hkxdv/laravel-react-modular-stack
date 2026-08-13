@@ -53,15 +53,19 @@ interface DashboardPageProps extends PageProps {
   /** Estadísticas del sistema proporcionadas por el backend (opcional) */
   systemStats?: EnhancedStat[];
   /** Título de la página proporcionado por el backend */
-  pageTitle?: string;
+  pageTitle: string;
   /** Descripción de la página proporcionada por el backend */
-  description?: string;
+  description: string;
   /** Ítems de navegación principal */
-  mainNavItems?: NavItemDefinition[];
+  mainNavItems: NavItemDefinition[];
   /** Ítems de navegación de módulos */
-  moduleNavItems?: NavItemDefinition[];
+  moduleNavItems: NavItemDefinition[];
+  /** Ítems de navegación contextual */
+  contextualNavItems: NavItemDefinition[];
   /** Ítems de navegación global para la barra lateral */
-  globalNavItems?: NavItemDefinition[];
+  globalNavItems: NavItemDefinition[];
+  /** Breadcrumbs entregados por backend */
+  breadcrumbs: BreadcrumbItem[];
 }
 
 /**
@@ -77,8 +81,10 @@ export default function DashboardPage() {
     accessibleModules: accessibleModulesFromBackend,
     restrictedModules: restrictedModulesFromBackend,
     flash,
+    breadcrumbs,
     mainNavItems,
     moduleNavItems,
+    contextualNavItems,
     globalNavItems,
     systemStats,
     pageTitle,
@@ -97,9 +103,6 @@ export default function DashboardPage() {
     isMainDashboard: true,
   });
 
-  // Usar exclusivamente breadcrumbs provenientes del backend (si existen)
-  const { breadcrumbs } = usePage<DashboardPageProps & { breadcrumbs?: BreadcrumbItem[] }>().props;
-
   // Consumir únicamente las listas entregadas por el backend; si faltan, mostrar skeletons en UI
   const accessibleModules = useMemo(
     () => (Array.isArray(accessibleModulesFromBackend) ? accessibleModulesFromBackend : []),
@@ -117,11 +120,6 @@ export default function DashboardPage() {
     href: module.href,
     icon: module.icon as IconName,
   }));
-
-  // Usar únicamente navegación contextual si viene del backend
-  const { contextualNavItems } = usePage<
-    DashboardPageProps & { contextualNavItems?: NavItemDefinition[] }
-  >().props;
 
   const statsSection = useMemo(
     () =>
@@ -204,7 +202,7 @@ export default function DashboardPage() {
                           <Skeleton className="h-4 w-64 rounded-md" />
                         )}
                         <div className="mt-8 flex items-center justify-center space-x-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700 dark:border-yellow-700/50 dark:bg-yellow-900/30 dark:text-yellow-400">
-                          <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+                          <LayoutDashboard className="h-4 w-4 shrink-0" />
                           <span>Acceso restringido</span>
                         </div>
                       </div>
@@ -237,18 +235,18 @@ export default function DashboardPage() {
   return (
     <AppLayout
       user={userData}
-      breadcrumbs={breadcrumbs ?? []}
-      mainNavItems={mainNavItems ?? []}
-      moduleNavItems={moduleNavItems ?? []}
-      contextualNavItems={contextualNavItems ?? []}
-      globalNavItems={globalNavItems ?? []}
-      pageTitle={pageTitle ?? ''}
-      pageDescription={description ?? ''}
+      breadcrumbs={breadcrumbs}
+      mainNavItems={mainNavItems}
+      moduleNavItems={moduleNavItems}
+      contextualNavItems={contextualNavItems}
+      globalNavItems={globalNavItems}
+      pageTitle={pageTitle}
+      pageDescription={description}
     >
-      <Head title={pageTitle ?? ''} />
+      <Head title={pageTitle} />
       <ModuleDashboardLayout
-        title={pageTitle ?? ''}
-        description={description ?? ''}
+        title={pageTitle}
+        description={description}
         userName={userData?.name ?? ''}
         stats={statsSection}
         mainContent={mainContent}

@@ -19,6 +19,9 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
+use function Foundry\Helpers\cacheInt;
+use function Foundry\Helpers\userId;
+
 /**
  * Modelo de Usuario para el personal interno (Staff).
  *
@@ -251,19 +254,8 @@ final class StaffUser extends Authenticatable implements AuthenticatableUser, Mu
      */
     protected function getFrontendPermissionsAttribute(): array
     {
-        $authIdentifier = $this->getAuthIdentifier();
-        if (! is_int($authIdentifier) && ! is_string($authIdentifier)) {
-            return [];
-        }
-
-        $userId = (string) $authIdentifier;
-        $versionRaw = Cache::get('user.'.$userId.'.perm_version', 0);
-        $version = is_int($versionRaw)
-            ? $versionRaw
-            : (is_numeric($versionRaw)
-                ? (int) $versionRaw
-                : 0
-            );
+        $userId = userId($this);
+        $version = cacheInt('user.'.$userId.'.perm_version', 0);
         $cacheKey = 'user.'.$userId.'.v'.$version.'.frontend_permissions';
 
         $result = Cache::remember(
@@ -271,10 +263,6 @@ final class StaffUser extends Authenticatable implements AuthenticatableUser, Mu
             now()->addMinutes(10),
             fn (): array => $this->getAllCrossGuardPermissions()
         );
-
-        if (! is_array($result)) {
-            return [];
-        }
 
         return array_values(array_filter($result, is_string(...)));
     }

@@ -10,6 +10,13 @@ use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\cacheArray;
+use function Foundry\Helpers\cacheInt;
+use function Foundry\Helpers\configInt;
+use function Foundry\Helpers\configString;
+use function Foundry\Helpers\fileModificationTime;
+use function Foundry\Helpers\userId;
+
 /**
  * Ensambla la estructura completa de navegación del panel interno.
  *
@@ -73,25 +80,13 @@ final readonly class AssembleMenu
         $req = request();
         $cacheMap = (array) $req->attributes->get('navigation_cache', []);
 
-        $cacheConfigRaw = config('core.cache', []);
-        $cacheConfig = is_array($cacheConfigRaw) ? $cacheConfigRaw : [];
-        $navCachePrefix = is_string($cacheConfig['nav_cache_prefix'] ?? null)
-            ? $cacheConfig['nav_cache_prefix']
-            : 'core:nav:';
+        $navCachePrefix = configString('core.cache.nav_cache_prefix', 'core:nav:');
         if (! str_ends_with($navCachePrefix, ':')) {
             $navCachePrefix .= ':';
         }
 
-        $navVersionKey = is_string($cacheConfig['nav_version_key'] ?? null)
-            ? $cacheConfig['nav_version_key']
-            : 'core.nav_version';
-        $navTtlRaw = $cacheConfig['nav_assembled_ttl_seconds'] ?? 60;
-        $navTtlSeconds = is_int($navTtlRaw)
-            ? $navTtlRaw
-            : (is_numeric($navTtlRaw)
-                ? (int) $navTtlRaw
-                : 60
-            );
+        $navVersionKey = configString('core.cache.nav_version_key', 'core.nav_version');
+        $navTtlSeconds = configInt('core.cache.nav_assembled_ttl_seconds', 60);
         if ($navTtlSeconds < 1) {
             $navTtlSeconds = 60;
         }
@@ -101,38 +96,18 @@ final readonly class AssembleMenu
         $permVersion = 0;
         if ($user instanceof StaffUser) {
             $staffUser = $user;
-            $rawId = $user->getAuthIdentifier();
-            $uid = is_string($rawId)
-                ? $rawId
-                : (is_int($rawId)
-                    ? (string) $rawId
-                    : 'guest'
-                );
-            $rawPermVersion = Cache::get('user.'.$uid.'.perm_version', 0);
-            $permVersion = is_int($rawPermVersion)
-                ? $rawPermVersion
-                : (is_numeric($rawPermVersion)
-                    ? (int) $rawPermVersion
-                    : 0
-                );
+            $uid = userId($user);
+            $permVersion = $uid !== 'anonymous'
+                ? cacheInt('user.'.$uid.'.perm_version', 0)
+                : 0;
         }
 
-        $rawNavVersion = Cache::get($navVersionKey, 0);
-        $navVersion = is_int($rawNavVersion)
-            ? $rawNavVersion
-            : (is_numeric($rawNavVersion)
-                ? (int) $rawNavVersion
-                : 0
-            );
-        $statusesFileRaw = config('modules.activators.file.statuses-file');
-        $statusesFile = is_string($statusesFileRaw) && $statusesFileRaw !== ''
-            ? $statusesFileRaw
-            : base_path('modules_statuses.json');
-        $modulesMtime = 0;
-        if ($statusesFile !== '' && file_exists($statusesFile)) {
-            $mtimeRaw = @filemtime($statusesFile);
-            $modulesMtime = is_int($mtimeRaw) ? $mtimeRaw : 0;
-        }
+        $navVersion = cacheInt($navVersionKey, 0);
+        $statusesFile = configString(
+            'modules.activators.file.statuses-file',
+            base_path('modules_statuses.json')
+        );
+        $modulesMtime = fileModificationTime($statusesFile);
 
         // Clave de caché
         $key = implode('|', [
@@ -156,15 +131,13 @@ final readonly class AssembleMenu
         }
 
         $cacheKey = $navCachePrefix.'assembled:'.md5($key);
-        $cachedStore = Cache::get($cacheKey);
-        if (is_array($cachedStore)) {
+        $cachedStore = cacheArray($cacheKey);
+        if ($cachedStore !== []) {
             $cacheMap[$key] = $cachedStore;
             $req->attributes->set('navigation_cache', $cacheMap);
-            /** @var array<string, mixed> $cachedResult */
-            $cachedResult = $cachedStore;
-            $this->logAssembly($moduleSlug, $routeSuffix, $uid, $cachedResult, true, $t0);
+            $this->logAssembly($moduleSlug, $routeSuffix, $uid, $cachedStore, true, $t0);
 
-            return $cachedResult;
+            return $cachedStore;
         }
 
         $result = $this->buildNavigation(

@@ -10,7 +10,14 @@ declare(strict_types=1);
 // Verificar si se debe mostrar errores detallados de Laravel en lugar de los personalizados de Inertia
 // Importante: Evitar usar Facades antes de que la aplicación esté creada; capturamos la Request directamente.
 $showLaravelErrors = Illuminate\Http\Request::capture()->query('show_laravel_errors') !== null
-    || (bool) (Illuminate\Support\Env::get('SHOW_LARAVEL_ERRORS', false));
+  || (bool) (Illuminate\Support\Env::get('SHOW_LARAVEL_ERRORS', false));
+
+/**
+ * NOTA: Intencionalmente usamos `require` y no `require_once`.
+ * Estos archivos devuelven callables/arrays que deben capturarse cada vez
+ * que app.php se ejecuta. `require_once` devolveria `true` en re-bootstraps
+ * de tests (Pest) y causaria "Value of type bool is not callable".
+ */
 
 /** @var callable $middlewareConfigurator */
 $middlewareConfigurator = require __DIR__.'/modules/middleware.php';

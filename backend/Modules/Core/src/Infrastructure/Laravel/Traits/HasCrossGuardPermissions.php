@@ -14,6 +14,8 @@ use Spatie\Permission\Models\Role as ModelRole;
 use Spatie\Permission\PermissionRegistrar;
 use Stringable;
 
+use function Foundry\Helpers\cacheInt;
+
 /**
  * Trait para extender la funcionalidad de Spatie Permission y permitir
  * verificaciones de permisos entre diferentes guards.
@@ -34,6 +36,7 @@ trait HasCrossGuardPermissions
         $allPermissions = Permission::query()->whereIn('guard_name', $guardsToSync)->get()->groupBy('name');
 
         foreach ($allPermissions as $name => $permissions) {
+            /** @var array<string> $existingGuards */
             $existingGuards = $permissions->pluck('guard_name')->toArray();
             $missingGuards = array_diff($guardsToSync, $existingGuards);
 
@@ -49,6 +52,7 @@ trait HasCrossGuardPermissions
             ->groupBy('name');
 
         foreach ($allRoles as $name => $roles) {
+            /** @var array<string> $existingGuards */
             $existingGuards = $roles->pluck('guard_name')->toArray();
             $missingGuards = array_diff($guardsToSync, $existingGuards);
 
@@ -80,10 +84,7 @@ trait HasCrossGuardPermissions
     public function hasPermissionToCross(string $permission): bool
     {
         $permissionName = $permission;
-        $rawVersion = Cache::get('user.'.$this->id.'.perm_version', 0);
-        $version = is_int($rawVersion)
-            ? $rawVersion
-            : (is_numeric($rawVersion) ? (int) $rawVersion : 0);
+        $version = cacheInt('user.'.$this->id.'.perm_version', 0);
         $cacheKey = 'user.'.$this->id.'.v'.$version.'.permission.'.$permissionName;
 
         $result = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($permission): bool {
@@ -157,10 +158,7 @@ trait HasCrossGuardPermissions
 
             return '';
         })->sort()->implode('.');
-        $rawVersion2 = Cache::get('user.'.$this->id.'.perm_version', 0);
-        $version = is_int($rawVersion2)
-            ? $rawVersion2
-            : (is_numeric($rawVersion2) ? (int) $rawVersion2 : 0);
+        $version = cacheInt('user.'.$this->id.'.perm_version', 0);
         $cacheKey = 'user.'.$this->id.'.v'.$version.'.roles.'.$roleNames;
 
         $result = Cache::remember(
@@ -192,12 +190,7 @@ trait HasCrossGuardPermissions
      */
     public function getAllCrossGuardPermissions(): array
     {
-        $rawVersion = Cache::get('user.'.$this->id.'.perm_version', 0);
-        $version = is_int($rawVersion)
-            ? $rawVersion
-            : (
-                is_numeric($rawVersion) ? (int) $rawVersion : 0
-            );
+        $version = cacheInt('user.'.$this->id.'.perm_version', 0);
         $cacheKey = 'user.'.$this->id.'.v'.$version.'.all_cross_guard_permissions';
 
         $result = Cache::remember(
@@ -214,7 +207,7 @@ trait HasCrossGuardPermissions
             }
         );
 
-        $names = is_array($result) ? $result : [];
+        $names = $result;
 
         return array_map(static function ($v): string {
             if (is_string($v)) {

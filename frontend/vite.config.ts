@@ -36,6 +36,47 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       emptyOutDir: true,
+      chunkSizeWarningLimit: 1024,
+      rollupOptions: {
+        output: {
+          // Vite 8 (rolldown) only accepts manualChunks as a function,
+          // not the Rollup object shorthand.
+          manualChunks: (moduleId: string): string | undefined => {
+            if (!moduleId.includes('node_modules')) return;
+
+            if (
+              moduleId.includes('react') ||
+              moduleId.includes('react-dom') ||
+              moduleId.includes('react-day-picker')
+            ) {
+              return 'react-vendor';
+            }
+            if (
+              moduleId.includes('@radix-ui') ||
+              moduleId.includes('lucide-react') ||
+              moduleId.includes('sonner') ||
+              moduleId.includes('class-variance-authority') ||
+              moduleId.includes('clsx') ||
+              moduleId.includes('tailwind-merge')
+            ) {
+              return 'ui-vendor';
+            }
+            if (moduleId.includes('@tanstack')) {
+              return 'tanstack-vendor';
+            }
+            if (moduleId.includes('@inertiajs') || moduleId.includes('axios')) {
+              return 'inertia-vendor';
+            }
+            if (moduleId.includes('motion') || moduleId.includes('tailwindcss-animate')) {
+              return 'motion-vendor';
+            }
+
+            // Required by tsconfig noImplicitReturns; not redundant.
+            // eslint-disable-next-line sonarjs/no-redundant-jump
+            return;
+          },
+        },
+      },
     },
     plugins: [
       laravel({
@@ -49,7 +90,9 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, 'src'),
+        '/fonts': path.resolve(import.meta.dirname, '../backend/public/fonts'),
       },
+      extensions: ['.tsx', '.ts', '.js', '.json'],
     },
   };
 });

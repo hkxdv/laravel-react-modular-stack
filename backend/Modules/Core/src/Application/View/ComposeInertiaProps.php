@@ -6,11 +6,14 @@ namespace Modules\Core\Application\View;
 
 use App\Http\Resources\StaffUserResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+
+use function Foundry\Helpers\cacheArray;
+use function Foundry\Helpers\configInt;
+use function Foundry\Helpers\userId;
 
 /**
  * Acción para componer las props compartidas de Inertia.
@@ -40,10 +43,7 @@ final readonly class ComposeInertiaProps
         $securityProps = $this->composeSecurityProps($staffUser);
         $notificationPrefsProps = $this->composeNotificationPreferencesProps($staffUser);
 
-        /** @var array<string, mixed> $props */
-        $props = $navProps + $authProps + $securityProps + $notificationPrefsProps;
-
-        return $props;
+        return $navProps + $authProps + $securityProps + $notificationPrefsProps;
     }
 
     /**
@@ -108,15 +108,15 @@ final readonly class ComposeInertiaProps
         Request $request
     ): array {
         $transformedStaffUser = $staffUser instanceof StaffUser
-            ? new StaffUserResource($staffUser) : null;
+          ? new StaffUserResource($staffUser) : null;
 
         return [
             'auth' => [
                 'user' => $transformedStaffUser,
                 'staff' => $transformedStaffUser,
                 'can' => $staffUser instanceof StaffUser
-                    ? ($staffUser->getAttribute('frontend_permissions') ?? [])
-                    : [],
+                  ? ($staffUser->getAttribute('frontend_permissions') ?? [])
+                  : [],
                 'impersonate' => $staffUser && $request->session()->has('impersonated_by'),
             ],
         ];
@@ -141,8 +141,8 @@ final readonly class ComposeInertiaProps
         $confirmedAt = $staffUser->getAttribute('two_factor_confirmed_at');
 
         $pending = is_string($secretEncrypted)
-            && $secretEncrypted !== ''
-            && $confirmedAt === null;
+          && $secretEncrypted !== ''
+          && $confirmedAt === null;
 
         return [
             'security' => [
@@ -165,24 +165,16 @@ final readonly class ComposeInertiaProps
             ];
         }
 
-        $rawId = $staffUser->getAuthIdentifier();
-        $userId = is_string($rawId)
-            ? $rawId
-            : (is_int($rawId)
-                ? (string) $rawId
-                : null
-            );
+        $uid = userId($staffUser);
 
-        if ($userId === null) {
+        if ($uid === 'anonymous') {
             return [
                 'notificationPreferences' => [],
             ];
         }
 
-        $prefs = Cache::get('user.'.$userId.'.notification_preferences', []);
-
         return [
-            'notificationPreferences' => is_array($prefs) ? $prefs : [],
+            'notificationPreferences' => cacheArray('user.'.$uid.'.notification_preferences'),
         ];
     }
 
@@ -191,17 +183,10 @@ final readonly class ComposeInertiaProps
      */
     private function checkPasswordChangeRequired(StaffUser $staffUser): bool
     {
-        /** @var int|numeric|string $rawMaxAge */
-        $rawMaxAge = config(
+        $maxAgeDays = configInt(
             'security.authentication.passwords.staff.max_age_days',
             90
         );
-        $maxAgeDays = is_int($rawMaxAge)
-            ? $rawMaxAge
-            : (is_numeric($rawMaxAge)
-                ? (int) $rawMaxAge
-                : 90
-            );
 
         /** @var \Illuminate\Support\Carbon|string|null $passwordChangedAt */
         $passwordChangedAt = $staffUser->getAttribute('password_changed_at');

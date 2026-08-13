@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\userId;
+
 /**
  * Caso de uso: actualizar preferencias de apariencia del usuario.
  *
@@ -30,15 +32,11 @@ final readonly class UpdateAppearance
             }
         }
 
-        $rawId = $user->getAuthIdentifier();
-        $userId = is_string($rawId)
-            ? $rawId : (
-                is_int($rawId) ? (string) $rawId : null
-            );
+        $uid = userId($user);
 
-        if ($userId !== null) {
+        if ($uid !== 'anonymous') {
             Cache::put(
-                'user.'.$userId.'.appearance',
+                'user.'.$uid.'.appearance',
                 $normalized,
                 now()->addDays(30)
             );

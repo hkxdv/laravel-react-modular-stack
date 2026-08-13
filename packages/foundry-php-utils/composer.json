@@ -1,0 +1,27 @@
+{
+  "name": "foundry-stack/foundry-php-utils",
+  "description": "Typed helper functions for config/cache normalization.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.4 || ^8.5",
+    "illuminate/support": "^12.0",
+    "illuminate/contracts": "^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Foundry\\Helpers\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FoundryPhpUtils\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "pestphp/pest": "^4.1"
+  }
+}

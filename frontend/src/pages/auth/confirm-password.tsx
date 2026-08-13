@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import React, { type FormEventHandler } from 'react';
+import React, { type SubmitEventHandler } from 'react';
 
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 
@@ -14,7 +14,7 @@ export default function ConfirmPassword() {
   });
   const { showError, showSuccess } = useToastNotifications();
 
-  const submit: FormEventHandler = (e) => {
+  const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
 
     form.post(route('password.confirm'), {

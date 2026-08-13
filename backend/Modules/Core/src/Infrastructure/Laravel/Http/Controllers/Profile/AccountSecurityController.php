@@ -15,6 +15,8 @@ use Modules\Core\Contracts\AccountSecurity\RegenerateTwoFactorRecoveryCodesInter
 use Modules\Core\Contracts\AccountSecurity\RevokeOtherSessionsInterface;
 use Modules\Core\Contracts\AccountSecurity\SetupTwoFactorAuthInterface;
 
+use function Foundry\Helpers\userId;
+
 /**
  * Controlador de Seguridad de Cuenta del perfil (2FA, sesiones, dispositivos).
  *
@@ -39,13 +41,7 @@ final class AccountSecurityController extends AbstractProfileController
 
         $breadcrumbs = $this->buildBreadcrumbs('security.edit');
 
-        $authIdentifier = $user->getAuthIdentifier();
-        $userId = is_string($authIdentifier)
-            ? $authIdentifier
-            : (is_int($authIdentifier)
-                ? (string) $authIdentifier
-                : null
-            );
+        $uid = userId($user);
 
         $twoFactorSecretEncrypted = $user->getAttribute('two_factor_secret');
         $twoFactorConfirmedAt = $user->getAttribute('two_factor_confirmed_at');
@@ -64,9 +60,9 @@ final class AccountSecurityController extends AbstractProfileController
             : null;
 
         $sessionsCount = 0;
-        if ($userId !== null) {
+        if ($uid !== 'anonymous') {
             $count = DB::table('sessions')
-                ->where('staff_user_id', $userId)
+                ->where('staff_user_id', $uid)
                 ->count();
             $sessionsCount = (int) $count;
         }

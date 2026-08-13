@@ -9,7 +9,7 @@ import type { BreadcrumbItem, NavItemDefinition } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import type { PageProps } from '@inertiajs/core';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { type FormEventHandler, useEffect, useState } from 'react';
+import { type SubmitEventHandler, useEffect, useState } from 'react';
 
 interface PasswordPageProps extends PageProps {
   breadcrumbs?: BreadcrumbItem[];
@@ -48,7 +48,6 @@ export default function PasswordPage() {
     const newClientErrors = { password_confirmation: '' };
 
     if (form.data.password && !form.data.password_confirmation) {
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
       newClientErrors.password_confirmation = 'Debes confirmar la nueva contraseña';
       isValid = false;
     }
@@ -58,7 +57,6 @@ export default function PasswordPage() {
       form.data.password_confirmation &&
       form.data.password !== form.data.password_confirmation
     ) {
-      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
       newClientErrors.password_confirmation = 'La confirmación de contraseña no coincide';
       isValid = false;
     }
@@ -71,7 +69,7 @@ export default function PasswordPage() {
     return isValid;
   };
 
-  const updatePassword: FormEventHandler = (e) => {
+  const updatePassword: SubmitEventHandler = (e) => {
     e.preventDefault();
 
     if (!validateClientSide()) {

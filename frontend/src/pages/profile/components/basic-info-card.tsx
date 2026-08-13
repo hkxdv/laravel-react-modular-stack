@@ -23,7 +23,7 @@ export function BasicInfoCard({
 
   const formErrors = form.errors as Record<string, string | undefined>;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: React.SubmitEvent) => {
     e.preventDefault();
     form.patch(route('internal.staff.profile.update'), {
       preserveScroll: true,

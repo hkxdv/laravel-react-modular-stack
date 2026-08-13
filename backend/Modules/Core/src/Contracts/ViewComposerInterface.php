@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
 
@@ -40,7 +41,7 @@ interface ViewComposerInterface
      * @param  array<int, array<string, mixed>>  $panelItemsConfig  Configuración de los ítems del panel
      * @param  array<int, array<string, mixed>>  $contextualNavItemsConfig  Configuración de los ítems de navegación contextual
      * @param  callable  $permissionChecker  Función para verificar permisos
-     * @param  mixed  $user  Usuario autenticado
+     * @param  Authenticatable|null  $user  Usuario autenticado
      * @param  string|null  $functionalName  Nombre funcional del módulo
      * @param  array<string, mixed>  $data  Datos adicionales
      * @param  array<int, mixed>|array<string, mixed>|null  $stats  Estadísticas del módulo
@@ -53,7 +54,7 @@ interface ViewComposerInterface
         array $panelItemsConfig,
         array $contextualNavItemsConfig,
         callable $permissionChecker,
-        $user,
+        ?Authenticatable $user,
         ?string $functionalName = null,
         array $data = [],
         ?array $stats = null,
@@ -64,14 +65,14 @@ interface ViewComposerInterface
     /**
      * Método específico para preparar datos del dashboard principal.
      *
-     * @param  \Modules\Core\Infrastructure\Eloquent\Models\StaffUser|null  $user  Usuario autenticado
+     * @param  Authenticatable|null  $user  Usuario autenticado
      * @param  array<\Nwidart\Modules\Laravel\Module>  $availableModules  Módulos disponibles
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  Request  $request  Request actual
      * @return array<string, mixed> Datos para la vista del dashboard
      */
     public function composeDashboardViewContext(
-        $user,
+        ?Authenticatable $user,
         array $availableModules,
         callable $permissionChecker,
         Request $request

@@ -17,6 +17,9 @@ use Modules\Core\Domain\User\StaffUser as StaffUserDomain;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as StaffUserModel;
 use Modules\Core\Infrastructure\Laravel\Mappers\StaffUserMapper;
 
+use function Foundry\Helpers\configArray;
+use function Foundry\Helpers\configNullableString;
+
 /**
  * Servicio de orquestación de vistas de módulos (implementación Laravel).
  *
@@ -58,10 +61,8 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
             return $user instanceof Authenticatable ? $user : null;
         }
 
-        $guards = config('auth.guards', []);
-        $guardsArr = is_array($guards) ? $guards : [];
-        foreach (array_keys($guardsArr) as $candidate) {
-            $candidateGuard = is_string($candidate) ? $candidate : (string) $candidate;
+        $guardsArr = configArray('auth.guards');
+        foreach (array_keys($guardsArr) as $candidateGuard) {
             if ($candidateGuard === '') {
                 continue;
             }
@@ -73,10 +74,7 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
             }
         }
 
-        $defaultGuard = config('auth.defaults.guard');
-        $defaultGuardName = is_string($defaultGuard) && $defaultGuard !== ''
-            ? $defaultGuard
-            : null;
+        $defaultGuardName = configNullableString('auth.defaults.guard');
         if ($defaultGuardName !== null) {
             $user = $request->user($defaultGuardName);
 

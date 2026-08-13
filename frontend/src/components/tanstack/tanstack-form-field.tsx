@@ -14,11 +14,7 @@ interface FormFieldProps<T extends AnyFieldApi> {
 const getErrorMessage = (error: unknown): string | null => {
   if (!error) return null;
   if (typeof error === 'string') return error;
-  if (
-    typeof error === 'object' &&
-    'message' in error &&
-    typeof (error as { message: unknown }).message === 'string'
-  ) {
+  if (typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
     return (error as { message: string }).message;
   }
   return 'Error de validación';
@@ -36,7 +32,7 @@ export function FormField<T extends AnyFieldApi>({
   return (
     <div className={cn('grid w-full items-center gap-1.5', className)}>
       <Label
-        htmlFor={field.name}
+        htmlFor={field.name as string}
         className={cn(errorMessage ? 'text-destructive' : '', labelClassName)}
       >
         {label}

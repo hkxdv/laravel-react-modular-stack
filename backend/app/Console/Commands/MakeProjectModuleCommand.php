@@ -122,7 +122,7 @@ final class MakeProjectModuleCommand extends Command
                     'database/migrations',
                 ];
 
-                if (in_array($dir, $emptyDirectories)) {
+                if (in_array($dir, $emptyDirectories, true)) {
                     File::put($path.'/.gitkeep', '');
                     $this->line(
                         'Archivo creado: '.str_replace(
