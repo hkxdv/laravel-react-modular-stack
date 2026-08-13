@@ -38,7 +38,10 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect',
+        // Explicit version: 'detect' crashes on ESLint 10 because
+        // eslint-plugin-react calls context.getFilename(), removed in ESLint 10.
+        // https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
+        version: '19.2.7',
       },
       'import/resolver': {
         typescript: {

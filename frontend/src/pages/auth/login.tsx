@@ -7,7 +7,7 @@ import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { AlertCircle, LoaderCircle } from 'lucide-react';
-import { type FormEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import { type SubmitEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 interface LoginForm {
   email: string;
@@ -27,9 +27,9 @@ interface LoginProps {
 // Mensajes personalizados para claves de traducción comunes
 const errorMessages: Record<string, string> = {
   'auth.failed': 'Las credenciales proporcionadas no coinciden con nuestros registros.',
-  // eslint-disable-next-line sonarjs/no-hardcoded-passwords
   'auth.password': 'La contraseña ingresada es incorrecta.',
-  'auth.throttle': 'Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo en unos segundos.',
+  'auth.throttle':
+    'Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo en unos segundos.',
   'auth.not_verified':
     'Tu cuenta de correo electrónico no ha sido verificada. Por favor, revisa tu bandeja de entrada para el enlace de verificación.',
 };
@@ -40,7 +40,11 @@ const getErrorMessage = (error?: string) => {
   return errorMessages[error] ?? error;
 };
 
-export default function Login({ status, canResetPassword = false, errors: serverErrors }: Readonly<LoginProps>) {
+export default function Login({
+  status,
+  canResetPassword = false,
+  errors: serverErrors,
+}: Readonly<LoginProps>) {
   const form = useForm<Required<LoginForm>>({
     email: '',
     password: '',
@@ -137,18 +141,30 @@ export default function Login({ status, canResetPassword = false, errors: server
     showErrorToast('Error de inicio de sesión', errorMessage, <AlertCircle className="h-4 w-4" />);
   }, [serverErrors, handleFailedAttempt, showErrorToast]);
 
-  const submit: FormEventHandler = (e) => {
+  const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
     if (!form.data.email) {
-      showErrorToast('Campo requerido', 'El correo electrónico es necesario para iniciar sesión', <AlertCircle className="h-4 w-4" />);
+      showErrorToast(
+        'Campo requerido',
+        'El correo electrónico es necesario para iniciar sesión',
+        <AlertCircle className="h-4 w-4" />,
+      );
       return;
     }
     if (!form.data.password) {
-      showErrorToast('Campo requerido', 'La contraseña es necesaria para iniciar sesión', <AlertCircle className="h-4 w-4" />);
+      showErrorToast(
+        'Campo requerido',
+        'La contraseña es necesaria para iniciar sesión',
+        <AlertCircle className="h-4 w-4" />,
+      );
       return;
     }
     if (form.data.password.length < 6) {
-      showErrorToast('Contraseña inválida', 'La contraseña debe tener al menos 6 caracteres', <AlertCircle className="h-4 w-4" />);
+      showErrorToast(
+        'Contraseña inválida',
+        'La contraseña debe tener al menos 6 caracteres',
+        <AlertCircle className="h-4 w-4" />,
+      );
       return;
     }
     shownErrors.current.clear();
@@ -164,7 +180,11 @@ export default function Login({ status, canResetPassword = false, errors: server
           const isThrottled = errorKey === 'auth.throttle';
           handleFailedAttempt(isThrottled);
           const errorMessage = getErrorMessage(errorKey);
-          showErrorToast('Error de inicio de sesión', errorMessage, <AlertCircle className="h-4 w-4" />);
+          showErrorToast(
+            'Error de inicio de sesión',
+            errorMessage,
+            <AlertCircle className="h-4 w-4" />,
+          );
         } else {
           showErrorToast(
             'Error inesperado',
@@ -214,7 +234,9 @@ export default function Login({ status, canResetPassword = false, errors: server
               }}
               placeholder="correo@ejemplo.com"
               className={
-                form.errors.email ? 'border-red-500 focus-visible:ring-red-500' : 'focus:border-primary focus-visible:ring-primary/30'
+                form.errors.email
+                  ? 'border-red-500 focus-visible:ring-red-500'
+                  : 'focus:border-primary focus-visible:ring-primary/30'
               }
               disabled={isLocked || form.processing}
               maxLength={100}
@@ -225,7 +247,10 @@ export default function Login({ status, canResetPassword = false, errors: server
             <div className="flex items-center">
               <Label htmlFor="password">Contraseña</Label>
               {canResetPassword && (
-                <TextLink href={route('password.request')} className="hover:text-primary ml-auto text-sm">
+                <TextLink
+                  href={route('password.request')}
+                  className="hover:text-primary ml-auto text-sm"
+                >
                   ¿Olvidaste tu contraseña?
                 </TextLink>
               )}
@@ -241,7 +266,9 @@ export default function Login({ status, canResetPassword = false, errors: server
               }}
               placeholder="Contraseña"
               className={
-                form.errors.password ? 'border-red-500 focus-visible:ring-red-500' : 'focus:border-primary focus-visible:ring-primary/30'
+                form.errors.password
+                  ? 'border-red-500 focus-visible:ring-red-500'
+                  : 'focus:border-primary focus-visible:ring-primary/30'
               }
               disabled={isLocked || form.processing}
               maxLength={100}
@@ -273,7 +300,11 @@ export default function Login({ status, canResetPassword = false, errors: server
             {isLocked ? `Bloqueado (${lockCountdown}s)` : 'Iniciar sesión'}
           </Button>
 
-          {isLocked && <p className="text-center text-sm text-red-500">Demasiados intentos fallidos. Intenta de nuevo más tarde.</p>}
+          {isLocked && (
+            <p className="text-center text-sm text-red-500">
+              Demasiados intentos fallidos. Intenta de nuevo más tarde.
+            </p>
+          )}
         </div>
       </form>
     </AuthLayout>

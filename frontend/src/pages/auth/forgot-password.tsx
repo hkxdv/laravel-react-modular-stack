@@ -6,7 +6,7 @@ import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import React, { type FormEventHandler } from 'react';
+import React, { type SubmitEventHandler } from 'react';
 
 export default function ForgotPassword({ status }: Readonly<{ status?: string }>) {
   const { data, setData, post, processing, errors } = useForm<Required<{ email: string }>>({
@@ -30,7 +30,7 @@ export default function ForgotPassword({ status }: Readonly<{ status?: string }>
     return code;
   }, [errors.email]);
 
-  const submit: FormEventHandler = (e) => {
+  const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
 
     post(route('password.email'));

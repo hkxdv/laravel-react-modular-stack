@@ -39,41 +39,41 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1024,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-day-picker'],
-            'ui-vendor': [
-              '@radix-ui/react-accordion',
-              '@radix-ui/react-alert-dialog',
-              '@radix-ui/react-avatar',
-              '@radix-ui/react-checkbox',
-              '@radix-ui/react-collapsible',
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-icons',
-              '@radix-ui/react-label',
-              '@radix-ui/react-navigation-menu',
-              '@radix-ui/react-popover',
-              '@radix-ui/react-progress',
-              '@radix-ui/react-radio-group',
-              '@radix-ui/react-scroll-area',
-              '@radix-ui/react-select',
-              '@radix-ui/react-separator',
-              '@radix-ui/react-slot',
-              '@radix-ui/react-switch',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-toast',
-              '@radix-ui/react-toggle',
-              '@radix-ui/react-toggle-group',
-              '@radix-ui/react-tooltip',
-              'lucide-react',
-              'sonner',
-              'class-variance-authority',
-              'clsx',
-              'tailwind-merge',
-            ],
-            'tanstack-vendor': ['@tanstack/react-form', '@tanstack/react-query', '@tanstack/react-table'],
-            'inertia-vendor': ['@inertiajs/react', '@inertiajs/core', 'axios'],
-            'motion-vendor': ['motion', 'tailwindcss-animate'],
+          // Vite 8 (rolldown) only accepts manualChunks as a function,
+          // not the Rollup object shorthand.
+          manualChunks: (moduleId: string): string | undefined => {
+            if (!moduleId.includes('node_modules')) return;
+
+            if (
+              moduleId.includes('react') ||
+              moduleId.includes('react-dom') ||
+              moduleId.includes('react-day-picker')
+            ) {
+              return 'react-vendor';
+            }
+            if (
+              moduleId.includes('@radix-ui') ||
+              moduleId.includes('lucide-react') ||
+              moduleId.includes('sonner') ||
+              moduleId.includes('class-variance-authority') ||
+              moduleId.includes('clsx') ||
+              moduleId.includes('tailwind-merge')
+            ) {
+              return 'ui-vendor';
+            }
+            if (moduleId.includes('@tanstack')) {
+              return 'tanstack-vendor';
+            }
+            if (moduleId.includes('@inertiajs') || moduleId.includes('axios')) {
+              return 'inertia-vendor';
+            }
+            if (moduleId.includes('motion') || moduleId.includes('tailwindcss-animate')) {
+              return 'motion-vendor';
+            }
+
+            // Required by tsconfig noImplicitReturns; not redundant.
+            // eslint-disable-next-line sonarjs/no-redundant-jump
+            return;
           },
         },
       },

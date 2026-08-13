@@ -119,7 +119,7 @@ export function RowActionsMenu({
                   href={it.href}
                   target={it.target}
                   onClick={(e) => {
-                    it.onClick?.(e as unknown as MouseEvent);
+                    it.onClick?.(e);
                     setOpen(false);
                   }}
                 >

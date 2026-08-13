@@ -120,7 +120,7 @@ const UserForm: React.FC<UserFormProps> = ({
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSubmit(form.data);
   };

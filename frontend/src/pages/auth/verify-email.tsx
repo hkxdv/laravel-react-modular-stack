@@ -10,7 +10,7 @@ export default function VerifyEmail({ status }: Readonly<{ status?: string }>) {
   const { post, processing } = useForm({});
   const { showSuccess } = useToastNotifications();
 
-  const submit = (e?: React.FormEvent) => {
+  const submit = (e?: React.SubmitEvent) => {
     if (e) e.preventDefault();
     post(route('verification.send'));
   };

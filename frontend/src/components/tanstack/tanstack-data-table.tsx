@@ -151,10 +151,7 @@ export function TanStackDataTable<TData, TValue>({
     globalFilterFn: 'includesString',
     onSortingChange: (updater: Updater<SortingState>) => {
       // Compatibilidad con updater function o estado directo, con tipos seguros
-      const nextSorting: SortingState =
-        typeof updater === 'function'
-          ? (updater as (old: SortingState) => SortingState)(sorting)
-          : updater;
+      const nextSorting: SortingState = typeof updater === 'function' ? updater(sorting) : updater;
       setSorting(nextSorting);
       externalOnSortingChange?.(nextSorting);
     },
