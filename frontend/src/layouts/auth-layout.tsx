@@ -7,7 +7,11 @@ interface AuthLayoutProps {
   description?: string;
 }
 
-export default function AuthLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
+export default function AuthLayout({
+  children,
+  title,
+  description,
+}: PropsWithChildren<AuthLayoutProps>) {
   return (
     <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="w-full max-w-sm">

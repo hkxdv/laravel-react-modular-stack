@@ -73,7 +73,10 @@ void createInertiaApp({
       .catch((error: unknown) => {
         // En caso de que falle la obtención del token, se muestra un error.
         // Esto evita que la aplicación se cargue en un estado inconsistente.
-        console.error('Error crítico al inicializar la aplicación: no se pudo obtener el token CSRF.', error);
+        console.error(
+          'Error crítico al inicializar la aplicación: no se pudo obtener el token CSRF.',
+          error,
+        );
         root.render(
           <div className="flex h-screen items-center justify-center bg-red-100 text-red-800">
             <p>Error de inicialización. Por favor, recargue la página.</p>

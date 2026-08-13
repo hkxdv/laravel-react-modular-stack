@@ -2,7 +2,10 @@
  * Página de Dashboard interno
  * Presenta módulos disponibles, estadísticas y navegación contextual.
  */
-import { EnhancedStatsCards, type EnhancedStat } from '@/components/modules/module-enhanced-stats-cards';
+import {
+  EnhancedStatsCards,
+  type EnhancedStat,
+} from '@/components/modules/module-enhanced-stats-cards';
 import { ModuleNavCards } from '@/components/modules/module-nav-cards';
 import { EnhancedStatsCardsSkeleton } from '@/components/modules/skeletons/module-enhanced-stats-cards-skeleton';
 import { ModuleNavCardsSkeleton } from '@/components/modules/skeletons/module-nav-cards-skeleton';
@@ -158,7 +161,9 @@ export default function DashboardPage() {
             <div className="mb-8">
               <div className="mb-6">
                 <h2 className="text-foreground text-xl font-semibold">Módulos disponibles</h2>
-                <p className="text-muted-foreground mt-1 text-sm">Seleccione un módulo para acceder a sus funciones.</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Seleccione un módulo para acceder a sus funciones.
+                </p>
               </div>
               <ModuleNavCards items={accessibleModuleNavItems} getIconComponent={getLucideIcon} />
             </div>
@@ -168,13 +173,18 @@ export default function DashboardPage() {
             <div className="mb-8">
               <div className="mb-6">
                 <h2 className="text-foreground text-xl font-semibold">Módulos restringidos</h2>
-                <p className="text-muted-foreground mt-1 text-sm">No tiene acceso a estos módulos.</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  No tiene acceso a estos módulos.
+                </p>
               </div>
               <div className="grid grid-cols-1 gap-5 opacity-70 sm:grid-cols-2 lg:grid-cols-3">
                 {restrictedModules.map((module) => {
                   const IconComponent = getLucideIcon(module.icon);
                   return (
-                    <div key={module.name} className="group border-border bg-muted/30 block h-full overflow-hidden rounded-lg border">
+                    <div
+                      key={module.name}
+                      className="group border-border bg-muted/30 block h-full overflow-hidden rounded-lg border"
+                    >
                       <div className="border-border flex flex-row items-center justify-between space-y-0 border-b p-4">
                         <h3 className="text-foreground text-xl font-semibold">{module.name}</h3>
                         <div className="bg-muted rounded-full p-2.5">
