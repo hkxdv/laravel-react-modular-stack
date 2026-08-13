@@ -26,6 +26,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Initial Page Format
+    |--------------------------------------------------------------------------
+    |
+    | Emit the initial page as a <script data-page type="application/json">
+    | element, which @inertiajs/react v3 requires. The legacy <div data-page>
+    | format is only read by v2 clients.
+    |
+    */
+
+    'use_script_element_for_initial_page' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Testing
     |--------------------------------------------------------------------------
     |
