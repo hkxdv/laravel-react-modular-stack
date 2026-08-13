@@ -2,8 +2,14 @@
   "$schema": "https://getcomposer.org/schema.json",
   "name": "foundry-stack/backend",
   "type": "project",
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../packages/foundry-php-utils"
+    }
+  ],
   "require": {
-    "php": "^8.4",
+    "php": "^8.4 || ^8.5",
     "inertiajs/inertia-laravel": "^2.0.10",
     "jenssegers/agent": "^2.6.4",
     "laravel/framework": "^12.32.5",
@@ -15,23 +21,26 @@
     "spatie/laravel-activitylog": "^4.10.2",
     "spatie/laravel-data": "^4.17.1",
     "spatie/laravel-permission": "^6.21",
-    "tightenco/ziggy": "^2.6"
+    "tightenco/ziggy": "^2.6",
+    "foundry-stack/foundry-php-utils": "@dev"
   },
   "require-dev": {
-    "fakerphp/faker": "^1.24.1",
     "driftingly/rector-laravel": "^2.0.7",
+    "fakerphp/faker": "^1.24.1",
+    "larastan/larastan": "^3.7",
     "laravel/boost": "^1.2.1",
     "laravel/pail": "^1.2.3",
     "laravel/pint": "^1.25.1",
     "laravel/telescope": "^5.13",
+    "mockery/mockery": "^1.6",
     "pestphp/pest": "^4.1.2",
     "phpstan/phpstan": "^2.1",
-    "larastan/larastan": "^3.7",
     "rector/rector": "^2.1"
   },
   "autoload": {
     "psr-4": {
       "App\\": "app/",
+      "App\\Bootstrap\\EnvLoaders\\": "bootstrap/EnvLoaders/",
       "Database\\Factories\\": "../database/factories/",
       "Database\\Seeders\\": "../database/seeders/"
     },
@@ -41,7 +50,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
+      "Tests\\": "tests/",
+      "Modules\\Core\\Tests\\": "Modules/Core/tests/"
     }
   },
   "scripts": {
