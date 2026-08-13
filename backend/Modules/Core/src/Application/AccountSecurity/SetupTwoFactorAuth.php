@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\SetupTwoFactorAuthInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
+use function Foundry\Helpers\configInt;
+use function Foundry\Helpers\configString;
+
 /**
  * Caso de uso: iniciar configuración de 2FA (TOTP) para un usuario.
  *
@@ -24,13 +27,7 @@ final readonly class SetupTwoFactorAuth implements SetupTwoFactorAuthInterface
     public function handle(StaffUser $user): array
     {
         $secret = $this->generateBase32Secret(20);
-        $rawCount = config('security.two_factor.staff.backup_codes_count', 10);
-        $count = is_int($rawCount)
-            ? $rawCount
-            : (is_numeric($rawCount)
-                ? (int) $rawCount
-                : 10
-            );
+        $count = configInt('security.two_factor.staff.backup_codes_count', 10);
         $recoveryCodes = $this->generateRecoveryCodes($count);
 
         $user->forceFill([
@@ -54,10 +51,7 @@ final readonly class SetupTwoFactorAuth implements SetupTwoFactorAuthInterface
             ->event('two_factor_setup_started')
             ->log('Inicio de configuración de 2FA');
 
-        $rawIssuer = config('app.name', 'Foundry Stack');
-        $issuer = is_string($rawIssuer) && $rawIssuer !== ''
-            ? $rawIssuer
-            : 'Foundry Stack';
+        $issuer = configString('app.name', 'Foundry Stack');
 
         return [
             'secret' => $secret,

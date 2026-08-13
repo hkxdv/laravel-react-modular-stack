@@ -9,6 +9,8 @@ use Modules\Core\Domain\User\StaffUser as DomainStaffUser;
 use Modules\Core\Domain\User\StaffUserId;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as EloquentStaffUser;
 
+use function Foundry\Helpers\userId;
+
 /**
  * Mapper de infraestructura para convertir modelos Eloquent a entidades de dominio.
  */
@@ -21,13 +23,7 @@ final readonly class StaffUserMapper
      */
     public static function toDomain(EloquentStaffUser $model): DomainStaffUser
     {
-        $rawId = $model->getAuthIdentifier();
-        $idStr = is_string($rawId)
-            ? $rawId
-            : (is_int($rawId)
-                ? (string) $rawId
-                : ''
-            );
+        $idStr = userId($model, '');
 
         $permissions = PermissionCollection::fromArray(
             $model->getAllCrossGuardPermissions()

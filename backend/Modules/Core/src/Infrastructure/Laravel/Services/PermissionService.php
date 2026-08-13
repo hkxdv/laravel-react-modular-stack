@@ -9,6 +9,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 
+use function Foundry\Helpers\cacheInt;
+
 /**
  * Servicio de verificación de permisos (implementación Laravel).
  *
@@ -43,7 +45,7 @@ final class PermissionService implements PermissionVerifierInterface
         }
 
         // Fallback: Si el usuario tiene el método hasPermissionTo (Spatie) pero no implementa nuestra interfaz
-        if (method_exists($user, 'hasPermissionTo')) { // @phpstan-ignore function.alreadyNarrowedType
+        if (method_exists($user, 'hasPermissionTo')) {
             if (is_array($permission)) {
                 /** @disregard P1013 Undefined method 'hasPermissionTo' */
                 $result = array_reduce(
@@ -79,7 +81,7 @@ final class PermissionService implements PermissionVerifierInterface
         }
 
         // Si el usuario usa el trait HasCrossGuardPermissions pero no implementa la interfaz (caso raro)
-        if (method_exists($user, 'hasPermissionToCross')) { // @phpstan-ignore function.alreadyNarrowedType
+        if (method_exists($user, 'hasPermissionToCross')) {
             /** @disregard P1013 Undefined method 'hasPermissionToCross' */
             return (bool) $user->hasPermissionToCross($permission);
         }
@@ -97,13 +99,12 @@ final class PermissionService implements PermissionVerifierInterface
         $authIdentifier = $user->getAuthIdentifier();
         if (is_numeric($authIdentifier) || is_string($authIdentifier)) {
             $key = 'user.'.$authIdentifier.'.perm_version';
-            $val = Cache::get($key, 0);
-            $currentVersion = is_numeric($val) ? (int) $val : 0;
+            $currentVersion = cacheInt($key, 0);
             Cache::put($key, $currentVersion + 1, now()->addDays(30));
         }
 
         // También limpiar caché de Spatie si es necesario
-        if (method_exists($user, 'forgetCachedPermissions')) { // @phpstan-ignore function.alreadyNarrowedType
+        if (method_exists($user, 'forgetCachedPermissions')) {
             /** @disregard P1013 Undefined method 'forgetCachedPermissions' */
             $user->forgetCachedPermissions();
         }

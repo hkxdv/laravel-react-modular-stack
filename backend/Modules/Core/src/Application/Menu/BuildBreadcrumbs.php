@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Route;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Domain\Menu\MenuConfigResolver;
 
+use function Foundry\Helpers\cacheArray;
+use function Foundry\Helpers\cacheInt;
+use function Foundry\Helpers\configInt;
+use function Foundry\Helpers\configString;
+
 /**
  * Construye breadcrumbs para rutas internas de módulos/addons.
  *
@@ -51,38 +56,20 @@ final readonly class BuildBreadcrumbs
         array $viewData = []
     ): array {
         $t0 = microtime(true);
-        $cacheConfigRaw = config('core.cache', []);
-        $cacheConfig = is_array($cacheConfigRaw) ? $cacheConfigRaw : [];
-        $navCachePrefix = is_string($cacheConfig['nav_cache_prefix'] ?? null)
-            ? $cacheConfig['nav_cache_prefix']
-            : 'core:nav:';
+        $navCachePrefix = configString('core.cache.nav_cache_prefix', 'core:nav:');
         if (! str_ends_with($navCachePrefix, ':')) {
             $navCachePrefix .= ':';
         }
 
-        $navVersionKey = is_string($cacheConfig['nav_version_key'] ?? null)
-            ? $cacheConfig['nav_version_key']
-            : 'core.nav_version';
-        $ttlRaw = $cacheConfig['breadcrumbs_ttl_seconds'] ?? 300;
-        $ttlSeconds = is_int($ttlRaw)
-            ? $ttlRaw
-            : (is_numeric($ttlRaw)
-                ? (int) $ttlRaw
-                : 300
-            );
+        $navVersionKey = configString('core.cache.nav_version_key', 'core.nav_version');
+        $ttlSeconds = configInt('core.cache.breadcrumbs_ttl_seconds', 300);
         if ($ttlSeconds < 1) {
             $ttlSeconds = 300;
         }
 
         $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
 
-        $rawNavVersion = Cache::get($navVersionKey, 0);
-        $navVersion = is_int($rawNavVersion)
-            ? $rawNavVersion
-            : (is_numeric($rawNavVersion)
-                ? (int) $rawNavVersion
-                : 0
-            );
+        $navVersion = cacheInt($navVersionKey, 0);
 
         $key = implode('|', [
             'breadcrumbs',
@@ -94,8 +81,8 @@ final readonly class BuildBreadcrumbs
         ]);
         $cacheKey = $navCachePrefix.'breadcrumbs:'.md5($key);
 
-        $cached = Cache::get($cacheKey);
-        if (is_array($cached)) {
+        $cached = cacheArray($cacheKey);
+        if ($cached !== []) {
             $out = [];
             foreach ($cached as $b) {
                 if (! is_array($b)) {

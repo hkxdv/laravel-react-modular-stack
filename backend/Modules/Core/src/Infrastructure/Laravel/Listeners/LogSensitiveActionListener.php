@@ -7,6 +7,8 @@ namespace Modules\Core\Infrastructure\Laravel\Listeners;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Modules\Core\Contracts\AuditTrailInterface;
 
+use function Foundry\Helpers\userId;
+
 /**
  * Listener para registrar eventos sensibles en el canal de auditoría.
  *
@@ -34,13 +36,11 @@ final readonly class LogSensitiveActionListener
         $user = isset($event->user) && $event->user instanceof Authenticatable
             ? $event->user
             : null;
-        $userId = $user instanceof Authenticatable
-            ? $user->getAuthIdentifier()
-            : 'guest';
+        $uid = userId($user);
 
         $this->auditTrail->record('sensitive_action', [
             'event_class' => $event::class,
-            'user_id' => $userId,
+            'user_id' => $uid,
         ]);
     }
 }

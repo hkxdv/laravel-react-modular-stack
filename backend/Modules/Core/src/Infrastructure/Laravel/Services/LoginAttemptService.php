@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Modules\Core\Contracts\AccountSecurity\LoginAttemptInterface;
 
+use function Foundry\Helpers\cacheInt;
+
 /**
  * Servicio de gestión de intentos de login y rate limiting.
  *
@@ -153,13 +155,7 @@ final class LoginAttemptService implements LoginAttemptInterface
     {
         // Contar intentos fallidos totales desde esta IP en diferentes cuentas
         $ipAttemptsKey = 'login_attempts_ip:'.$ip;
-        $raw = Cache::get($ipAttemptsKey, 0);
-        $base = 0;
-        if (is_int($raw)) {
-            $base = $raw;
-        } elseif (is_string($raw) || is_float($raw)) {
-            $base = (int) $raw;
-        }
+        $base = cacheInt($ipAttemptsKey, 0);
 
         $ipAttempts = $base + 1;
 

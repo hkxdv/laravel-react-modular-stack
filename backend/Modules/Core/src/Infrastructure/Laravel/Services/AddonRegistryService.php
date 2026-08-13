@@ -14,6 +14,14 @@ use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
 use Nwidart\Modules\Facades\Module;
 use Nwidart\Modules\Laravel\Module as ModuleInstance;
 
+use function Foundry\Helpers\cacheArray;
+use function Foundry\Helpers\cacheInt;
+use function Foundry\Helpers\configArray;
+use function Foundry\Helpers\configInt;
+use function Foundry\Helpers\configString;
+use function Foundry\Helpers\fileModificationTime;
+use function Foundry\Helpers\userId;
+
 /**
  * Servicio de registro y acceso a addons/módulos (implementación Laravel).
  *
@@ -56,12 +64,8 @@ final class AddonRegistryService implements AddonRegistryInterface
 
         // Si no se proporciona usuario, intentar obtener el usuario autenticado desde cualquier guard
         if (! $user instanceof User) {
-            $guards = config('auth.guards', []);
-            $guardsArr = is_array($guards) ? $guards : [];
-            foreach (array_keys($guardsArr) as $guardName) {
-                $guard = is_string($guardName)
-                    ? $guardName
-                    : (string) $guardName;
+            $guardsArr = configArray('auth.guards');
+            foreach (array_keys($guardsArr) as $guard) {
                 if (Auth::guard($guard)->check()) {
                     $user = Auth::guard($guard)->user();
                     break;
@@ -111,15 +115,7 @@ final class AddonRegistryService implements AddonRegistryInterface
         }
 
         // Obtener la configuración y guardarla en caché
-        $configRaw = config($moduleSlug, []);
-        $config = [];
-        if (is_array($configRaw)) {
-            foreach ($configRaw as $k => $v) {
-                if (is_string($k)) {
-                    $config[$k] = $v;
-                }
-            }
-        }
+        $config = configArray($moduleSlug);
 
         $this->configCache[$moduleSlug] = $config;
 
@@ -139,13 +135,9 @@ final class AddonRegistryService implements AddonRegistryInterface
 
         $addonConfig = AddonConfig::fromArray($moduleName, $config);
 
-        $guards = config('auth.guards', []);
-        $guardsArr = is_array($guards) ? $guards : [];
+        $guardsArr = configArray('auth.guards');
         $availableGuards = array_values(array_filter(
-            array_map(
-                static fn (int|string $k): string => is_string($k) ? $k : (string) $k,
-                array_keys($guardsArr)
-            ),
+            array_keys($guardsArr),
             static fn (string $g): bool => $g !== ''
         ));
 
@@ -194,19 +186,8 @@ final class AddonRegistryService implements AddonRegistryInterface
     {
         $this->configCache = [];
 
-        $cacheConfigRaw = config('core.cache', []);
-        $cacheConfig = is_array($cacheConfigRaw) ? $cacheConfigRaw : [];
-        $navVersionKey = is_string($cacheConfig['nav_version_key'] ?? null)
-            ? $cacheConfig['nav_version_key']
-            : 'core.nav_version';
-
-        $rawVersion = Cache::get($navVersionKey, 0);
-        $currentVersion = is_int($rawVersion)
-            ? $rawVersion
-            : (is_numeric($rawVersion)
-                ? (int) $rawVersion
-                : 0
-            );
+        $navVersionKey = configString('core.cache.nav_version_key', 'core.nav_version');
+        $currentVersion = cacheInt($navVersionKey, 0);
         Cache::forever($navVersionKey, $currentVersion + 1);
     }
 
@@ -215,54 +196,24 @@ final class AddonRegistryService implements AddonRegistryInterface
      */
     public function getGlobalNavItems(?User $user = null): array
     {
-        $cacheConfigRaw = config('core.cache', []);
-        $cacheConfig = is_array($cacheConfigRaw) ? $cacheConfigRaw : [];
-        $navCachePrefix = is_string($cacheConfig['nav_cache_prefix'] ?? null)
-            ? $cacheConfig['nav_cache_prefix']
-            : 'core:nav:';
+        $navCachePrefix = configString('core.cache.nav_cache_prefix', 'core:nav:');
         if (! str_ends_with($navCachePrefix, ':')) {
             $navCachePrefix .= ':';
         }
 
-        $navVersionKey = is_string($cacheConfig['nav_version_key'] ?? null)
-            ? $cacheConfig['nav_version_key']
-            : 'core.nav_version';
-        $ttlRaw = $cacheConfig['global_nav_items_ttl_seconds'] ?? 300;
-        $ttlSeconds = is_int($ttlRaw)
-            ? $ttlRaw
-            : (is_numeric($ttlRaw)
-                ? (int) $ttlRaw
-                : 300
-            );
+        $navVersionKey = configString('core.cache.nav_version_key', 'core.nav_version');
+        $ttlSeconds = configInt('core.cache.global_nav_items_ttl_seconds', 300);
         if ($ttlSeconds < 1) {
             $ttlSeconds = 300;
         }
 
         $keyParts = ['global_nav'];
-        $rawNavVersion = Cache::get($navVersionKey, 0);
-        $navVersion = is_int($rawNavVersion)
-            ? $rawNavVersion
-            : (is_numeric($rawNavVersion)
-                ? (int) $rawNavVersion
-                : 0
-            );
+        $navVersion = cacheInt($navVersionKey, 0);
         $keyParts[] = 'nv'.$navVersion;
         if ($user instanceof User) {
-            $rawId = $user->getAuthIdentifier();
-            $userId = is_string($rawId)
-                ? $rawId
-                : (is_int($rawId)
-                    ? (string) $rawId
-                    : 'guest'
-                );
+            $userId = userId($user);
             $keyParts[] = $userId;
-            $versionRaw = Cache::get('user.'.$userId.'.perm_version', 0);
-            $version = is_int($versionRaw)
-                ? $versionRaw
-                : (is_numeric($versionRaw)
-                    ? (int) $versionRaw
-                    : 0
-                );
+            $version = cacheInt('user.'.$userId.'.perm_version', 0);
             $keyParts[] = 'v'.$version;
             $permissions = $user->getAttribute('frontend_permissions');
             $keyParts[] = md5((string) json_encode($permissions));
@@ -285,8 +236,8 @@ final class AddonRegistryService implements AddonRegistryInterface
         $keyParts[] = md5((string) json_encode($settingsGroup));
 
         $cacheKey = $navCachePrefix.'global:'.md5(implode('|', $keyParts));
-        $cachedRaw = Cache::get($cacheKey);
-        if (is_array($cachedRaw)) {
+        $cachedRaw = cacheArray($cacheKey);
+        if ($cachedRaw !== []) {
             $cachedItems = [];
             foreach ($cachedRaw as $v) {
                 if (! is_array($v)) {
@@ -380,36 +331,21 @@ final class AddonRegistryService implements AddonRegistryInterface
      */
     private function syncModuleStatusesCache(): void
     {
-        $cacheConfigRaw = config('core.cache', []);
-        $cacheConfig = is_array($cacheConfigRaw) ? $cacheConfigRaw : [];
-        $mtimeKey = is_string($cacheConfig['modules_statuses_mtime_key'] ?? null)
-            ? $cacheConfig['modules_statuses_mtime_key']
-            : 'core.modules_statuses_mtime';
+        $mtimeKey = configString('core.cache.modules_statuses_mtime_key', 'core.modules_statuses_mtime');
 
-        $statusesFileRaw = config('modules.activators.file.statuses-file');
-        $statusesFile = is_string($statusesFileRaw) && $statusesFileRaw !== ''
-            ? $statusesFileRaw
-            : base_path('modules_statuses.json');
+        $statusesFile = configString(
+            'modules.activators.file.statuses-file',
+            base_path('modules_statuses.json')
+        );
 
-        if ($statusesFile === '' || ! file_exists($statusesFile)) {
+        $mtime = fileModificationTime($statusesFile);
+        if ($mtime === 0) {
             return;
         }
 
-        $mtimeRaw = filemtime($statusesFile);
-        $mtime = is_int($mtimeRaw) ? $mtimeRaw : null;
-        if ($mtime === null) {
-            return;
-        }
+        $cachedMtime = cacheInt($mtimeKey, -1);
 
-        $cachedMtimeRaw = Cache::get($mtimeKey);
-        $cachedMtime = is_int($cachedMtimeRaw)
-            ? $cachedMtimeRaw
-            : (is_numeric($cachedMtimeRaw)
-                ? (int) $cachedMtimeRaw
-                : null
-            );
-
-        if ($cachedMtime === null || $cachedMtime !== $mtime) {
+        if ($cachedMtime === -1 || $cachedMtime !== $mtime) {
             $this->clearConfigCache();
             Cache::forever($mtimeKey, $mtime);
         }
