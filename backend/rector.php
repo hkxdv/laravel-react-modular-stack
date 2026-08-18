@@ -62,4 +62,11 @@ return RectorConfig::configure()
     )
     ->withAttributesSets()
     // Set explicit PHP version to avoid composer.json lookup from CWD
-    ->withPhpSets(php84: true);
+    ->withPhpSets(php84: true)
+    // Cap parallel workers and memory to avoid saturating the machine on ~2.5k files
+    ->withParallel(
+        timeoutSeconds: 120,
+        maxNumberOfProcess: 4,
+        jobSize: 20,
+    )
+    ->withMemoryLimit('512M');

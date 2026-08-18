@@ -6,6 +6,9 @@ parameters:
 
     phpVersion: 80408
 
+    parallel:
+        maximumNumberOfProcesses: 4
+
     paths:
         - app
         - bootstrap/
