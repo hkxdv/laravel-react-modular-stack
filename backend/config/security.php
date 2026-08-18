@@ -67,7 +67,7 @@ return [
     */
     'two_factor' => [
         'staff' => [
-            'required' => env('STAFF_2FA_REQUIRED', true),
+            'required' => env('STAFF_2FA_REQUIRED', false),
             'methods' => ['totp', 'sms', 'email'],
             'backup_codes_count' => 10,
             'totp_window' => 30,

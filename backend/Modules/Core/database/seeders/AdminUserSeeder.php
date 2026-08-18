@@ -51,6 +51,25 @@ final class AdminUserSeeder extends Seeder
             }
         } else {
             $this->command->info('Usuario ADMIN ya existe: '.$admin->name);
+
+            // Asegurar email_verified_at aunque el admin exista de una corrida parcial previa
+            if ($admin->email_verified_at === null) {
+                $admin->forceFill(['email_verified_at' => now()])->save();
+                $this->command->info('email_verified_at establecido en admin existente.');
+            }
+
+            // Re-asignar rol ADMIN si se perdió (ej. truncate de model_has_roles)
+            if (! $admin->hasRole('ADMIN', 'staff')) {
+                try {
+                    $role = Role::findByName('ADMIN', 'staff');
+                    $admin->assignRole($role);
+                    $this->command->info('Rol ADMIN re-asignado a admin existente.');
+                } catch (Throwable $e) {
+                    $this->command->error(
+                        'Error al re-asignar rol ADMIN: '.$e->getMessage()
+                    );
+                }
+            }
         }
 
         $this->command->info('Seeder completado.');
