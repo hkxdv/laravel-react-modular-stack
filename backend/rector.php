@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+use RectorLaravel\Rector\Class_\AddHasFactoryToModelsRector;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
 
@@ -46,6 +47,9 @@ return RectorConfig::configure()
         RectorLaravel\Rector\ArrayDimFetch\ServerVariableToRequestFacadeRector::class => [
             __DIR__.'/bootstrap/app.php',
             __DIR__.'/bootstrap/modules/env.php',
+        ],
+        AddHasFactoryToModelsRector::class => [
+            __DIR__.'/Modules/Core/src/Infrastructure/Eloquent/Models/AbstractDomainUser.php',
         ],
     ])
     ->withPreparedSets(

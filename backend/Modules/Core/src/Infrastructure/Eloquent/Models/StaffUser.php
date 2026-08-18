@@ -4,23 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Eloquent\Models;
 
-use App\Interfaces\AuthenticatableUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
-use Laravel\Sanctum\HasApiTokens;
 use Modules\Core\Database\Factories\StaffUsersFactory;
-use Modules\Core\Infrastructure\Laravel\Traits\CanBeImpersonated;
-use Modules\Core\Infrastructure\Laravel\Traits\HasCrossGuardPermissions;
 use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Permission\Traits\HasRoles;
-
-use function Foundry\Helpers\cacheInt;
-use function Foundry\Helpers\userId;
 
 /**
  * Modelo de Usuario para el personal interno (Staff).
@@ -36,18 +24,10 @@ use function Foundry\Helpers\userId;
  *
  * @use HasFactory<StaffUsersFactory>
  */
-final class StaffUser extends Authenticatable implements AuthenticatableUser, MustVerifyEmail
+class StaffUser extends AbstractDomainUser implements MustVerifyEmail
 {
-    use CanBeImpersonated;
-    use HasApiTokens;
-    use HasCrossGuardPermissions;
-
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
-
-    use HasRoles;
-    use LogsActivity;
-    use Notifiable;
 
     /**
      * El nombre de la tabla asociada con el modelo.
@@ -90,16 +70,6 @@ final class StaffUser extends Authenticatable implements AuthenticatableUser, Mu
         'password_changed_at' => 'datetime',
         'last_activity' => 'datetime',
         'two_factor_confirmed_at' => 'datetime',
-    ];
-
-    /**
-     * Atributos agregados al array/JSON automáticamente.
-     * Esto permite exponer 'avatar' como un atributo computado.
-     *
-     * @var list<string>
-     */
-    protected $appends = [
-        'avatar',
     ];
 
     // @phpstan-ignore property.onlyWritten (used magically by Spatie HasRoles trait)
@@ -196,8 +166,6 @@ final class StaffUser extends Authenticatable implements AuthenticatableUser, Mu
             ))
             ->first();
 
-        // Si hay un dispositivo de confianza conocido, no es sospechoso
-        // Si no coincide con ningún dispositivo de confianza, es sospechoso
         return ! $knownDevice;
     }
 
@@ -213,57 +181,12 @@ final class StaffUser extends Authenticatable implements AuthenticatableUser, Mu
     }
 
     /**
-     * Verifica si el usuario está activo.
-     */
-    public function isActive(): bool
-    {
-        // Por defecto, todos los usuarios staff están activos
-        return true;
-    }
-
-    /**
-     * Verifica si el usuario ha sido eliminado (soft delete).
-     */
-    public function trashed(): bool
-    {
-        return false;
-    }
-
-    /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     * @return \Illuminate\Database\Eloquent\Factories\Factory<StaffUser>
      */
     protected static function newFactory()
     {
         return StaffUsersFactory::new();
-    }
-
-    /**
-     * Obtiene el avatar del usuario.
-     */
-    protected function getAvatarAttribute(): string
-    {
-        return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=7F9CF5&background=EBF4FF';
-    }
-
-    /**
-     * Obtiene los permisos frontend del usuario.
-     *
-     * @return list<string>
-     */
-    protected function getFrontendPermissionsAttribute(): array
-    {
-        $userId = userId($this);
-        $version = cacheInt('user.'.$userId.'.perm_version', 0);
-        $cacheKey = 'user.'.$userId.'.v'.$version.'.frontend_permissions';
-
-        $result = Cache::remember(
-            $cacheKey,
-            now()->addMinutes(10),
-            fn (): array => $this->getAllCrossGuardPermissions()
-        );
-
-        return array_values(array_filter($result, is_string(...)));
     }
 }

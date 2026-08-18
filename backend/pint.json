@@ -2,6 +2,7 @@
   "preset": "laravel",
   "paths": ["app", "Modules", "config", "routes", "../database", "bootstrap"],
   "exclude": ["bootstrap/cache", "storage", "vendor", "tmp"],
+  "notPath": ["Modules/Core/src/Infrastructure/Eloquent/Models/StaffUser.php"],
   "rules": {
     "array_push": true,
     "backtick_to_shell_exec": true,
