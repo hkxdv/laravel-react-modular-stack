@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Deprecated;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Controlador base de la aplicación.
@@ -25,15 +26,24 @@ abstract class Controller extends BaseController
     use ValidatesRequests;
 
     /**
-     * Obtiene el usuario autenticado del guard 'staff' o aborta con 403.
+     * Obtiene el usuario autenticado del guard especificado o aborta con 403.
      */
-    protected function requireStaffUser(Request $request): StaffUser
+    protected function requireDomainUser(Request $request, string $guard = 'staff'): AbstractDomainUser
     {
-        /** @var StaffUser|null $user */
-        $user = $request->user('staff');
+        /** @var AbstractDomainUser|null $user */
+        $user = $request->user($guard);
 
-        abort_unless($user instanceof StaffUser, 403, 'Usuario no autenticado');
+        abort_unless($user instanceof AbstractDomainUser, 403, 'Usuario no autenticado');
 
         return $user;
+    }
+
+    /**
+     * Obtiene el usuario autenticado del guard 'staff' o aborta con 403.
+     */
+    #[Deprecated(message: "Use requireDomainUser(\$request, 'staff') instead.")]
+    protected function requireStaffUser(Request $request): AbstractDomainUser
+    {
+        return $this->requireDomainUser($request, 'staff');
     }
 }

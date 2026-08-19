@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -39,14 +39,15 @@ final class EnsureUserIsActive
             return $this->handleUnauthenticated($request);
         }
 
-        /** @var StaffUser $user */
         // Verificar si el usuario está activo
-        if (! $user->isActive()) {
+        /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
+        if ($user instanceof AbstractDomainUser && ! $user->isActive()) {
             return $this->handleInactiveUser($request, $guard);
         }
 
         // Verificar si el usuario ha sido eliminado (soft delete)
-        if ($user->trashed()) {
+        /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
+        if ($user instanceof AbstractDomainUser && $user->trashed()) {
             return $this->handleInactiveUser($request, $guard);
         }
 
@@ -90,11 +91,9 @@ final class EnsureUserIsActive
             ], 403);
         }
 
-        // Redirigir según el guard
-        $redirectRoute = match ($guard) {
-            'staff' => 'login',
-            default => 'welcome'
-        };
+        // Redirigir según el guard desde config
+        /** @var string $redirectRoute */
+        $redirectRoute = config(sprintf('core.guards.%s.redirect_route', $guard), 'welcome');
 
         return to_route($redirectRoute)
             ->withErrors([

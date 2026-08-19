@@ -173,11 +173,9 @@ final class ValidateSessionIntegrity
             ], 401);
         }
 
-        // Redirigir según el guard
-        $redirectRoute = match ($guard) {
-            'staff' => 'login',
-            default => 'welcome'
-        };
+        // Redirigir según el guard desde config
+        /** @var string $redirectRoute */
+        $redirectRoute = config(sprintf('core.guards.%s.redirect_route', $guard), 'welcome');
 
         return to_route($redirectRoute)
             ->withErrors([

@@ -235,9 +235,13 @@ final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
             \Illuminate\Contracts\Auth\Factory::class
         );
 
-        // Verificar guard staff
-        if ($auth->guard('staff')->check()) {
-            return 'staff';
+        /** @var array<string, mixed> $guardsConfig */
+        $guardsConfig = config('core.guards', []);
+        $guards = array_keys($guardsConfig);
+        foreach ($guards as $guardName) {
+            if ($auth->guard((string) $guardName)->check()) {
+                return (string) $guardName;
+            }
         }
 
         return null;

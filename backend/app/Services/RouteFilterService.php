@@ -72,7 +72,7 @@ final class RouteFilterService
                 $routes,
                 static fn ($key): bool => array_any(
                     $allowedPrefixes,
-                    fn ($prefix): bool => str_starts_with((string) $key, (string) $prefix)
+                    fn (string $prefix): bool => str_starts_with((string) $key, $prefix)
                 ),
                 ARRAY_FILTER_USE_KEY
             );
@@ -119,8 +119,13 @@ final class RouteFilterService
         $patterns = $publicPatterns;
 
         // Si es staff, añadir patrones de staff
-        if (Auth::guard('staff')->check()) {
-            return array_merge($patterns, $staffPatterns);
+        /** @var array<string, mixed> $guardsConfig */
+        $guardsConfig = config('core.guards', []);
+        $guards = array_keys($guardsConfig);
+        foreach ($guards as $guardName) {
+            if (Auth::guard((string) $guardName)->check()) {
+                return array_merge($patterns, $staffPatterns);
+            }
         }
 
         return $patterns;
