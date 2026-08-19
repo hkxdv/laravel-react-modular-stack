@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts\AccountSecurity;
 
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Interfaz para regenerar códigos de recuperación de 2FA.
@@ -17,8 +17,8 @@ interface RegenerateTwoFactorRecoveryCodesInterface
     /**
      * Regenera los códigos de recuperación de 2FA para el usuario.
      *
-     * @param  StaffUser  $user  Usuario de personal al que se regeneran los códigos.
+     * @param  AbstractDomainUser  $user  Usuario de personal al que se regeneran los códigos.
      * @return list<string>
      */
-    public function handle(StaffUser $user): array;
+    public function handle(AbstractDomainUser $user): array;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Services;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Interfaces\AuthenticatableUser;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -104,7 +104,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
         array $panelItemsConfig,
         array $contextualNavItemsConfig,
         callable $permissionChecker,
-        ?Authenticatable $user,
+        ?AuthenticatableUser $user,
         ?string $functionalName = null,
         array $data = [],
         ?array $stats = null,
@@ -173,7 +173,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
      * {@inheritDoc}
      */
     public function composeDashboardViewContext(
-        ?Authenticatable $user,
+        ?AuthenticatableUser $user,
         array $availableModules,
         callable $permissionChecker,
         Request $request

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts\AccountSecurity;
 
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Interfaz para iniciar la configuración de autenticación de dos factores (2FA).
@@ -17,8 +17,8 @@ interface SetupTwoFactorAuthInterface
     /**
      * Inicia la configuración de 2FA para el usuario.
      *
-     * @param  StaffUser  $user  Usuario de personal que activa 2FA.
+     * @param  AbstractDomainUser  $user  Usuario de personal que activa 2FA.
      * @return array{secret:string,provisioning_uri:string,recovery_codes:list<string>}
      */
-    public function handle(StaffUser $user): array;
+    public function handle(AbstractDomainUser $user): array;
 }

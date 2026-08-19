@@ -23,7 +23,6 @@ it('increments user perm_version when handling permission change event', functio
 
     // Mock Authenticatable user with getAuthIdentifier() → 42
     $user = Mockery::mock(Authenticatable::class);
-    /** @phpstan-ignore method.notFound */
     $user->shouldReceive('getAuthIdentifier')->andReturn(42);
     // forgetCachedPermissions is NOT on Authenticatable interface — method_exists returns false, skipped
 

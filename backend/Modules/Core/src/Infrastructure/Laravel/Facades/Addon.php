@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Facades;
 
+use App\Interfaces\AuthenticatableUser as User;
 use Illuminate\Support\Facades\Facade;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Domain\Addon\AddonInstance;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
 use Nwidart\Modules\Laravel\Module;
 
 /**

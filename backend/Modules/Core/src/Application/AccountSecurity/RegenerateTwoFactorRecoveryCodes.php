@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\RegenerateTwoFactorRecoveryCodesInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\configInt;
 
@@ -22,7 +22,7 @@ final readonly class RegenerateTwoFactorRecoveryCodes implements RegenerateTwoFa
     /**
      * {@inheritDoc}
      */
-    public function handle(StaffUser $user): array
+    public function handle(AbstractDomainUser $user): array
     {
         $count = configInt('security.two_factor.staff.backup_codes_count', 10);
         $recoveryCodes = $this->generateRecoveryCodes($count);

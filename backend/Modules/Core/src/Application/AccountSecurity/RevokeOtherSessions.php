@@ -7,7 +7,7 @@ namespace Modules\Core\Application\AccountSecurity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\RevokeOtherSessionsInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Caso de uso: revocar sesiones activas del usuario (excepto la actual).
@@ -19,7 +19,7 @@ final readonly class RevokeOtherSessions implements RevokeOtherSessionsInterface
     /**
      * {@inheritDoc}
      */
-    public function handle(StaffUser $user, ?string $currentSessionId): int
+    public function handle(AbstractDomainUser $user, ?string $currentSessionId): int
     {
         $query = DB::table('sessions')
             ->where('staff_user_id', $user->getAuthIdentifier());

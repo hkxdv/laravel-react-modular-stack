@@ -76,6 +76,7 @@ it('logs warning when suspicious login notification throws an exception', functi
     $request->headers->set('User-Agent', 'TestAgent/1.0');
 
     // Should NOT propagate the exception
+    /** @var StaffUser $user */
     $service->handleSuspiciousLoginNotification($user, $request);
 
     // Assert warning was logged with correct context

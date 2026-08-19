@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\configInt;
 
@@ -22,10 +22,8 @@ final readonly class ConfirmTwoFactorAuth implements ConfirmTwoFactorAuthInterfa
 {
     /**
      * {@inheritDoc}
-     *
-     * Nota: Registra eventos en canal de auditoría y en activitylog.
      */
-    public function handle(StaffUser $user, string $code): bool
+    public function handle(AbstractDomainUser $user, string $code): bool
     {
         $secretEncrypted = $user->getAttribute('two_factor_secret');
         if (! is_string($secretEncrypted) || $secretEncrypted === '') {

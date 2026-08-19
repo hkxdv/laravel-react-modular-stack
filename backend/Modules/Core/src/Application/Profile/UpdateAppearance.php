@@ -6,7 +6,7 @@ namespace Modules\Core\Application\Profile;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\userId;
 
@@ -20,10 +20,10 @@ final readonly class UpdateAppearance
     /**
      * Actualiza preferencias de apariencia del usuario.
      *
-     * @param  StaffUser  $user  Usuario staff.
+     * @param  AbstractDomainUser  $user  Usuario staff.
      * @param  mixed  $preferences  Preferencias (array recomendado).
      */
-    public function handle(StaffUser $user, mixed $preferences): void
+    public function handle(AbstractDomainUser $user, mixed $preferences): void
     {
         $normalized = [];
         if (is_array($preferences)) {

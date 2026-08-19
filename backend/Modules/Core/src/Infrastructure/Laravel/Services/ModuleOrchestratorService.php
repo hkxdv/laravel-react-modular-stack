@@ -177,7 +177,7 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
             panelItemsConfig: $panelItemsConfig,
             contextualNavItemsConfig: $contextualNavItemsConfig,
             permissionChecker: $permissionChecker,
-            user: $user,
+            user: $user instanceof \App\Interfaces\AuthenticatableUser ? $user : null,
             functionalName: $functionalName,
             data: $viewData,
             stats: $statsParam,

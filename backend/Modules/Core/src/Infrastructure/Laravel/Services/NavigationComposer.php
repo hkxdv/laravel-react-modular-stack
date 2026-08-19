@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Services;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Interfaces\AuthenticatableUser;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\NavigationComposerInterface;
@@ -40,7 +40,7 @@ final readonly class NavigationComposer implements NavigationComposerInterface
         string $moduleSlug,
         array $contextualNavItemsConfig,
         callable $permissionChecker,
-        ?Authenticatable $user,
+        ?AuthenticatableUser $user,
         string $functionalName,
         string $routeSuffix,
         array $routeParams,

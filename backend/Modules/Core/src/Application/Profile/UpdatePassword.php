@@ -6,7 +6,7 @@ namespace Modules\Core\Application\Profile;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Caso de uso: actualizar la contraseña del usuario staff.
@@ -18,10 +18,10 @@ final readonly class UpdatePassword
     /**
      * Actualiza la contraseña del usuario.
      *
-     * @param  StaffUser  $user  Usuario staff.
+     * @param  AbstractDomainUser  $user  Usuario staff.
      * @param  string  $newPassword  Nueva contraseña en texto plano.
      */
-    public function handle(StaffUser $user, string $newPassword): void
+    public function handle(AbstractDomainUser $user, string $newPassword): void
     {
         $user->forceFill([
             'password' => Hash::make($newPassword),

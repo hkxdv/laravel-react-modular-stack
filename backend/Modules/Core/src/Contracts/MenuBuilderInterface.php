@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts;
 
+use App\Interfaces\AuthenticatableUser;
 use Nwidart\Modules\Laravel\Module;
 
 /**
@@ -159,7 +160,7 @@ interface MenuBuilderInterface
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  string|null  $moduleSlug  Slug del módulo
      * @param  array<int, array<string, mixed>>  $contextualItemsConfig  Configuración contextual
-     * @param  mixed  $user  Usuario autenticado
+     * @param  AuthenticatableUser|null  $user  Usuario autenticado
      * @param  string|null  $functionalName  Nombre funcional del módulo
      * @param  string|null  $routeSuffix  Sufijo de ruta actual
      * @param  array<string, mixed>  $routeParams  Parámetros de ruta
@@ -170,7 +171,7 @@ interface MenuBuilderInterface
         callable $permissionChecker,
         ?string $moduleSlug = null,
         array $contextualItemsConfig = [],
-        $user = null,
+        ?AuthenticatableUser $user = null,
         ?string $functionalName = null,
         ?string $routeSuffix = null,
         array $routeParams = [],

@@ -66,7 +66,6 @@ it('logs nav_items_build with correct total_modules, included_main, and denied c
 
     // Assert log payload
     $logSpy->shouldHaveReceived('info')
-        /** @phpstan-ignore method.notFound */
         ->withArgs(fn (string $message, array $context): bool => $message === 'nav_items_build'
             && $context['total_modules'] === 3
             && $context['included_main'] === 2

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts\AccountSecurity;
 
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Interfaz para confirmar el código de autenticación de dos factores (2FA).
@@ -17,12 +17,9 @@ interface ConfirmTwoFactorAuthInterface
     /**
      * Confirma el código 2FA del usuario.
      *
-     * @param  StaffUser  $user  Usuario de personal que realiza la confirmación.
+     * @param  AbstractDomainUser  $user  Usuario de personal que realiza la confirmación.
      * @param  string  $code  Código de verificación TOTP introducido por el usuario.
      * @return bool Verdadero si la confirmación es válida; falso en caso contrario.
-     *
-     * @example
-     *  $ok = $service->handle($user, '123456');
      */
-    public function handle(StaffUser $user, string $code): bool;
+    public function handle(AbstractDomainUser $user, string $code): bool;
 }

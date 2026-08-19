@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Agent;
 use Modules\Core\Contracts\AccountSecurity\SecurityAuditInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Notifications\AccountLoginNotification;
 use Throwable;
 
@@ -59,7 +59,7 @@ final readonly class SecurityAuditService implements SecurityAuditInterface
         Authenticatable $user,
         Request $request
     ): void {
-        if (! $user instanceof StaffUser) {
+        if (! $user instanceof AbstractDomainUser) {
             return;
         }
 

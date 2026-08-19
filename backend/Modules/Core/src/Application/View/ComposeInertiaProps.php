@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
 use function Foundry\Helpers\cacheArray;
@@ -35,7 +36,7 @@ final readonly class ComposeInertiaProps
      */
     public function execute(Request $request): array
     {
-        /** @var StaffUser|null $staffUser */
+        /** @var AbstractDomainUser|null $staffUser */
         $staffUser = $request->user('staff');
 
         $navProps = $this->composeNavigationProps($staffUser);
@@ -51,9 +52,9 @@ final readonly class ComposeInertiaProps
      *
      * @return array<string, mixed>
      */
-    private function composeNavigationProps(?StaffUser $staffUser): array
+    private function composeNavigationProps(?AbstractDomainUser $staffUser): array
     {
-        if (! $staffUser instanceof StaffUser) {
+        if (! $staffUser instanceof AbstractDomainUser) {
             return [
                 'breadcrumbs' => [],
                 'mainNavItems' => [],
@@ -104,7 +105,7 @@ final readonly class ComposeInertiaProps
      * @return array<string, mixed>
      */
     private function composeAuthProps(
-        ?StaffUser $staffUser,
+        ?AbstractDomainUser $staffUser,
         Request $request
     ): array {
         $transformedStaffUser = $staffUser instanceof StaffUser
@@ -125,9 +126,9 @@ final readonly class ComposeInertiaProps
     /**
      * @return array<string, mixed>
      */
-    private function composeSecurityProps(?StaffUser $staffUser): array
+    private function composeSecurityProps(?AbstractDomainUser $staffUser): array
     {
-        if (! $staffUser instanceof StaffUser) {
+        if (! $staffUser instanceof AbstractDomainUser) {
             return [
                 'security' => [
                     'twoFactorRequired' => (bool) config('security.two_factor.staff.required', false),
@@ -157,9 +158,9 @@ final readonly class ComposeInertiaProps
      * @return array<string, mixed>
      */
     private function composeNotificationPreferencesProps(
-        ?StaffUser $staffUser
+        ?AbstractDomainUser $staffUser
     ): array {
-        if (! $staffUser instanceof StaffUser) {
+        if (! $staffUser instanceof AbstractDomainUser) {
             return [
                 'notificationPreferences' => [],
             ];
@@ -181,7 +182,7 @@ final readonly class ComposeInertiaProps
     /**
      * Verifica si se requiere cambio de contraseña.
      */
-    private function checkPasswordChangeRequired(StaffUser $staffUser): bool
+    private function checkPasswordChangeRequired(AbstractDomainUser $staffUser): bool
     {
         $maxAgeDays = configInt(
             'security.authentication.passwords.staff.max_age_days',

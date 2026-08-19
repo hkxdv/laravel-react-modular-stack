@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\SetupTwoFactorAuthInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\configInt;
 use function Foundry\Helpers\configString;
@@ -24,7 +24,7 @@ final readonly class SetupTwoFactorAuth implements SetupTwoFactorAuthInterface
     /**
      * {@inheritDoc}
      */
-    public function handle(StaffUser $user): array
+    public function handle(AbstractDomainUser $user): array
     {
         $secret = $this->generateBase32Secret(20);
         $count = configInt('security.two_factor.staff.backup_codes_count', 10);

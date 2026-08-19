@@ -6,7 +6,7 @@ namespace Modules\Core\Application\AccountSecurity;
 
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AccountSecurity\DisableTwoFactorAuthInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Caso de uso: desactivar la autenticación de dos factores del usuario.
@@ -19,7 +19,7 @@ final readonly class DisableTwoFactorAuth implements DisableTwoFactorAuthInterfa
     /**
      * {@inheritDoc}
      */
-    public function handle(StaffUser $user): void
+    public function handle(AbstractDomainUser $user): void
     {
         $user->forceFill([
             'two_factor_secret' => null,

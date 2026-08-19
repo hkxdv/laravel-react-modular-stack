@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Application\Menu;
 
+use App\Interfaces\AuthenticatableUser;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AddonRegistryInterface;
@@ -59,7 +60,7 @@ final readonly class AssembleMenu
      * @param  callable  $permissionChecker  Función para verificar permisos.
      * @param  string|null  $moduleSlug  Slug del módulo actual.
      * @param  array<int, array<string, mixed>>  $contextualItemsConfig  Configuración de ítems contextuales.
-     * @param  mixed  $user  Usuario autenticado (puede ser StaffUser o null).
+     * @param  AuthenticatableUser|null  $user  Usuario autenticado.
      * @param  string|null  $functionalName  Nombre funcional del módulo.
      * @param  string|null  $routeSuffix  Sufijo de la ruta actual.
      * @param  array<string, mixed>  $routeParams  Parámetros de la ruta.
@@ -70,7 +71,7 @@ final readonly class AssembleMenu
         callable $permissionChecker,
         ?string $moduleSlug = null,
         array $contextualItemsConfig = [],
-        $user = null,
+        ?AuthenticatableUser $user = null,
         ?string $functionalName = null,
         ?string $routeSuffix = null,
         array $routeParams = [],
@@ -173,7 +174,7 @@ final readonly class AssembleMenu
         callable $permissionChecker,
         ?string $moduleSlug,
         array $contextualItemsConfig,
-        ?StaffUser $staffUser,
+        ?AuthenticatableUser $staffUser,
         ?string $functionalName,
         ?string $routeSuffix,
         array $routeParams,

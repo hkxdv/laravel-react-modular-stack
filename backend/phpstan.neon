@@ -54,8 +54,5 @@ parameters:
             message: '#Call to an undefined method Mockery\\.*#'
             path: Modules/Core/tests/*
         -
-            message: '#Parameter .* of .* expects Illuminate\\Contracts\\Auth\\Authenticatable, mixed given#'
-            path: Modules/Core/tests/*
-        -
             message: '#Parameter .* of class .* expects .*, Mockery\\MockInterface given#'
             path: Modules/Core/tests/*

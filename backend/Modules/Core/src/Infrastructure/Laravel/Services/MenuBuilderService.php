@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Services;
 
+use App\Interfaces\AuthenticatableUser;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Application\Menu\AssembleMenu;
@@ -173,7 +174,7 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         callable $permissionChecker,
         ?string $moduleSlug = null,
         array $contextualItemsConfig = [],
-        $user = null,
+        ?AuthenticatableUser $user = null,
         ?string $functionalName = null,
         ?string $routeSuffix = null,
         array $routeParams = [],

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Application\Profile;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 /**
  * Caso de uso: actualizar datos de perfil del usuario staff.
@@ -18,10 +18,10 @@ final readonly class UpdateProfile
     /**
      * Actualiza el perfil del usuario con los datos proporcionados.
      *
-     * @param  StaffUser  $user  Usuario staff.
+     * @param  AbstractDomainUser  $user  Usuario staff.
      * @param  mixed  $data  Datos (array recomendado) con claves string.
      */
-    public function handle(StaffUser $user, mixed $data): void
+    public function handle(AbstractDomainUser $user, mixed $data): void
     {
         $attributes = [];
         if (is_array($data)) {

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Laravel\Services;
 
+use App\Interfaces\AuthenticatableUser as User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Domain\Addon\AddonConfig;
 use Modules\Core\Domain\Addon\AddonInstance;
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Nwidart\Modules\Facades\Module;
 use Nwidart\Modules\Laravel\Module as ModuleInstance;
 
@@ -215,7 +216,9 @@ final class AddonRegistryService implements AddonRegistryInterface
             $keyParts[] = $userId;
             $version = cacheInt('user.'.$userId.'.perm_version', 0);
             $keyParts[] = 'v'.$version;
-            $permissions = $user->getAttribute('frontend_permissions');
+            $permissions = $user instanceof AbstractDomainUser
+                ? $user->getAttribute('frontend_permissions')
+                : null;
             $keyParts[] = md5((string) json_encode($permissions));
         } else {
             $keyParts[] = 'guest';

@@ -7,7 +7,7 @@ namespace Modules\Core\Application\NotificationPreferences;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\userId;
 
@@ -21,7 +21,7 @@ final readonly class UpdateNotificationPreferences implements UpdateNotification
     /**
      * {@inheritDoc}
      */
-    public function handle(StaffUser $user, mixed $preferences): void
+    public function handle(AbstractDomainUser $user, mixed $preferences): void
     {
         $normalized = [];
         if (is_array($preferences)) {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Core\Contracts;
 
+use App\Interfaces\AuthenticatableUser;
 use Modules\Core\Domain\Addon\AddonInstance;
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
 use Nwidart\Modules\Laravel\Module;
 
 /**
@@ -19,18 +19,18 @@ interface AddonRegistryInterface
     /**
      * Obtiene los módulos disponibles para un usuario específico según sus permisos.
      *
-     * @param  User  $user  Usuario para el que se consultan los módulos disponibles
+     * @param  AuthenticatableUser  $user  Usuario para el que se consultan los módulos disponibles
      * @return array<Module> Array de módulos a los que el usuario tiene acceso
      */
-    public function getAvailableAddonsForUser(User $user): array;
+    public function getAvailableAddonsForUser(AuthenticatableUser $user): array;
 
     /**
      * Obtiene los módulos accesibles basados en el usuario actual o todos si no se proporciona usuario.
      *
-     * @param  User|null  $user  Usuario para el que se consultan los módulos (o null para todos)
+     * @param  AuthenticatableUser|null  $user  Usuario para el que se consultan los módulos (o null para todos)
      * @return array<Module> Array de módulos accesibles
      */
-    public function getAccessibleAddons(?User $user = null): array;
+    public function getAccessibleAddons(?AuthenticatableUser $user = null): array;
 
     /**
      * Obtiene todos los módulos habilitados sin filtrar por usuario.
@@ -50,9 +50,6 @@ interface AddonRegistryInterface
     /**
      * Obtiene un addon como entidad de dominio con configuración normalizada.
      *
-     * Ejemplo:
-     * - $addon = Addon::getAddonInstance('Admin');
-     *
      * @param  string  $moduleName  Nombre del módulo/addon.
      * @return AddonInstance|null Instancia del addon o null si no existe su configuración.
      *
@@ -62,9 +59,6 @@ interface AddonRegistryInterface
 
     /**
      * Lista addons habilitados como instancias de dominio.
-     *
-     * Ejemplo:
-     * - $addons = Addon::getAllEnabledAddonInstances();
      *
      * @return list<AddonInstance> Addons habilitados con su configuración normalizada.
      *
@@ -80,8 +74,8 @@ interface AddonRegistryInterface
     /**
      * Obtiene los ítems de navegación global disponibles para un usuario.
      *
-     * @param  User|null  $user  Usuario autenticado
+     * @param  AuthenticatableUser|null  $user  Usuario autenticado
      * @return array<int, array<string, mixed>> Ítems de navegación global
      */
-    public function getGlobalNavItems(?User $user = null): array;
+    public function getGlobalNavItems(?AuthenticatableUser $user = null): array;
 }

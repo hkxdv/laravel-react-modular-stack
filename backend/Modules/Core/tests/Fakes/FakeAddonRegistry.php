@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Core\Tests\Fakes;
 
+use App\Interfaces\AuthenticatableUser as User;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Domain\Addon\AddonInstance;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
 use Nwidart\Modules\Laravel\Module;
 
 /**
