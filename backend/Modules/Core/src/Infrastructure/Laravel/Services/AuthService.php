@@ -15,16 +15,30 @@ use function Foundry\Helpers\configString;
  * Servicio de autenticación.
  * Implementa las interfaces de autenticación y suplantación del Core.
  */
-final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUsersInterface
+final readonly class AuthService implements AuthenticatesUsersInterface, ImpersonatesUsersInterface
 {
     private const string IMPERSONATION_SESSION_KEY = 'impersonated_by';
+
+    private function __construct(
+        private string $guard,
+    ) {
+        //
+    }
+
+    /**
+     * Crea una instancia del servicio para un guard específico.
+     */
+    public static function forGuard(string $guard): self
+    {
+        return new self($guard);
+    }
 
     /**
      * {@inheritDoc}
      */
     public function attempt(array $credentials, bool $remember = false): bool
     {
-        return Auth::guard('staff')->attempt($credentials, $remember);
+        return Auth::guard($this->guard)->attempt($credentials, $remember);
     }
 
     /**
@@ -38,7 +52,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
             return;
         }
 
-        Auth::guard('staff')->logout();
+        Auth::guard($this->guard)->logout();
     }
 
     /**
@@ -47,7 +61,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
     public function user(): ?Authenticatable
     {
         /** @var Authenticatable|null */
-        return Auth::guard('staff')->user();
+        return Auth::guard($this->guard)->user();
     }
 
     /**
@@ -55,7 +69,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
      */
     public function check(): bool
     {
-        return Auth::guard('staff')->check();
+        return Auth::guard($this->guard)->check();
     }
 
     /**
@@ -63,7 +77,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
      */
     public function id()
     {
-        return Auth::guard('staff')->id();
+        return Auth::guard($this->guard)->id();
     }
 
     /**
@@ -84,7 +98,7 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
         );
 
         // Iniciar sesión como el nuevo usuario
-        Auth::guard('staff')->login($user);
+        Auth::guard($this->guard)->login($user);
 
         return true;
     }
@@ -101,19 +115,19 @@ final class AuthService implements AuthenticatesUsersInterface, ImpersonatesUser
         $originalUserId = session()->pull(self::IMPERSONATION_SESSION_KEY);
 
         /** @var class-string<\Illuminate\Database\Eloquent\Model> $userModelClass */
-        $userModelClass = configString('auth.providers.staff_users.model');
+        $userModelClass = configString('auth.providers.staff.model');
 
         /** @var Authenticatable|null $originalUser */
         $originalUser = $userModelClass::query()->find($originalUserId);
 
         if ($originalUser) {
-            Auth::guard('staff')->login($originalUser);
+            Auth::guard($this->guard)->login($originalUser);
 
             return true;
         }
 
         // Si no se encuentra el usuario original, hacer logout completo por seguridad
-        Auth::guard('staff')->logout();
+        Auth::guard($this->guard)->logout();
 
         return false;
     }

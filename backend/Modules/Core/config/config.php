@@ -10,6 +10,26 @@ return [
     'inertia_view_directory' => 'core',
     'base_permission' => null,
 
+    'guards' => [
+        'staff' => [
+            'login_route' => 'login',
+            'redirect_route' => 'login',
+            'provider' => 'staff',
+        ],
+        'web' => [
+            'login_route' => 'login',
+            'redirect_route' => 'welcome',
+            'provider' => 'web',
+        ],
+        'sanctum' => [
+            'login_route' => 'login',
+            'redirect_route' => 'welcome',
+            'provider' => 'sanctum',
+        ],
+    ],
+
+    'sync_excludes' => ['staff'],
+
     'cache' => [
         'nav_cache_prefix' => 'core:nav:',
         'nav_version_key' => 'core.nav_version',

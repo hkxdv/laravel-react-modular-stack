@@ -73,13 +73,15 @@ final class CoreServiceProvider extends ServiceProvider
             AuditTrailInterface::class => AuditTrailService::class,
             SecurityAuditInterface::class => SecurityAuditService::class,
             LoginAttemptInterface::class => LoginAttemptService::class,
-            AuthService::class => AuthService::class,
             PermissionService::class => PermissionService::class,
         ];
 
         foreach ($singletons as $abstract => $concrete) {
             $this->app->singleton($abstract, $concrete);
         }
+
+        // AuthService: factory closure (not singleton) — each guard gets its own instance
+        $this->app->singleton(AuthService::class, fn (): AuthService => AuthService::forGuard('staff'));
 
         // Map interface => concrete binds
         $binds = [

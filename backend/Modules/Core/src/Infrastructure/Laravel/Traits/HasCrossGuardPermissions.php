@@ -26,11 +26,16 @@ use function Foundry\Helpers\cacheInt;
 trait HasCrossGuardPermissions
 {
     /**
-     * Sincroniza los permisos y roles entre los guards 'web' y 'sanctum'.
+     * Sincroniza los permisos y roles entre los guards configurados, excluyendo los de sync_excludes.
      */
     public static function syncPermissionsBetweenGuards(): void
     {
-        $guardsToSync = ['web', 'sanctum'];
+        /** @var array<string, mixed> $allGuardsConfig */
+        $allGuardsConfig = config('core.guards', []);
+        $allGuards = array_keys($allGuardsConfig);
+        /** @var array<string> $syncExcludes */
+        $syncExcludes = config('core.sync_excludes', ['staff']);
+        $guardsToSync = array_values(array_diff($allGuards, $syncExcludes));
 
         // Sincronizar Permisos
         $allPermissions = Permission::query()->whereIn('guard_name', $guardsToSync)->get()->groupBy('name');
@@ -233,6 +238,9 @@ trait HasCrossGuardPermissions
      */
     protected function getAvailableGuards(): array
     {
-        return ['staff', 'web', 'sanctum'];
+        /** @var array<string, mixed> $guards */
+        $guards = config('core.guards', []);
+
+        return array_keys($guards);
     }
 }
