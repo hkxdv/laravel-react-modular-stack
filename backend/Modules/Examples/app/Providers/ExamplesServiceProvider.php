@@ -32,8 +32,7 @@ final class ExamplesServiceProvider extends ServiceProvider
             module_path($this->moduleName, 'database/migrations')
         );
 
-        // Registrar el presentador compuesto para Inertia props
-        // (delega a StaffUserPresenter para staff, presentación inline para tenant)
+        // Registrar el presentador tenant para Inertia props
         $this->app->bind(
             AuthUserPresenterInterface::class,
             TenantUserPresenter::class

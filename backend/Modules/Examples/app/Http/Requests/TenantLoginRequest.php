@@ -35,6 +35,6 @@ final class TenantLoginRequest extends AbstractLoginRequest
      */
     protected function redirectRoute(): string
     {
-        return 'internal.tenant.dashboard';
+        return 'internal.tenant.examples.index';
     }
 }

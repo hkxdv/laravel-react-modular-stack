@@ -17,8 +17,8 @@ return [
             'provider' => 'staff',
         ],
         'tenant' => [
-            'login_route' => 'login',
-            'redirect_route' => 'login',
+            'login_route' => 'tenant.login',
+            'redirect_route' => 'tenant.login',
             'provider' => 'tenant',
         ],
         'web' => [

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Examples\App\Http\Requests\TenantLoginRequest;
 use Modules\Examples\App\Models\ExampleTenantUser;
+use Modules\Examples\App\Services\TenantUserPresenter;
 
 uses(RefreshDatabase::class);
 
@@ -16,8 +18,9 @@ uses(RefreshDatabase::class);
 | Verifies the ExampleTenantUser abstraction works end-to-end:
 | - Config registration (guard + provider + morph map)
 | - Model creation and attributes
-| - Presenter output
-| - TenantLoginRequest contract
+| - Presenter output (pure tenant, no Admin dependency)
+| - TenantLoginRequest contract (guard, type, redirect route)
+| - Routes under auth:tenant (not auth:staff)
 |
 */
 
@@ -41,8 +44,8 @@ it('has tenant entry in core guards config', function () {
     $guards = config('core.guards');
 
     expect($guards)->toHaveKey('tenant')
-        ->and($guards['tenant']['login_route'])->toBe('login')
-        ->and($guards['tenant']['redirect_route'])->toBe('login')
+        ->and($guards['tenant']['login_route'])->toBe('tenant.login')
+        ->and($guards['tenant']['redirect_route'])->toBe('tenant.login')
         ->and($guards['tenant']['provider'])->toBe('tenant');
 });
 
@@ -83,7 +86,7 @@ it('presenter returns tenant user type for ExampleTenantUser', function () {
         'email' => 'maria@tenant.com',
     ]);
 
-    $presenter = new Modules\Examples\App\Services\TenantUserPresenter();
+    $presenter = new TenantUserPresenter();
     $result = $presenter->present($user);
 
     expect($result)->toBeArray()
@@ -93,20 +96,16 @@ it('presenter returns tenant user type for ExampleTenantUser', function () {
         ->and($result['user_type'])->toBe('tenant');
 });
 
-it('presenter delegates to staff presenter for StaffUser', function () {
-    $staffUser = Modules\Admin\App\Models\StaffUser::factory()->create();
+it('presenter does not depend on Admin module', function () {
+    $reflection = new ReflectionClass(TenantUserPresenter::class);
+    $source = file_get_contents($reflection->getFileName());
 
-    $presenter = new Modules\Examples\App\Services\TenantUserPresenter();
-    $result = $presenter->present($staffUser);
-
-    // StaffUserPresenter returns a StaffUserResource array, which has 'id' and 'name'
-    expect($result)->toBeArray()
-        ->and($result)->toHaveKey('id')
-        ->and($result)->toHaveKey('name');
+    expect($source)->not->toContain('Modules\\Admin')
+        ->and($source)->not->toContain('StaffUser');
 });
 
-it('tenant login request returns correct guard and type', function () {
-    $request = new Modules\Examples\App\Http\Requests\TenantLoginRequest();
+it('tenant login request returns correct guard, type, and redirect route', function () {
+    $request = new TenantLoginRequest();
 
     $guardMethod = new ReflectionMethod($request, 'guard');
     $loginTypeMethod = new ReflectionMethod($request, 'loginType');
@@ -114,5 +113,14 @@ it('tenant login request returns correct guard and type', function () {
 
     expect($guardMethod->invoke($request))->toBe('tenant')
         ->and($loginTypeMethod->invoke($request))->toBe('tenant')
-        ->and($redirectRouteMethod->invoke($request))->toBe('internal.tenant.dashboard');
+        ->and($redirectRouteMethod->invoke($request))->toBe('internal.tenant.examples.index');
+});
+
+it('has tenant login routes under guest:tenant', function () {
+    expect(route('tenant.login'))->toBe(route('tenant.login'))
+        ->and(route('tenant.login.store'))->toBe(route('tenant.login.store'));
+});
+
+it('has tenant logout route under auth:tenant', function () {
+    expect(route('tenant.logout'))->toBe(route('tenant.logout'));
 });

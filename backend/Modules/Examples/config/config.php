@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 return [
     // Configuración básica del módulo
-    'functional_name' => 'Módulo genérico 1',
-    'description' => 'Módulo genérico para demostración.',
+    'functional_name' => 'Módulo de ejemplos (Tenant)',
+    'description' => 'Módulo esquelético que valida el soporte multi-usuario con guard tenant.',
     'module_slug' => 'examples',
     'inertia_view_directory' => 'examples',
     'base_permission' => 'access-examples',
@@ -13,7 +13,7 @@ return [
     // Configuración del ítem de navegación principal
     'nav_item' => [
         'show_in_nav' => true,
-        'route_name' => 'internal.staff.examples.index',
+        'route_name' => 'internal.tenant.examples.index',
         'icon' => 'ClipboardList',
     ],
 
