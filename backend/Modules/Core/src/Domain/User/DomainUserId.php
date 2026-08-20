@@ -11,10 +11,10 @@ use InvalidArgumentException;
  *
  * Garantiza un ID no vacío y provee utilidades de creación/comparación.
  */
-final readonly class StaffUserId
+final readonly class DomainUserId
 {
     /**
-     * @param  string  $value  Identificador del usuario staff
+     * @param  string  $value  Identificador del usuario del dominio
      *
      * @throws InvalidArgumentException Si el ID es vacío
      */
@@ -23,12 +23,12 @@ final readonly class StaffUserId
         throw_if(
             $this->value === '',
             InvalidArgumentException::class,
-            'Invalid StaffUserId'
+            'Invalid DomainUserId'
         );
     }
 
     /**
-     * Crea un StaffUserId a partir de un entero.
+     * Crea un DomainUserId a partir de un entero.
      *
      * @param  int  $id  Identificador numérico
      */
@@ -38,7 +38,7 @@ final readonly class StaffUserId
     }
 
     /**
-     * Crea un StaffUserId a partir de una cadena.
+     * Crea un DomainUserId a partir de una cadena.
      *
      * @param  string  $id  Identificador como cadena
      */
@@ -50,7 +50,7 @@ final readonly class StaffUserId
     /**
      * Compara dos identificadores.
      *
-     * @param  self  $other  Otro identificador de usuario staff
+     * @param  self  $other  Otro identificador de usuario
      * @return bool True si son idénticos; False en caso contrario
      */
     public function equals(self $other): bool

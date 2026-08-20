@@ -13,9 +13,9 @@ use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
-use Modules\Core\Domain\User\StaffUser as StaffUserDomain;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as StaffUserModel;
-use Modules\Core\Infrastructure\Laravel\Mappers\StaffUserMapper;
+use Modules\Core\Domain\User\DomainUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
+use Modules\Core\Infrastructure\Laravel\Mappers\DomainUserMapper;
 
 use function Foundry\Helpers\configArray;
 use function Foundry\Helpers\configNullableString;
@@ -156,12 +156,12 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
 
         // PermissionChecker basado en entidad de dominio (permissions precalculados con caché cross-guard)
         $domainUser = null;
-        if ($user instanceof StaffUserModel) {
-            $domainUser = StaffUserMapper::toDomain($user);
+        if ($user instanceof AbstractDomainUser) {
+            $domainUser = DomainUserMapper::toDomain($user);
         }
 
         $permissionChecker = function (string $permission) use ($domainUser, $user): bool {
-            if (! $domainUser instanceof StaffUserDomain) {
+            if (! $domainUser instanceof DomainUser) {
                 return $this->permissionVerifier->checkCrossGuard($user, $permission);
             }
 

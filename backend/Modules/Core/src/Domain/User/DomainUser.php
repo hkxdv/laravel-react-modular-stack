@@ -7,18 +7,18 @@ namespace Modules\Core\Domain\User;
 use Modules\Core\Domain\Permission\PermissionCollection;
 
 /**
- * Entidad de dominio para usuario interno (Staff).
+ * Entidad de dominio para usuario.
  *
  * Modela identidad, atributos básicos y verificación de permisos/roles
  * usando colecciones inmutables.
  */
-final readonly class StaffUser
+final readonly class DomainUser
 {
     /**
      * @param  array<int, string>  $roles
      */
     public function __construct(
-        public StaffUserId $id,
+        public DomainUserId $id,
         public string $name,
         public string $email,
         public array $roles,

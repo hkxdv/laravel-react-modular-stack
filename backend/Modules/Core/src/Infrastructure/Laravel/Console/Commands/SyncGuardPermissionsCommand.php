@@ -6,7 +6,7 @@ namespace Modules\Core\Infrastructure\Laravel\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Application\Permissions\SyncCrossGuardPermissions;
 
 final class SyncGuardPermissionsCommand extends Command
 {
@@ -22,7 +22,7 @@ final class SyncGuardPermissionsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Sincroniza roles y permisos entre los guards web y sanctum';
+    protected $description = 'Sincroniza roles y permisos entre los guards configurados';
 
     /**
      * Ejecuta el comando de consola.
@@ -32,8 +32,7 @@ final class SyncGuardPermissionsCommand extends Command
         $this->info('Iniciando sincronización de roles y permisos entre guards...');
 
         try {
-            // Usar el método estático del trait CrossGuardPermissions
-            StaffUser::syncPermissionsBetweenGuards();
+            resolve(SyncCrossGuardPermissions::class)->handle();
 
             $this->info('Sincronización completada exitosamente.');
 

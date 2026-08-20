@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Contracts\Role as ContractRole;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role as ModelRole;
-use Spatie\Permission\PermissionRegistrar;
 use Stringable;
 
 use function Foundry\Helpers\cacheInt;
@@ -25,64 +23,6 @@ use function Foundry\Helpers\cacheInt;
  */
 trait HasCrossGuardPermissions
 {
-    /**
-     * Sincroniza los permisos y roles entre los guards configurados, excluyendo los de sync_excludes.
-     */
-    public static function syncPermissionsBetweenGuards(): void
-    {
-        /** @var array<string, mixed> $allGuardsConfig */
-        $allGuardsConfig = config('core.guards', []);
-        $allGuards = array_keys($allGuardsConfig);
-        /** @var array<string> $syncExcludes */
-        $syncExcludes = config('core.sync_excludes', ['staff']);
-        $guardsToSync = array_values(array_diff($allGuards, $syncExcludes));
-
-        // Sincronizar Permisos
-        $allPermissions = Permission::query()->whereIn('guard_name', $guardsToSync)->get()->groupBy('name');
-
-        foreach ($allPermissions as $name => $permissions) {
-            /** @var array<string> $existingGuards */
-            $existingGuards = $permissions->pluck('guard_name')->toArray();
-            $missingGuards = array_diff($guardsToSync, $existingGuards);
-
-            foreach ($missingGuards as $guard) {
-                Permission::create(['name' => $name, 'guard_name' => $guard]);
-            }
-        }
-
-        // Sincronizar Roles
-        $allRoles = ModelRole::query()->whereIn('guard_name', $guardsToSync)
-            ->with('permissions')
-            ->get()
-            ->groupBy('name');
-
-        foreach ($allRoles as $name => $roles) {
-            /** @var array<string> $existingGuards */
-            $existingGuards = $roles->pluck('guard_name')->toArray();
-            $missingGuards = array_diff($guardsToSync, $existingGuards);
-
-            $templateRole = $roles->firstWhere('guard_name', 'web')
-                ?? $roles->first();
-            if (! $templateRole) {
-                // No hay rol de plantilla disponible; omitir sincronización para este nombre.
-                continue;
-            }
-
-            foreach ($missingGuards as $guard) {
-                $newRole = ModelRole::query()->firstOrCreate([
-                    'name' => $name,
-                    'guard_name' => $guard,
-                ]);
-                $permissionsToSync = Permission::query()->where('guard_name', $guard)
-                    ->whereIn('name', $templateRole->permissions->pluck('name'))
-                    ->get();
-                $newRole->syncPermissions($permissionsToSync);
-            }
-        }
-
-        app()->make(PermissionRegistrar::class)->forgetCachedPermissions();
-    }
-
     /**
      * Verifica si el usuario tiene un permiso específico en cualquier guard, usando caché.
      */

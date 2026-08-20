@@ -5,23 +5,23 @@ declare(strict_types=1);
 namespace Modules\Core\Infrastructure\Laravel\Mappers;
 
 use Modules\Core\Domain\Permission\PermissionCollection;
-use Modules\Core\Domain\User\StaffUser as DomainStaffUser;
-use Modules\Core\Domain\User\StaffUserId;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as EloquentStaffUser;
+use Modules\Core\Domain\User\DomainUser;
+use Modules\Core\Domain\User\DomainUserId;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\userId;
 
 /**
  * Mapper de infraestructura para convertir modelos Eloquent a entidades de dominio.
  */
-final readonly class StaffUserMapper
+final readonly class DomainUserMapper
 {
     /**
-     * Convierte un modelo Eloquent de usuario staff a la entidad de dominio.
+     * Convierte un modelo Eloquent de usuario a la entidad de dominio.
      *
-     * @param  EloquentStaffUser  $model  Modelo Eloquent
+     * @param  AbstractDomainUser  $model  Modelo Eloquent
      */
-    public static function toDomain(EloquentStaffUser $model): DomainStaffUser
+    public static function toDomain(AbstractDomainUser $model): DomainUser
     {
         $idStr = userId($model, '');
 
@@ -39,8 +39,8 @@ final readonly class StaffUserMapper
         $name = is_string($nameVal) ? $nameVal : '';
         $email = is_string($emailVal) ? $emailVal : '';
 
-        return new DomainStaffUser(
-            id: StaffUserId::fromString($idStr),
+        return new DomainUser(
+            id: DomainUserId::fromString($idStr),
             name: $name,
             email: $email,
             roles: $roles,
