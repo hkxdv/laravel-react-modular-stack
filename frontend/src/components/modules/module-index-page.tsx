@@ -1,11 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import { ModuleDashboardLayout } from '@/layouts/module-dashboard-layout';
-import type { BreadcrumbItem, NavItemDefinition, StaffUser } from '@/types';
+import type { BreadcrumbItem, NavItemDefinition, User } from '@/types';
 import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 export interface ModuleIndexPageProps {
-  user: StaffUser | null;
+  user: User | null;
   breadcrumbs: BreadcrumbItem[];
   mainNavItems: NavItemDefinition[];
   moduleNavItems: NavItemDefinition[];

@@ -42,10 +42,10 @@ export const userHasPermission = (
   // 3. Extraer y validar la estructura de datos del usuario.
   const userData = extractUserData(user);
 
-  if (!userData || !Array.isArray(userData.permissions)) {
+  if (!userData?.user_type || userData.user_type !== 'staff') {
     return false;
   }
-  // A partir de aquí, `userData` es un usuario de tipo 'staff' con un array de permisos.
+  // A partir de aquí, `userData` es un StaffUser con permisos y roles.
 
   // 4. Conceder acceso automático a roles privilegiados.
   if (Array.isArray(userData.roles)) {
@@ -56,7 +56,7 @@ export const userHasPermission = (
   }
 
   // 5. Comprobar el/los permiso(s) específico(s).
-  const { permissions: userPermissions } = userData;
+  const userPermissions = userData.permissions ?? [];
   if (Array.isArray(permission)) {
     // Si se requiere que se cumplan TODOS los permisos de la lista.
     if (requireAll) {

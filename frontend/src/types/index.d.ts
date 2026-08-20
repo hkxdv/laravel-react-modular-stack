@@ -127,12 +127,24 @@ export interface StaffUser extends BaseUser {
   roles?: Role[];
   /** El tipo de usuario, fijo a 'staff'. */
   user_type: 'staff';
-  /** Permite propiedades adicionales para flexibilidad. */
-  [key: string]: unknown;
 }
 
-// Usuario único soportado actualmente
-export type User = StaffUser;
+/**
+ * Representa un usuario tenant (ejemplo esquelético para validación multi-usuario).
+ */
+export interface TenantUser extends BaseUser {
+  /** El nombre completo del usuario tenant. */
+  name: string;
+  /** El correo electrónico del usuario. */
+  email: string;
+  /** La URL del avatar del usuario. */
+  avatar?: string;
+  /** El tipo de usuario, fijo a 'tenant'. */
+  user_type: 'tenant';
+}
+
+/** Unión discriminada por `user_type` para todos los tipos de usuario soportados. */
+export type User = StaffUser | TenantUser;
 
 /**
  * Alias para el tipo `Role` para mayor claridad semántica.

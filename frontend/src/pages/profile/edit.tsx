@@ -19,7 +19,7 @@ export default function ProfileEditPage() {
     usePage<ProfileEditPageProps>().props;
 
   const userData = extractUserData(auth.user);
-  const isStaffUser = !!userData;
+  const staffUser = userData?.user_type === 'staff' ? userData : null;
 
   const initialName = userData?.name ?? '';
   const initialEmail = userData?.email ?? '';
@@ -40,8 +40,8 @@ export default function ProfileEditPage() {
             initialName={initialName}
             initialEmail={initialEmail}
             mustVerifyEmail={Boolean(mustVerifyEmail)}
-            isStaffUser={isStaffUser}
-            emailVerifiedAt={userData?.email_verified_at ?? null}
+            isStaffUser={staffUser !== null}
+            emailVerifiedAt={staffUser?.email_verified_at ?? null}
             status={status ?? ''}
           />
         </div>

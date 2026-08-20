@@ -1,4 +1,4 @@
-import type { StaffUser, User } from '@/types';
+import type { User } from '@/types';
 
 const DEFAULT_USER_NAME = 'Usuario';
 
@@ -8,17 +8,17 @@ export type PotentiallyNestedUser = User | { data: User } | null | undefined;
 /**
  * Extrae de forma segura el objeto de usuario principal, ya sea que esté anidado o no.
  * @param user - El objeto de usuario potencialmente anidado.
- * @returns El objeto `StaffUser`, o `null` si no se encuentra.
+ * @returns El objeto `User`, o `null` si no se encuentra.
  */
-export function extractUserData(user: PotentiallyNestedUser): StaffUser | null {
+export function extractUserData(user: PotentiallyNestedUser): User | null {
   // Si el usuario es nulo o indefinido, retorna nulo.
   if (!user) {
     return null;
   }
 
-  // Si el usuario tiene una propiedad 'data' y es un objeto, asume que es la estructura anidada.
-  if ('data' in user && typeof user.data === 'object' && user.data !== null) {
-    const userData = user.data as StaffUser;
+  // Si el usuario tiene una propiedad 'data', asume que es la estructura anidada.
+  if ('data' in user) {
+    const userData = user.data;
 
     // Validación adicional para asegurarse de que el objeto extraído tenga propiedades de usuario.
     if ('id' in userData && 'email' in userData) {
@@ -27,7 +27,7 @@ export function extractUserData(user: PotentiallyNestedUser): StaffUser | null {
   }
 
   // Si no es una estructura anidada, se asume que el objeto principal es el usuario.
-  const userData = user as StaffUser;
+  const userData = user as User;
   if ('id' in userData && 'email' in userData) {
     return userData;
   }
@@ -39,7 +39,7 @@ export function extractUserData(user: PotentiallyNestedUser): StaffUser | null {
 /**
  * Obtiene el nombre para mostrar de un usuario.
  *
- * @param user - El objeto de usuario (StaffUser).
+ * @param user - El objeto de usuario.
  * @returns El nombre para mostrar del usuario.
  */
 export function getUserDisplayName(user: PotentiallyNestedUser): string {
@@ -48,13 +48,13 @@ export function getUserDisplayName(user: PotentiallyNestedUser): string {
   if (!userData) {
     return DEFAULT_USER_NAME;
   }
-  // Simplificado: solo StaffUser
+
   return userData.name || DEFAULT_USER_NAME;
 }
 
 /**
  * Obtiene las iniciales de un usuario para mostrarlas en un avatar.
- * @param user - El objeto de usuario (StaffUser).
+ * @param user - El objeto de usuario.
  * @returns Un string con las iniciales del usuario.
  */
 export function getUserInitials(user: PotentiallyNestedUser): string {
@@ -72,13 +72,13 @@ export function getUserInitials(user: PotentiallyNestedUser): string {
 
 /**
  * Obtiene el nombre completo o identificador principal de un usuario.
- * @param user - El objeto de usuario (StaffUser).
+ * @param user - El objeto de usuario.
  * @returns El nombre completo del usuario.
  */
-export function getUserName(user: StaffUser | null): string {
+export function getUserName(user: User | null): string {
   if (!user) {
     return 'Usuario Desconocido';
   }
-  // Simplificado: solo StaffUser
+
   return user.name || DEFAULT_USER_NAME;
 }
