@@ -4,14 +4,22 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Http\Controllers\AdminDashboardController;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
+use Modules\Admin\App\Models\StaffUser;
+use Modules\Admin\App\PermissionRegistry\AdminPermissionRegistry;
+use Modules\Admin\App\Policies\PermissionPolicy;
+use Modules\Admin\App\Policies\RolePolicy;
+use Modules\Admin\App\Policies\StaffUserPolicy;
 use Modules\Admin\App\Services\AdminStaffUserService;
 use Modules\Admin\App\Services\AdminStatsService;
 use Modules\Admin\App\Services\StaffUserPresenter;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /**
  * Provider principal del módulo Admin.
@@ -48,11 +56,25 @@ final class AdminServiceProvider extends ServiceProvider
         $this->app->when(AdminDashboardController::class)
             ->needs(StatsServiceInterface::class)
             ->give(AdminStatsService::class);
+
+        // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
+        $this->app->tag(AdminPermissionRegistry::class, 'permission-registry');
     }
 
     public function boot(): void
     {
         $this->registerConfig();
+        $this->registerPolicies();
+    }
+
+    /**
+     * Registra policies de autorización para nWidart (sin auto-discovery).
+     */
+    private function registerPolicies(): void
+    {
+        Gate::policy(StaffUser::class, StaffUserPolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(Permission::class, PermissionPolicy::class);
     }
 
     /**

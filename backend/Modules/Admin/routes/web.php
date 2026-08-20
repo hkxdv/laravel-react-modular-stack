@@ -9,7 +9,7 @@ declare(strict_types=1);
 |
 | Aquí se definen las rutas para el panel de administración y la gestión
 | de usuarios del personal (Staff). Todas las rutas están protegidas por
-| el guard 'staff' y permisos específicos.
+| el guard 'staff' y permisos específicos granulares.
 |
 */
 
@@ -20,7 +20,7 @@ Route::middleware([
     'auth:staff',
     'verified',
     'throttle:60,1',
-    'permission:access-admin,staff',
+    'permission:rbac.view,staff',
 ])->prefix('internal/staff/admin')->name('internal.staff.admin.')->group(
     function (): void {
 

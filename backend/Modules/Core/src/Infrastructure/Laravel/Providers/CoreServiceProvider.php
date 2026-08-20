@@ -29,10 +29,12 @@ use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
+use Modules\Core\Infrastructure\Laravel\Console\Commands\PermissionsSyncRegistry;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\SyncGuardPermissionsCommand;
 use Modules\Core\Infrastructure\Laravel\Services\AddonRegistryService;
 use Modules\Core\Infrastructure\Laravel\Services\AuditTrailService;
 use Modules\Core\Infrastructure\Laravel\Services\AuthService;
+use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use Modules\Core\Infrastructure\Laravel\Services\LoginAttemptService;
 use Modules\Core\Infrastructure\Laravel\Services\MenuBuilderService;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleOrchestratorService;
@@ -99,6 +101,9 @@ final class CoreServiceProvider extends ServiceProvider
         foreach ($binds as $abstract => $concrete) {
             $this->app->bind($abstract, $concrete);
         }
+
+        // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
+        $this->app->tag(CorePermissionRegistry::class, 'permission-registry');
     }
 
     /**
@@ -110,6 +115,7 @@ final class CoreServiceProvider extends ServiceProvider
 
         $this->commands([
             SyncGuardPermissionsCommand::class,
+            PermissionsSyncRegistry::class,
         ]);
 
         $facades = [

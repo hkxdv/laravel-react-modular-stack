@@ -15,36 +15,43 @@ use Modules\Admin\App\Http\Controllers\StaffUsers\ListStaffUsersController;
 Route::prefix('users')->name('users.')->group(
     function (): void {
         // Muestra la lista de usuarios.
-        Route::get('/', [ListStaffUsersController::class, 'index'])->name('index');
+        Route::get('/', [ListStaffUsersController::class, 'index'])
+            ->middleware('permission:staff-users.view,staff')
+            ->name('index');
 
         // Muestra el formulario para crear un nuevo usuario.
         Route::get('/create', [
             CreateStaffUserController::class,
             'create',
-        ])->name('create');
+        ])->middleware('permission:staff-users.create,staff')
+            ->name('create');
 
         // Almacena el nuevo usuario.
         Route::post('/', [
             CreateStaffUserController::class,
             'store',
-        ])->name('store');
+        ])->middleware('permission:staff-users.create,staff')
+            ->name('store');
 
         // Muestra el formulario para editar un usuario existente.
         Route::get('/{user}/edit', [
             EditStaffUserController::class,
             'edit',
-        ])->name('edit');
+        ])->middleware('permission:staff-users.update,staff')
+            ->name('edit');
 
         // Actualiza el usuario existente.
         Route::put('/{user}', [
             EditStaffUserController::class,
             'update',
-        ])->name('update');
+        ])->middleware('permission:staff-users.update,staff')
+            ->name('update');
 
         // Elimina el usuario.
         Route::delete('/{user}', [
             EditStaffUserController::class,
             'destroy',
-        ])->name('destroy');
+        ])->middleware('permission:staff-users.delete,staff')
+            ->name('destroy');
     }
 );

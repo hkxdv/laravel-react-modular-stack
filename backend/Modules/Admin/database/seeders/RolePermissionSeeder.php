@@ -11,68 +11,104 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Seeder para crear los roles y permisos del sistema.
+ * Seeder para crear los roles y permisos granulares del sistema.
  */
 final class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('Iniciando seeder de Roles y Permisos...');
+        $this->command->info('Iniciando seeder de Roles y Permisos granulares...');
 
         app()->make(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // CREAR PERMISOS - Solo los esenciales para acceso a módulos
-        $permissions = [
-            'access-module-01',
-            'access-module-02',
-            'access-admin',
+        // PERMISOS STAFF (18 granulares)
+        $staffPermissions = [
+            // Core
+            'system.bypass',
+            'permissions.sync',
+            // Admin / RBAC
+            'rbac.view',
+            'staff-users.view',
+            'staff-users.create',
+            'staff-users.update',
+            'staff-users.delete',
+            'staff-users.impersonate',
+            'roles.view',
+            'roles.manage',
+            'permissions.view',
+            'permissions.manage',
+            // Module02
+            'module02.dashboard.access',
+            // Examples (staff)
+            'examples.dashboard.access',
         ];
 
-        foreach ($permissions as $permission) {
+        // PERMISOS TENANT (4 granulares)
+        $tenantPermissions = [
+            'examples.tenant.login',
+            'examples.tenant.dashboard',
+            'examples.tenant.manage',
+            'examples.tenant.logout',
+        ];
+
+        // Crear permisos staff
+        foreach ($staffPermissions as $permission) {
             Permission::query()->firstOrCreate([
                 'name' => $permission,
                 'guard_name' => 'staff',
             ]);
         }
 
-        $this->command->info('Permisos creados.');
+        // Crear permisos tenant
+        foreach ($tenantPermissions as $permission) {
+            Permission::query()->firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'tenant',
+            ]);
+        }
 
-        // CREAR ROLES Y ASIGNAR PERMISOS
-        // Rol: ADMIN (super-admin con todos los permisos)
+        $this->command->info('Permisos granulares creados: '.count($staffPermissions).' staff + '.count($tenantPermissions).' tenant.');
+
+        // ROLES STAFF
+        // ADMIN: todos los permisos staff + system.bypass
         $roleAdmin = Role::query()->firstOrCreate([
             'name' => 'ADMIN',
             'guard_name' => 'staff',
         ]);
-        $roleAdmin->givePermissionTo($permissions);
+        $roleAdmin->givePermissionTo($staffPermissions);
 
-        // Rol: DEV (también es super-admin con todos los permisos)
+        // DEV: todos los permisos staff + system.bypass
         $roleDev = Role::query()->firstOrCreate([
             'name' => 'DEV',
             'guard_name' => 'staff',
         ]);
-        $roleDev->givePermissionTo($permissions);
+        $roleDev->givePermissionTo($staffPermissions);
 
-        // Roles de Módulos (MOD-XX) - cada uno solo con su permiso principal
+        // MOD-01: solo permisos de examples dashboard (staff)
         Role::query()->firstOrCreate([
             'name' => 'MOD-01',
             'guard_name' => 'staff',
-        ])->givePermissionTo('access-module-01');
+        ])->givePermissionTo('examples.dashboard.access');
 
+        // MOD-02: solo permisos de module02
         Role::query()->firstOrCreate([
             'name' => 'MOD-02',
             'guard_name' => 'staff',
-        ])->givePermissionTo('access-module-02');
+        ])->givePermissionTo('module02.dashboard.access');
 
-        // NOTA: El usuario administrador base (ADMIN) es creado en SystemUsersSeeder
-        // después de que estos roles y permisos han sido establecidos.
+        // ROLES TENANT
+        // ADMIN (tenant): todos los permisos tenant
+        $roleTenantAdmin = Role::query()->firstOrCreate([
+            'name' => 'ADMIN',
+            'guard_name' => 'tenant',
+        ]);
+        $roleTenantAdmin->givePermissionTo($tenantPermissions);
 
-        // Registrar información en el log
-        Log::info('Seeder de roles y permisos ejecutado:', [
+        Log::info('Seeder de roles y permisos granulares ejecutado:', [
             'roles_count' => Role::query()->count(),
             'permissions_count' => Permission::query()->count(),
-            'roles' => Role::all(['id', 'name', 'guard_name'])->toArray(),
         ]);
 
-        $this->command->info('Seeder de roles y permisos completado.');
+        $this->command->info('Seeder de roles y permisos granulares completado.');
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Module02\App\Http\Controllers\AbstractModule02Controller;
 use Modules\Module02\App\Http\Controllers\Module02DashboardController;
+use Modules\Module02\App\PermissionRegistry\Module02PermissionRegistry;
 use Modules\Module02\App\Services\Module02StatsService;
 
 /**
@@ -37,6 +38,9 @@ final class Module02ServiceProvider extends ServiceProvider
         $this->app->when(Module02DashboardController::class)
             ->needs(StatsServiceInterface::class)
             ->give(Module02StatsService::class);
+
+        // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
+        $this->app->tag(Module02PermissionRegistry::class, 'permission-registry');
     }
 
     /**

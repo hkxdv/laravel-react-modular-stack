@@ -25,7 +25,7 @@ Route::middleware([
     'auth:staff',
     'verified',
     'throttle:60,1',
-    'permission:access-module-02,staff',
+    'permission:module02.dashboard.access,staff',
 ])->prefix('internal/staff/module-02')->name('internal.staff.module02.')->group(
     function (): void {
         /**
