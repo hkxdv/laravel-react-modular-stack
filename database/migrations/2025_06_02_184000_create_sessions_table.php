@@ -15,13 +15,9 @@ return new class extends Migration
     {
         Schema::create('sessions', function (Blueprint $table): void {
             $table->string('id')->primary();
-            /**
-             * Columna genérica `user_id` para compatibilidad con el listener de eventos de login en SQLite.
-             * El listener `SessionServiceProvider` intenta actualizar esta columna, y fallaba porque no existía.
-             * No se usa como clave foránea para evitar conflictos entre los distintos tipos de usuario.
-             */
-            $table->foreignId('user_id')->nullable()->index();
-            $table->foreignId('staff_user_id')->nullable()->constrained('staff_users')->onDelete('cascade');
+            $table->string('authenticatable_type', 100)->nullable()->index();
+            $table->unsignedBigInteger('authenticatable_id')->nullable()->index();
+            $table->index(['authenticatable_type', 'authenticatable_id'], 'idx_sessions_authable');
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');

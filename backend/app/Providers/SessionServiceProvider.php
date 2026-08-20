@@ -20,7 +20,8 @@ use UnitEnum;
  * Proveedor de servicios para la gestión de sesiones.
  *
  * Este proveedor personaliza el comportamiento del manejador de sesiones de base de datos
- * de Laravel para que funcione con la columna `staff_user_id` en lugar de la `user_id` estándar.
+ * de Laravel para que funcione con columnas polimórficas (authenticatable_type + authenticatable_id)
+ * en lugar de la columna user_id estándar.
  */
 final class SessionServiceProvider extends ServiceProvider
 {
@@ -84,14 +85,13 @@ final class SessionServiceProvider extends ServiceProvider
         // El contenedor de la aplicación está disponible en los ServiceProviders
         // y no es nulo en tiempo de ejecución.
 
-        // Escucha el evento de login para sincronizar el 'user_id' en entornos SQLite.
+        // Escucha el evento de login para sincronizar columnas polimórficas en entornos SQLite.
         Event::listen(
             Login::class,
             function (Login $event): void {
                 // Esta lógica es una solución temporal para cuando se usa SQLite en pruebas.
-                // Algunas partes de Laravel o paquetes de terceros pueden depender de la columna 'user_id',
-                // y este listener asegura que se rellene después del login, aunque nuestro manejador
-                // personalizado se centre en 'staff_user_id'.
+                // Algunas partes de Laravel o paquetes de terceros pueden depender de columnas específicas,
+                // y este listener asegura que se rellenen después del login.
 
                 /** @var Repository $configRepo */
                 $configRepo = $this->app->make(Repository::class);
@@ -112,14 +112,21 @@ final class SessionServiceProvider extends ServiceProvider
                 if ($driver === 'sqlite') {
                     $tableValue = $configRepo->get('session.table');
                     $table = is_string($tableValue) ? $tableValue : 'sessions';
+
+                    // Determinar el morph class a partir del guard del usuario
+                    $morphClass = $user instanceof \Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser
+                        ? $user->getMorphClass()
+                        : 'staff-user';
+
                     DB::table($table)
                         ->where(
                             'id',
                             $this->app->make(SessionManager::class)->getId()
                         )
-                        ->update(
-                            ['user_id' => $user->getAuthIdentifier()]
-                        );
+                        ->update([
+                            'authenticatable_type' => $morphClass,
+                            'authenticatable_id' => $user->getAuthIdentifier(),
+                        ]);
                 }
             }
         );
@@ -146,15 +153,12 @@ final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
         if ($this->container && $this->container->bound('auth')) {
             $userId = $this->userId();
             if ($userId) {
-                // Determinar el tipo de usuario basado en el guard activo
                 $currentGuard = $this->getCurrentGuard();
 
-                if ($currentGuard === 'staff') {
-                    $payload['staff_user_id'] = $userId;
+                if ($currentGuard !== null) {
+                    $payload['authenticatable_type'] = $this->resolveMorphClass($currentGuard);
+                    $payload['authenticatable_id'] = $userId;
                 }
-
-                // Mantener user_id para compatibilidad
-                $payload['user_id'] = $userId;
             }
         }
 
@@ -177,12 +181,10 @@ final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
         if ($userId = $this->userId()) {
             $currentGuard = $this->getCurrentGuard();
 
-            if ($currentGuard === 'staff') {
-                $updateData['staff_user_id'] = $userId;
+            if ($currentGuard !== null) {
+                $updateData['authenticatable_type'] = $this->resolveMorphClass($currentGuard);
+                $updateData['authenticatable_id'] = $userId;
             }
-
-            // Mantener user_id para compatibilidad
-            $updateData['user_id'] = $userId;
         }
 
         return $this->getQuery()->where('id', $sessionId)->update($updateData);
@@ -205,12 +207,10 @@ final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
         if ($userId = $this->userId()) {
             $currentGuard = $this->getCurrentGuard();
 
-            if ($currentGuard === 'staff') {
-                $insertData['staff_user_id'] = $userId;
+            if ($currentGuard !== null) {
+                $insertData['authenticatable_type'] = $this->resolveMorphClass($currentGuard);
+                $insertData['authenticatable_id'] = $userId;
             }
-
-            // Mantener user_id para compatibilidad
-            $insertData['user_id'] = $userId;
         }
 
         try {
@@ -220,6 +220,16 @@ final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
 
             return null;
         }
+    }
+
+    /**
+     * Resuelve la clase morph a partir del nombre del guard.
+     *
+     * Convención: '{guard}-user' (ej. 'staff' → 'staff-user', 'tenant' → 'tenant-user').
+     */
+    private function resolveMorphClass(string $guardName): string
+    {
+        return $guardName.'-user';
     }
 
     /**

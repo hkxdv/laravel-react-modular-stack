@@ -62,7 +62,8 @@ final class AccountSecurityController extends AbstractProfileController
         $sessionsCount = 0;
         if ($uid !== 'anonymous') {
             $count = DB::table('sessions')
-                ->where('staff_user_id', $uid)
+                ->where('authenticatable_type', $user->getMorphClass())
+                ->where('authenticatable_id', $user->getAuthIdentifier())
                 ->count();
             $sessionsCount = (int) $count;
         }

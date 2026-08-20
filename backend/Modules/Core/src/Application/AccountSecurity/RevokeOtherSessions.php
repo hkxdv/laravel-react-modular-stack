@@ -22,7 +22,8 @@ final readonly class RevokeOtherSessions implements RevokeOtherSessionsInterface
     public function handle(AbstractDomainUser $user, ?string $currentSessionId): int
     {
         $query = DB::table('sessions')
-            ->where('staff_user_id', $user->getAuthIdentifier());
+            ->where('authenticatable_type', $user->getMorphClass())
+            ->where('authenticatable_id', $user->getAuthIdentifier());
 
         if (is_string($currentSessionId) && $currentSessionId !== '') {
             $query->where('id', '!=', $currentSessionId);

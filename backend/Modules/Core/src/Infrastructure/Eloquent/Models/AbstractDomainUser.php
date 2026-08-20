@@ -8,6 +8,7 @@ use App\Interfaces\AuthenticatableUser;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Core\Infrastructure\Laravel\Traits\CanBeImpersonated;
 use Modules\Core\Infrastructure\Laravel\Traits\HasCrossGuardPermissions;
@@ -72,6 +73,22 @@ abstract class AbstractDomainUser extends Authenticatable implements Authenticat
     final public function trashed(): bool
     {
         return false;
+    }
+
+    /**
+     * Registra listeners de Eloquent para todas las subclases.
+     *
+     * Al eliminar un usuario, se purgan sus sesiones activas
+     * (compensa la pérdida del FK ON DELETE CASCADE).
+     */
+    final protected static function booted(): void
+    {
+        static::deleting(function (AbstractDomainUser $user): void {
+            DB::table('sessions')
+                ->where('authenticatable_type', $user->getMorphClass())
+                ->where('authenticatable_id', $user->id)
+                ->delete();
+        });
     }
 
     /**
