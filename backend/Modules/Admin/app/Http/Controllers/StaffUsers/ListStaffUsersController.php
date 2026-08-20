@@ -7,6 +7,7 @@ namespace Modules\Admin\App\Http\Controllers\StaffUsers;
 use Illuminate\Http\Request as IlluminateRequest;
 use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Controlador para la gestión de listado de usuarios del personal administrativo.
@@ -21,6 +22,8 @@ final class ListStaffUsersController extends AbstractAdminController
      */
     public function index(IlluminateRequest $request): InertiaResponse
     {
+        $this->authorize('viewAny', StaffUser::class);
+
         $params = [
             'search' => $request->input('search'),
             'role' => $request->input('role'),
