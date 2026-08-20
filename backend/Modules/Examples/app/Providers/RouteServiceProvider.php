@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Module01\App\Providers;
+namespace Modules\Examples\App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Provider para el registro de rutas del módulo Module01.
+ * Provider para el registro de rutas del módulo Examples.
  * Define cómo se cargarán las rutas web y API del módulo.
  */
 final class RouteServiceProvider extends ServiceProvider
@@ -16,7 +16,7 @@ final class RouteServiceProvider extends ServiceProvider
     /**
      * El namespace del controlador del módulo.
      */
-    private string $moduleNamespace = 'Modules\\Module01\\App\\Http\\Controllers';
+    private string $moduleNamespace = 'Modules\\Examples\\App\\Http\\Controllers';
 
     /**
      * Registra los servicios del módulo.
@@ -34,10 +34,10 @@ final class RouteServiceProvider extends ServiceProvider
         $this->routes(function (): void {
             Route::middleware('api')
                 ->prefix('api')
-                ->group(module_path('Module01', 'routes/api.php'));
+                ->group(module_path('Examples', 'routes/api.php'));
 
             Route::middleware('web')
-                ->group(module_path('Module01', 'routes/web.php'));
+                ->group(module_path('Examples', 'routes/web.php'));
         });
     }
 
@@ -57,7 +57,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('web')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('Module01', '/routes/web.php'));
+            ->group(module_path('Examples', '/routes/web.php'));
     }
 
     /**
@@ -68,6 +68,6 @@ final class RouteServiceProvider extends ServiceProvider
         Route::prefix('api')
             ->middleware('api')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('Module01', '/routes/api.php'));
+            ->group(module_path('Examples', '/routes/api.php'));
     }
 }

@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Modules\Module01\App\Services;
+namespace Modules\Examples\App\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Core\Domain\Stats\EnhancedStat;
 
 /**
- * Servicio de estadísticas del dashboard para Module01.
+ * Servicio de estadísticas del dashboard para Examples.
  *
  * Expone un conjunto de estadísticas consumibles por el panel del módulo.
  */
-final class Module01StatsService implements StatsServiceInterface
+final class ExamplesStatsService implements StatsServiceInterface
 {
     /**
      * {@inheritDoc}
      */
     public function getPanelStats(string $moduleSlug, ?Authenticatable $user = null): array
     {
-        $panelItems = (array) config('module01.panel_items', []);
-        $contextualDefault = (array) config('module01.contextual_nav.default', []);
+        $panelItems = (array) config('examples.panel_items', []);
+        $contextualDefault = (array) config('examples.contextual_nav.default', []);
 
         return [
             new EnhancedStat(

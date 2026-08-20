@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Models\StaffUser;
+use Modules\Examples\App\Models\ExampleTenantUser;
 
 /**
  * Proveedor de servicios principal de la aplicación
@@ -54,6 +55,7 @@ final class AppServiceProvider extends ServiceProvider
         // Register morph map for Spatie permission pivot tables.
         Relation::morphMap([
             'staff-user' => StaffUser::class,
+            'tenant-user' => ExampleTenantUser::class,
         ]);
 
         // Define una regla global 'before' para la autorización.

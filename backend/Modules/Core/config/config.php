@@ -16,6 +16,11 @@ return [
             'redirect_route' => 'login',
             'provider' => 'staff',
         ],
+        'tenant' => [
+            'login_route' => 'login',
+            'redirect_route' => 'login',
+            'provider' => 'tenant',
+        ],
         'web' => [
             'login_route' => 'login',
             'redirect_route' => 'welcome',

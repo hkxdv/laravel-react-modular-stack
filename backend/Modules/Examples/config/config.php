@@ -6,14 +6,14 @@ return [
     // Configuración básica del módulo
     'functional_name' => 'Módulo genérico 1',
     'description' => 'Módulo genérico para demostración.',
-    'module_slug' => 'module01',
-    'inertia_view_directory' => 'module01',
-    'base_permission' => 'access-module-01',
+    'module_slug' => 'examples',
+    'inertia_view_directory' => 'examples',
+    'base_permission' => 'access-examples',
 
     // Configuración del ítem de navegación principal
     'nav_item' => [
         'show_in_nav' => true,
-        'route_name' => 'internal.staff.module01.index',
+        'route_name' => 'internal.staff.examples.index',
         'icon' => 'ClipboardList',
     ],
 
@@ -24,7 +24,7 @@ return [
                 'title' => 'Panel de ejemplo',
                 'route_name_suffix' => 'index',
                 'icon' => 'LayoutDashboard',
-                'permission' => 'access-module-01',
+                'permission' => 'access-examples',
             ],
         ],
     ],
@@ -36,7 +36,7 @@ return [
             'description' => 'Item de ejemplo 1 para la demostración del proyecto.',
             'route_name_suffix' => 'index',
             'icon' => 'FilePlus2',
-            'permission' => 'access-module-01',
+            'permission' => 'access-examples',
         ],
     ],
 ];

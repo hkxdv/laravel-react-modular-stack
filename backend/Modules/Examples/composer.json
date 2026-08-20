@@ -1,11 +1,11 @@
 {
-  "name": "new-module-custom/module01",
+  "name": "new-module-custom/examples",
   "type": "laravel-module",
   "autoload": {
     "psr-4": {
-      "Modules\\Module01\\App\\": "app/",
-      "Modules\\Module01\\Database\\Factories\\": "database/factories/",
-      "Modules\\Module01\\Database\\Seeders\\": "database/seeders/"
+      "Modules\\Examples\\App\\": "app/",
+      "Modules\\Examples\\Database\\Factories\\": "database/factories/",
+      "Modules\\Examples\\Database\\Seeders\\": "database/seeders/"
     }
   }
 }

@@ -1,9 +1,9 @@
 {
-  "name": "Module01",
-  "alias": "module01",
+  "name": "Examples",
+  "alias": "examples",
   "priority": 0,
   "providers": [
-    "Modules\\Module01\\App\\Providers\\Module01ServiceProvider",
-    "Modules\\Module01\\App\\Providers\\RouteServiceProvider"
+    "Modules\\Examples\\App\\Providers\\ExamplesServiceProvider",
+    "Modules\\Examples\\App\\Providers\\RouteServiceProvider"
   ]
 }

@@ -50,6 +50,10 @@ return [
             'timeout' => env('STAFF_SESSION_TIMEOUT', 7200), // 2 horas
             'remember' => env('STAFF_REMEMBER_ME', false), // Deshabilitado por seguridad
         ],
+        'tenant' => [
+            'driver' => 'session',
+            'provider' => 'tenant',
+        ],
     ],
 
     /*
@@ -79,6 +83,10 @@ return [
             'model' => StaffUser::class,
             'table' => 'staff',
             'password_reset_expiration' => 15, // 15 minutos
+        ],
+        'tenant' => [
+            'driver' => 'eloquent',
+            'model' => Modules\Examples\App\Models\ExampleTenantUser::class,
         ],
     ],
 

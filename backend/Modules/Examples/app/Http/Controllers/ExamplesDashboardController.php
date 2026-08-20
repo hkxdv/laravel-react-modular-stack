@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Module01\App\Http\Controllers;
+namespace Modules\Examples\App\Http\Controllers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Modules\Core\Domain\Stats\EnhancedStat;
 /**
  * Controlador principal del panel del Módulo 01.
  */
-final class Module01DashboardController extends AbstractModule01Controller
+final class ExamplesDashboardController extends AbstractExamplesController
 {
     /**
      * Renderiza el panel principal del módulo.

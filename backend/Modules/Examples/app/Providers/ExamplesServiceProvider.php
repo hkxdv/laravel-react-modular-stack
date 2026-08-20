@@ -2,23 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Modules\Module01\App\Providers;
+namespace Modules\Examples\App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
-use Modules\Module01\App\Http\Controllers\AbstractModule01Controller;
-use Modules\Module01\App\Http\Controllers\Module01DashboardController;
-use Modules\Module01\App\Services\Module01StatsService;
+use Modules\Examples\App\Http\Controllers\AbstractExamplesController;
+use Modules\Examples\App\Http\Controllers\ExamplesDashboardController;
+use Modules\Examples\App\Services\ExamplesStatsService;
+use Modules\Examples\App\Services\TenantUserPresenter;
 
 /**
- * Provider principal del módulo Module01.
+ * Provider principal del módulo Examples.
  * Registra y arranca los servicios necesarios del módulo.
  */
-final class Module01ServiceProvider extends ServiceProvider
+final class ExamplesServiceProvider extends ServiceProvider
 {
-    private string $moduleName = 'Module01';
+    private string $moduleName = 'Examples';
 
-    private string $moduleNameLower = 'module01';
+    private string $moduleNameLower = 'examples';
 
     /**
      * Registra servicios, bindings y comandos del módulo.
@@ -30,13 +32,20 @@ final class Module01ServiceProvider extends ServiceProvider
             module_path($this->moduleName, 'database/migrations')
         );
 
+        // Registrar el presentador compuesto para Inertia props
+        // (delega a StaffUserPresenter para staff, presentación inline para tenant)
+        $this->app->bind(
+            AuthUserPresenterInterface::class,
+            TenantUserPresenter::class
+        );
+
         // Contextual binding para evitar colisiones globales del contrato StatsServiceInterface
-        $this->app->when(AbstractModule01Controller::class)
+        $this->app->when(AbstractExamplesController::class)
             ->needs(StatsServiceInterface::class)
-            ->give(Module01StatsService::class);
-        $this->app->when(Module01DashboardController::class)
+            ->give(ExamplesStatsService::class);
+        $this->app->when(ExamplesDashboardController::class)
             ->needs(StatsServiceInterface::class)
-            ->give(Module01StatsService::class);
+            ->give(ExamplesStatsService::class);
     }
 
     /**

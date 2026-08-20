@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Module01\App\Http\Controllers;
+namespace Modules\Examples\App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Modules\Core\Contracts\MenuBuilderInterface;
@@ -12,7 +12,7 @@ use Modules\Core\Contracts\StatsServiceInterface;
 /**
  * Controlador base del Módulo 01.
  */
-abstract class AbstractModule01Controller extends Controller
+abstract class AbstractExamplesController extends Controller
 {
     /**
      * Slug del módulo (configurable en el módulo).
@@ -48,10 +48,10 @@ abstract class AbstractModule01Controller extends Controller
      */
     private function resolveModuleSlug(): string
     {
-        $configured = config('module01.module_slug');
+        $configured = config('examples.module_slug');
 
         return is_string($configured) && $configured !== ''
             ? $configured
-            : 'module01';
+            : 'examples';
     }
 }
