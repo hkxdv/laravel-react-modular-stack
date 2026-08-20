@@ -25,6 +25,10 @@ return new class extends Migration
             $table->timestamp('password_changed_at')->nullable();
             $table->timestamp('last_activity')->nullable();
             $table->timestamps();
+
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (

@@ -21,6 +21,7 @@ final class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            \Modules\Admin\Database\Seeders\AdminDatabaseSeeder::class,
             \Modules\Core\Database\Seeders\CoreDatabaseSeeder::class,
             // \Modules\Module01\Database\Seeders\Module01DatabaseSeeder::class,
             // \Modules\Module02\Database\Seeders\Module02DatabaseSeeder::class,

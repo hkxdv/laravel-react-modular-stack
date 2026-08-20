@@ -11,12 +11,6 @@ final class CoreDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            RolePermissionSeeder::class,
-            AdminUserSeeder::class,
-            // TestStaffUsersSeeder::class, # Descomenta para ejecutar automáticamente, o 'bun run be artisan module:seed Core --class=TestStaffUsersSeeder'
-        ]);
-
         $this->command->info('Sincronizando permisos entre guards...');
         Artisan::call('permissions:sync-guards');
     }

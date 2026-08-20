@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Core\Application\View;
 
-use App\Http\Resources\StaffUserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Modules\Core\Contracts\AddonRegistryInterface;
+use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
 use function Foundry\Helpers\cacheArray;
 use function Foundry\Helpers\configInt;
@@ -23,7 +22,8 @@ final readonly class ComposeInertiaProps
 {
     public function __construct(
         private AddonRegistryInterface $moduleRegistry,
-        private MenuBuilderInterface $navigationBuilder
+        private MenuBuilderInterface $navigationBuilder,
+        private AuthUserPresenterInterface $authUserPresenter
     ) {
         //
     }
@@ -108,14 +108,14 @@ final readonly class ComposeInertiaProps
         ?AbstractDomainUser $staffUser,
         Request $request
     ): array {
-        $transformedStaffUser = $staffUser instanceof StaffUser
-          ? new StaffUserResource($staffUser) : null;
+        $transformedStaffUser = $staffUser instanceof AbstractDomainUser
+          ? $this->authUserPresenter->present($staffUser) : null;
 
         return [
             'auth' => [
                 'user' => $transformedStaffUser,
                 'staff' => $transformedStaffUser,
-                'can' => $staffUser instanceof StaffUser
+                'can' => $staffUser instanceof AbstractDomainUser
                   ? ($staffUser->getAttribute('frontend_permissions') ?? [])
                   : [],
                 'impersonate' => $staffUser && $request->session()->has('impersonated_by'),

@@ -7,9 +7,9 @@ namespace Modules\Module02\App\Http\Controllers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
+use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Application\Permissions\GetUserPermissions;
 use Modules\Core\Domain\Stats\EnhancedStat;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 
 /**
  * Controlador principal del Módulo 02.

@@ -79,7 +79,7 @@ final class LoginController extends Controller
         // El servicio de seguridad regenera el token de sesión para prevenir ataques de session fixation.
         $this->securityService->prepareAuthenticatedSession($request);
 
-        /** @var \Modules\Core\Infrastructure\Eloquent\Models\StaffUser|null $user */
+        /** @var \Modules\Admin\App\Models\StaffUser|null $user */
         $user = Auth::guard('staff')->user();
 
         // 3. Gestionar notificaciones de seguridad.

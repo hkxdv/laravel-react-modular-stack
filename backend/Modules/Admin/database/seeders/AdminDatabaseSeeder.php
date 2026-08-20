@@ -13,6 +13,10 @@ final class AdminDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([]);
+        $this->call([
+            RolePermissionSeeder::class,
+            AdminUserSeeder::class,
+            // TestStaffUsersSeeder::class, // Uncomment for test data
+        ]);
     }
 }

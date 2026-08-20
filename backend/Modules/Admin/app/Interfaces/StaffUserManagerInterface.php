@@ -6,7 +6,7 @@ namespace Modules\Admin\App\Interfaces;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 use Spatie\Permission\Models\Role;
 
 /**

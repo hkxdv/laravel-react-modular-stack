@@ -15,7 +15,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Controlador para gestionar el restablecimiento de contraseñas.

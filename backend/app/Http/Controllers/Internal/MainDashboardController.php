@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Inertia\Response as InertiaResponse;
+use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 use Modules\Core\Infrastructure\Laravel\Traits\PermissionVerifier;
 
 /**

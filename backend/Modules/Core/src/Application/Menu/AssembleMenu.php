@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\cacheArray;
 use function Foundry\Helpers\cacheInt;
@@ -95,7 +95,7 @@ final readonly class AssembleMenu
         $uid = 'guest';
         $staffUser = null;
         $permVersion = 0;
-        if ($user instanceof StaffUser) {
+        if ($user instanceof AbstractDomainUser) {
             $staffUser = $user;
             $uid = userId($user);
             $permVersion = $uid !== 'anonymous'

@@ -178,7 +178,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
         callable $permissionChecker,
         Request $request
     ): array {
-        /** @var \Modules\Core\Infrastructure\Eloquent\Models\StaffUser|null $user */
+        /** @var AuthenticatableUser|null $user */
         /** @var array<\Nwidart\Modules\Laravel\Module> $availableModules */
 
         // Construir los ítems de navegación principales

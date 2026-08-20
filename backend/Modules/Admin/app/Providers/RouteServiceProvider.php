@@ -6,7 +6,7 @@ namespace Modules\Admin\App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Provider para el registro de rutas del módulo Admin.

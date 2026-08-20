@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Controlador para gestionar la verificación final del correo electrónico.

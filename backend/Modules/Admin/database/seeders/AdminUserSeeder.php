@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Database\Seeders;
+namespace Modules\Admin\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 use Spatie\Permission\Models\Role;
 use Throwable;
 

@@ -48,11 +48,5 @@ parameters:
             message: '#Call to an undefined method Pest\\PendingCalls\\TestCall::.*#'
             path: Modules/Core/tests/*
         -
-            message: '#Cannot cast mixed to .*#'
-            path: Modules/Core/tests/*
-        -
             message: '#Call to an undefined method Mockery\\.*#'
-            path: Modules/Core/tests/*
-        -
-            message: '#Parameter .* of class .* expects .*, Mockery\\MockInterface given#'
             path: Modules/Core/tests/*

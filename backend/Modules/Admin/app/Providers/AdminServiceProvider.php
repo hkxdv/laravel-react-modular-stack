@@ -9,6 +9,8 @@ use Modules\Admin\App\Http\Controllers\AdminDashboardController;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Services\AdminStaffUserService;
 use Modules\Admin\App\Services\AdminStatsService;
+use Modules\Admin\App\Services\StaffUserPresenter;
+use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 
 /**
@@ -35,6 +37,12 @@ final class AdminServiceProvider extends ServiceProvider
         $this->app->bind(
             StaffUserManagerInterface::class,
             AdminStaffUserService::class
+        );
+
+        // Registrar el presentador de usuarios para Inertia props
+        $this->app->bind(
+            AuthUserPresenterInterface::class,
+            StaffUserPresenter::class
         );
 
         $this->app->when(AdminDashboardController::class)

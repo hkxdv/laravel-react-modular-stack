@@ -8,9 +8,10 @@ use App\Interfaces\ApiResponseFormatterInterface;
 use App\Services\ApiResponseService;
 use App\Services\JsonbQueryService;
 use App\Services\RouteFilterService;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Proveedor de servicios principal de la aplicación
@@ -50,6 +51,11 @@ final class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register morph map for Spatie permission pivot tables.
+        Relation::morphMap([
+            'staff-user' => StaffUser::class,
+        ]);
+
         // Define una regla global 'before' para la autorización.
         Gate::before(function ($user, $ability) {
             if (

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 

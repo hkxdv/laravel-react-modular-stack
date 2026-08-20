@@ -49,18 +49,17 @@ it('authservice forguard returns self', function (): void {
     expect($auth)->toBeInstanceOf(AuthService::class);
 });
 
-it('getavailableguards reads from config', function (): void {
+it('getavailableguards reads from config for any domain user', function (): void {
     $reflection = new ReflectionMethod(
-        Modules\Core\Infrastructure\Eloquent\Models\StaffUser::class,
+        Modules\Core\Tests\Fakes\FakeDomainUser::class,
         'getAvailableGuards'
     );
 
-    $staffUser = new Modules\Core\Infrastructure\Eloquent\Models\StaffUser();
+    $user = new Modules\Core\Tests\Fakes\FakeDomainUser();
     /** @var array<string> $guards */
-    $guards = $reflection->invoke($staffUser);
+    $guards = $reflection->invoke($user);
 
     expect($guards)->toBeArray()
-        ->toContain('staff')
         ->toContain('web')
         ->toContain('sanctum');
 });
@@ -68,5 +67,6 @@ it('getavailableguards reads from config', function (): void {
 it('stopimpersonating reads correct config key', function (): void {
     $model = config('auth.providers.staff.model');
 
-    expect($model)->toBe(Modules\Core\Infrastructure\Eloquent\Models\StaffUser::class);
+    expect($model)->toBeString()
+        ->and($model)->not->toBe('');
 });

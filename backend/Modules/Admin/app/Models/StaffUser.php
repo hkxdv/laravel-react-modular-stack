@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Eloquent\Models;
+namespace Modules\Admin\App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Core\Database\Factories\StaffUsersFactory;
+use Modules\Admin\Database\Factories\StaffUsersFactory;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Spatie\Activitylog\LogOptions;
 
 /**

@@ -12,7 +12,7 @@ use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\Concerns\NormalizesStaffUserPayload;
 use Modules\Admin\App\Http\Requests\StaffUserRequest;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Controlador para la edición de usuarios del personal administrativo.

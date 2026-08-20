@@ -3,15 +3,13 @@
 declare(strict_types=1);
 
 use App\Interfaces\AuthenticatableUser;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
 use Modules\Core\Infrastructure\Laravel\Traits\CanBeImpersonated;
 use Modules\Core\Infrastructure\Laravel\Traits\HasCrossGuardPermissions;
+use Modules\Core\Tests\Fakes\FakeDomainUser;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -45,10 +43,10 @@ it('has six traits on base', function (): void {
     ])->and(count($traitNames))->toBeGreaterThanOrEqual(6);
 });
 
-// ── REQ-02: Shared behaviour on base ──
+// ── REQ-02: Shared behaviour on base (via FakeDomainUser) ──
 
 it('inherits get avatar attribute', function (): void {
-    $user = new StaffUser;
+    $user = new FakeDomainUser;
     $user->name = 'Test User';
 
     $avatar = $user->avatar;
@@ -58,65 +56,33 @@ it('inherits get avatar attribute', function (): void {
 });
 
 it('defaults is active to true', function (): void {
-    $user = new StaffUser;
+    $user = new FakeDomainUser;
 
     expect($user->isActive())->toBeTrue();
 });
 
 it('defaults trashed to false', function (): void {
-    $user = new StaffUser;
+    $user = new FakeDomainUser;
 
     expect($user->trashed())->toBeFalse();
 });
 
 it('has avatar in appends', function (): void {
-    $user = new StaffUser;
+    $user = new FakeDomainUser;
 
     expect($user->getAppends())->toContain('avatar');
 });
 
-// ── REQ-04: StaffUser rewired ──
+// ── Concrete subclass wiring ──
 
-it('extends abstract domain user', function (): void {
-    $reflection = new ReflectionClass(StaffUser::class);
+it('fake domain user extends abstract domain user', function (): void {
+    $reflection = new ReflectionClass(FakeDomainUser::class);
 
     expect($reflection->isSubclassOf(AbstractDomainUser::class))->toBeTrue();
 });
 
-it('is not final', function (): void {
-    $reflection = new ReflectionClass(StaffUser::class);
-
-    expect($reflection->isFinal())->toBeFalse();
-});
-
-it('implements must verify email', function (): void {
-    $user = new StaffUser;
-
-    expect($user)->toBeInstanceOf(MustVerifyEmail::class);
-});
-
-it('retains staff user methods', function (): void {
-    $reflection = new ReflectionClass(StaffUser::class);
-
-    expect($reflection->hasMethod('loginInfos'))->toBeTrue()
-        ->and($reflection->hasMethod('recordLogin'))->toBeTrue()
-        ->and($reflection->hasMethod('isSuspiciousLogin'))->toBeTrue()
-        ->and($reflection->hasMethod('getAuthGuard'))->toBeTrue()
-        ->and($reflection->hasMethod('getDisplayName'))->toBeTrue();
-});
-
-it('redeclares only has factory', function (): void {
-    $reflection = new ReflectionClass(StaffUser::class);
-    $ownTraits = $reflection->getTraits();
-    $ownTraitNames = array_keys($ownTraits);
-
-    // StaffUser should only directly declare HasFactory (the other 6 are inherited from base)
-    expect($ownTraitNames)->toContain(HasFactory::class)
-        ->and(count($ownTraitNames))->toBe(1);
-});
-
 it('does not modify domain dto', function (): void {
-    $domainDtoFile = __DIR__.'/../../src/Domain/User/StaffUser.php';
+    $domainDtoFile = __DIR__.'/../../src/Domain/User/DomainUser.php';
     $originalHash = md5_file($domainDtoFile);
 
     // The Domain DTO should be identical to the committed version

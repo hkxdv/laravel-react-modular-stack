@@ -6,8 +6,8 @@ namespace Modules\Core\Infrastructure\Laravel\Http\Requests\Profile;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser as User;
 
 /**
  * Valida los datos para la actualización del perfil de un usuario del personal.
@@ -37,8 +37,8 @@ final class ProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore(
-                    ($this->user() instanceof User) ? $this->user()->id : null
+                Rule::unique($this->resolveUserModelClass())->ignore(
+                    $this->user()?->getAuthIdentifier()
                 ),
             ],
         ];
@@ -57,5 +57,19 @@ final class ProfileUpdateRequest extends FormRequest
             'email.email' => 'El formato del correo electrónico no es válido.',
             'email.unique' => 'Este correo electrónico ya está en uso por otro usuario.',
         ];
+    }
+
+    /**
+     * Resuelve la clase del modelo de usuario desde la config de auth.
+     */
+    private function resolveUserModelClass(): string
+    {
+        $guardName = Auth::getDefaultDriver();
+        /** @var string $provider */
+        $provider = config(sprintf('auth.guards.%s.provider', $guardName), '');
+        /** @var string $model */
+        $model = config(sprintf('auth.providers.%s.model', $provider), '');
+
+        return $model;
     }
 }

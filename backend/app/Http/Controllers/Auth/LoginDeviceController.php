@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUsersLoginInfo;
+use Modules\Admin\App\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUsersLoginInfo;
 
 /**
  * Controlador para gestionar la confianza de los dispositivos de inicio de sesión.

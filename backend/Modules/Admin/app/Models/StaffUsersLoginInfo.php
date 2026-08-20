@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Eloquent\Models;
+namespace Modules\Admin\App\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUsersLoginInfo as StaffUsersLoginInfoModel;
+use Modules\Admin\App\Models\StaffUsersLoginInfo as StaffUsersLoginInfoModel;
 
 /**
  * Modelo que almacena el historial de inicios de sesión del personal (Staff).
@@ -105,17 +105,14 @@ final class StaffUsersLoginInfo extends Model
             return false;
         }
 
-        if ($userAgent === $this->user_agent) {
-            return true;
-        }
+        $matchesUserAgent = $userAgent === $this->user_agent;
 
         // Si el user agent es nulo en cualquiera de los dos, no coincide
-        if ($userAgent === null || $this->user_agent === null) {
-            return false;
+        if (! $matchesUserAgent && $userAgent !== null && $this->user_agent !== null) {
+            similar_text($userAgent, $this->user_agent, $percent);
+            $matchesUserAgent = $percent >= self::USER_AGENT_SIMILARITY_THRESHOLD;
         }
 
-        similar_text($userAgent, $this->user_agent, $percent);
-
-        return $percent >= self::USER_AGENT_SIMILARITY_THRESHOLD;
+        return $matchesUserAgent;
     }
 }

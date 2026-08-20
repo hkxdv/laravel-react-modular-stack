@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Database\Seeders;
+namespace Modules\Admin\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 final class TestStaffUsersSeeder extends Seeder
 {
@@ -74,7 +74,7 @@ final class TestStaffUsersSeeder extends Seeder
             return;
         }
 
-        /** @var \Modules\Core\Database\Factories\StaffUsersFactory $factory */
+        /** @var \Modules\Admin\Database\Factories\StaffUsersFactory $factory */
         $factory = StaffUser::factory();
 
         /** @var StaffUser $user */

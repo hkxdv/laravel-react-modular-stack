@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 return [
 

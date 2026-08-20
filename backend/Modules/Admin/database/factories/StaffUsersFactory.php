@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Database\Factories;
+namespace Modules\Admin\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * @extends Factory<StaffUser>

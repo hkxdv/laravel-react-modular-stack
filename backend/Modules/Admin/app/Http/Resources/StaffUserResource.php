@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources;
+namespace Modules\Admin\App\Http\Resources;
 
+use App\Http\Resources\RoleResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Core\Infrastructure\Eloquent\Models\StaffUser;
+use Modules\Admin\App\Models\StaffUser;
 
 /**
  * Transforma el modelo StaffUser en un array para respuestas API.
