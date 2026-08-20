@@ -379,10 +379,7 @@ final class AddonRegistryService implements AddonRegistryInterface
         }
 
         // ADMIN y DEV (del guard 'staff') tienen acceso a todo.
-        if (
-            $user->getAuthGuard() === 'staff'
-            && ($user->hasRole('ADMIN') || $user->hasRole('DEV'))
-        ) {
+        if ($user->hasPermissionToCross('system.bypass')) {
             return true;
         }
 

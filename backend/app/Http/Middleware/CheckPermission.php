@@ -62,8 +62,8 @@ final class CheckPermission
                 return true;
             }
 
-            // Para los roles de super-admin, es crucial pasar el guard correcto.
-            if ($user->hasRole(['ADMIN', 'DEV'], $guard)) {
+            // Bypass: system.bypass permission covers all access
+            if ($user->hasPermissionToCross('system.bypass')) {
                 return true;
             }
 

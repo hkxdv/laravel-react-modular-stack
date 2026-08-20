@@ -33,11 +33,6 @@ trait HasCrossGuardPermissions
         $cacheKey = 'user.'.$this->id.'.v'.$version.'.permission.'.$permissionName;
 
         $result = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($permission): bool {
-            // Concede acceso inmediato a roles de alto nivel.
-            if ($this->hasRoleCross(['ADMIN', 'DEV'])) {
-                return true;
-            }
-
             // Itera por los guards disponibles y valida el permiso.
             foreach ($this->getAvailableGuards() as $guard) {
                 try {
@@ -142,7 +137,7 @@ trait HasCrossGuardPermissions
             $cacheKey,
             now()->addMinutes(10),
             function () {
-                if ($this->hasRoleCross(['ADMIN', 'DEV'])) {
+                if ($this->hasPermissionToCross('system.bypass')) {
                     return Permission::all()->pluck('name')->unique()
                         ->values()->all();
                 }
