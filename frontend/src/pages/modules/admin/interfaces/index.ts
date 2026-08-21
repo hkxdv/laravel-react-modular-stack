@@ -6,6 +6,7 @@ import type {
   ModuleNavItem,
   NavItemDefinition,
   Paginated,
+  Role,
   StaffUser,
   User,
   UserRole,
@@ -140,3 +141,91 @@ export type {
   UserListItem as AdminUserListItem,
   UserRole as AdminUserRole,
 } from '@/types';
+
+/**
+ * Un permiso individual del registro.
+ */
+export interface PermissionItem {
+  name: string;
+  description: string;
+  guard: string;
+}
+
+/**
+ * Props para la página de listado de roles.
+ */
+export interface RoleListPageProps {
+  roles: (Role & { permissions_count: number })[];
+  totalRoles: number;
+  contextualNavItems: NavItemDefinition[];
+  breadcrumbs: BreadcrumbItem[];
+  mainNavItems: NavItemDefinition[];
+  moduleNavItems: NavItemDefinition[];
+  globalNavItems: NavItemDefinition[];
+  auth: AuthData;
+  flash?: {
+    success?: string | null;
+    error?: string | null;
+    info?: string | null;
+    warning?: string | null;
+  };
+}
+
+/**
+ * Props para la página de creación de rol.
+ */
+export interface RoleCreatePageProps {
+  permissionsByModule: Record<string, PermissionItem[]>;
+  auth: AuthData;
+  contextualNavItems: NavItemDefinition[];
+  mainNavItems: NavItemDefinition[];
+  moduleNavItems: NavItemDefinition[];
+  globalNavItems: NavItemDefinition[];
+  breadcrumbs: BreadcrumbItem[];
+  flash?: {
+    success?: string | null;
+    error?: string | null;
+    info?: string | null;
+    warning?: string | null;
+  };
+}
+
+/**
+ * Props para la página de edición de rol.
+ */
+export interface RoleEditPageProps {
+  role: Role;
+  rolePermissions: string[];
+  permissionsByModule: Record<string, PermissionItem[]>;
+  auth: AuthData;
+  contextualNavItems: NavItemDefinition[];
+  mainNavItems: NavItemDefinition[];
+  moduleNavItems: NavItemDefinition[];
+  globalNavItems: NavItemDefinition[];
+  breadcrumbs: BreadcrumbItem[];
+  flash?: {
+    success?: string | null;
+    error?: string | null;
+    info?: string | null;
+    warning?: string | null;
+  };
+}
+
+/**
+ * Props para la página de listado de permisos.
+ */
+export interface PermissionListPageProps {
+  permissionsByModule: Record<string, PermissionItem[]>;
+  auth: AuthData;
+  contextualNavItems: NavItemDefinition[];
+  mainNavItems: NavItemDefinition[];
+  moduleNavItems: NavItemDefinition[];
+  globalNavItems: NavItemDefinition[];
+  breadcrumbs: BreadcrumbItem[];
+  flash?: {
+    success?: string | null;
+    error?: string | null;
+    info?: string | null;
+    warning?: string | null;
+  };
+}
