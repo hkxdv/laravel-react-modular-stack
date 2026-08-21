@@ -21,7 +21,7 @@ final class RolePermissionSeeder extends Seeder
 
         app()->make(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // PERMISOS STAFF (18 granulares)
+        // PERMISOS STAFF (16 granulares)
         $staffPermissions = [
             // Core
             'system.bypass',
@@ -34,7 +34,9 @@ final class RolePermissionSeeder extends Seeder
             'staff-users.delete',
             'staff-users.impersonate',
             'roles.view',
-            'roles.manage',
+            'roles.create',
+            'roles.update',
+            'roles.delete',
             'permissions.view',
             'permissions.manage',
             // Module02

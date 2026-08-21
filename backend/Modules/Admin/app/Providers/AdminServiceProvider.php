@@ -7,6 +7,7 @@ namespace Modules\Admin\App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Http\Controllers\AdminDashboardController;
+use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Admin\App\PermissionRegistry\AdminPermissionRegistry;
@@ -15,8 +16,10 @@ use Modules\Admin\App\Policies\RolePolicy;
 use Modules\Admin\App\Policies\StaffUserPolicy;
 use Modules\Admin\App\Services\AdminStaffUserService;
 use Modules\Admin\App\Services\AdminStatsService;
+use Modules\Admin\App\Services\RoleService;
 use Modules\Admin\App\Services\StaffUserPresenter;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
+use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -47,6 +50,12 @@ final class AdminServiceProvider extends ServiceProvider
             AdminStaffUserService::class
         );
 
+        // Registrar la implementación de RolesInterface
+        $this->app->bind(
+            RolesInterface::class,
+            RoleService::class
+        );
+
         // Registrar el presentador de usuarios para Inertia props
         $this->app->bind(
             AuthUserPresenterInterface::class,
@@ -56,6 +65,14 @@ final class AdminServiceProvider extends ServiceProvider
         $this->app->when(AdminDashboardController::class)
             ->needs(StatsServiceInterface::class)
             ->give(AdminStatsService::class);
+
+        $this->app->when(RoleService::class)
+            ->needs(PermissionVerifierInterface::class)
+            ->give(fn () => resolve(PermissionVerifierInterface::class));
+
+        $this->app->when(AdminStaffUserService::class)
+            ->needs(PermissionVerifierInterface::class)
+            ->give(fn () => resolve(PermissionVerifierInterface::class));
 
         // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
         $this->app->tag(AdminPermissionRegistry::class, 'permission-registry');

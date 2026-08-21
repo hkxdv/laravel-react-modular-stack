@@ -27,6 +27,7 @@ use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
 use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
+use Modules\Core\Contracts\PermissionRegistryInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\PermissionsSyncRegistry;
@@ -39,6 +40,7 @@ use Modules\Core\Infrastructure\Laravel\Services\LoginAttemptService;
 use Modules\Core\Infrastructure\Laravel\Services\MenuBuilderService;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleOrchestratorService;
 use Modules\Core\Infrastructure\Laravel\Services\NavigationComposer;
+use Modules\Core\Infrastructure\Laravel\Services\PermissionRegistryAggregator;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionService;
 use Modules\Core\Infrastructure\Laravel\Services\SecurityAuditService;
 use Modules\Core\Infrastructure\Laravel\Services\ViewComposerService;
@@ -104,6 +106,9 @@ final class CoreServiceProvider extends ServiceProvider
 
         // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
         $this->app->tag(CorePermissionRegistry::class, 'permission-registry');
+
+        // PermissionRegistryAggregator: singleton que agrupa todos los registries taggeados
+        $this->app->singleton(PermissionRegistryAggregator::class);
     }
 
     /**
@@ -112,6 +117,14 @@ final class CoreServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerConfig();
+
+        // Poblar el agregador con todos los registries taggeados (todos los providers ya registraron)
+        $aggregator = $this->app->make(PermissionRegistryAggregator::class);
+        foreach ($this->app->tagged('permission-registry') as $registry) {
+            if ($registry instanceof PermissionRegistryInterface) {
+                $aggregator->register($registry);
+            }
+        }
 
         $this->commands([
             SyncGuardPermissionsCommand::class,

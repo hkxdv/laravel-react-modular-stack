@@ -35,7 +35,7 @@ final class RolePolicy
      */
     public function create(StaffUser $user): bool
     {
-        return $user->hasPermissionTo('roles.manage', 'staff');
+        return $user->hasPermissionTo('roles.create', 'staff');
     }
 
     /**
@@ -43,7 +43,7 @@ final class RolePolicy
      */
     public function update(StaffUser $user): bool
     {
-        return $user->hasPermissionTo('roles.manage', 'staff');
+        return $user->hasPermissionTo('roles.update', 'staff');
     }
 
     /**
@@ -51,6 +51,6 @@ final class RolePolicy
      */
     public function delete(StaffUser $user): bool
     {
-        return $user->hasPermissionTo('roles.manage', 'staff');
+        return $user->hasPermissionTo('roles.delete', 'staff');
     }
 }

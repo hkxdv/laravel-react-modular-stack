@@ -2,13 +2,27 @@
 
 declare(strict_types=1);
 
+$usersListTitle = 'Lista de Usuarios';
+$usersListRoute = 'users.index';
+$adminRoot = [
+    'title' => 'Módulo de Administración',
+    'route_name_suffix' => 'index',
+];
+$usersList = [
+    'title' => $usersListTitle,
+    'route_name_suffix' => $usersListRoute,
+];
+$backToPanelRef = '$ref:nav_components.links.back_to_panel';
+$adminRootRef = '$ref:breadcrumb_components.admin_root';
+$usersListRef = '$ref:breadcrumb_components.users_list';
+
 return [
     // Configuración básica del módulo
     'module_slug' => 'admin',
     'auth_guard' => 'staff',
     'functional_name' => 'Módulo de Administración',
     'description' => 'Explora las opciones de administración del sistema y revisa las estadísticas clave.',
-    'base_permission' => 'access-admin',
+    'base_permission' => 'rbac.view',
 
     // Configuración del ítem de navegación principal
     'nav_item' => [
@@ -25,31 +39,42 @@ return [
                 'title' => 'Módulo de Administración',
                 'route_name_suffix' => 'index',
                 'icon' => 'LayoutDashboard',
-                'permission' => 'access-admin',
+                'permission' => 'rbac.view',
             ],
             'users_list' => [
-                'title' => 'Lista de Usuarios',
-                'route_name_suffix' => 'users.index',
+                ...$usersList,
                 'icon' => 'ScrollText',
-                'permission' => 'access-admin',
+                'permission' => 'staff-users.view',
             ],
             'users_create' => [
                 'title' => 'Crear Usuario',
                 'route_name_suffix' => 'users.create',
                 'icon' => 'UserPlus',
-                'permission' => 'access-admin',
+                'permission' => 'staff-users.create',
             ],
             'back_to_panel' => [
                 'title' => 'Volver al panel',
                 'route_name_suffix' => 'index',
                 'icon' => 'ArrowLeft',
-                'permission' => 'access-admin',
+                'permission' => 'rbac.view',
             ],
             'back_to_list' => [
                 'title' => 'Volver a la lista',
-                'route_name_suffix' => 'users.index',
+                'route_name_suffix' => $usersListRoute,
                 'icon' => 'ArrowLeft',
-                'permission' => 'access-admin',
+                'permission' => 'staff-users.view',
+            ],
+            'roles_list' => [
+                'title' => 'Gestión de Roles',
+                'route_name_suffix' => 'roles.index',
+                'icon' => 'Shield',
+                'permission' => 'roles.view',
+            ],
+            'permissions_list' => [
+                'title' => 'Permisos del Sistema',
+                'route_name_suffix' => 'permissions.index',
+                'icon' => 'KeyRound',
+                'permission' => 'permissions.view',
             ],
         ],
 
@@ -78,15 +103,33 @@ return [
 
         // Rutas para la gestión de usuarios
         'users.index' => [
-            '$ref:nav_components.links.back_to_panel',
+            $backToPanelRef,
             '$ref:nav_components.links.users_create',
         ],
         'users.create' => [
             '$ref:nav_components.groups.back_navigation',
         ],
         'users.edit' => [
-            '$ref:nav_components.links.back_to_panel',
+            $backToPanelRef,
             '$ref:nav_components.links.back_to_list',
+        ],
+
+        // Rutas para la gestión de roles
+        'roles.index' => [
+            $backToPanelRef,
+        ],
+        'roles.create' => [
+            $backToPanelRef,
+            '$ref:nav_components.links.roles_list',
+        ],
+        'roles.edit' => [
+            $backToPanelRef,
+            '$ref:nav_components.links.roles_list',
+        ],
+
+        // Rutas para permisos
+        'permissions.index' => [
+            $backToPanelRef,
         ],
 
     ],
@@ -94,23 +137,35 @@ return [
     // Configuración de ítems del panel
     'panel_items' => [
         [
-            'name' => 'Lista de Usuarios',
+            'name' => $usersListTitle,
             'description' => 'Añadir, editar o eliminar cuentas de usuario.',
-            'route_name_suffix' => 'users.index',
+            'route_name_suffix' => $usersListRoute,
             'icon' => 'Users',
-            'permission' => 'access-admin',
+            'permission' => 'staff-users.view',
+        ],
+        [
+            'name' => 'Gestión de Roles',
+            'description' => 'Crear, editar y eliminar roles del sistema.',
+            'route_name_suffix' => 'roles.index',
+            'icon' => 'Shield',
+            'permission' => 'roles.view',
+        ],
+        [
+            'name' => 'Permisos del Sistema',
+            'description' => 'Consultar permisos granulares por módulo.',
+            'route_name_suffix' => 'permissions.index',
+            'icon' => 'KeyRound',
+            'permission' => 'permissions.view',
         ],
     ],
 
     // Componentes reutilizables de breadcrumbs
     'breadcrumb_components' => [
         'admin_root' => [
-            'title' => 'Módulo de Administración',
-            'route_name_suffix' => 'index',
+            ...$adminRoot,
         ],
         'users_list' => [
-            'title' => 'Lista de Usuarios',
-            'route_name_suffix' => 'users.index',
+            ...$usersList,
         ],
         'users_create' => [
             'title' => 'Crear Usuario',
@@ -121,26 +176,61 @@ return [
             'route_name_suffix' => 'users.edit',
             'dynamic_title_prop' => 'user.name',
         ],
+        'roles_list' => [
+            'title' => 'Gestión de Roles',
+            'route_name_suffix' => 'roles.index',
+        ],
+        'roles_create' => [
+            'title' => 'Crear Rol',
+            'route_name_suffix' => 'roles.create',
+        ],
+        'roles_edit' => [
+            'title' => 'Editar Rol',
+            'route_name_suffix' => 'roles.edit',
+            'dynamic_title_prop' => 'role.name',
+        ],
+        'permissions_list' => [
+            'title' => 'Permisos del Sistema',
+            'route_name_suffix' => 'permissions.index',
+        ],
     ],
 
     // Configuración de breadcrumbs para cada ruta
     'breadcrumbs' => [
         'default' => [
-            '$ref:breadcrumb_components.admin_root',
+            $adminRootRef,
         ],
         'users.index' => [
-            '$ref:breadcrumb_components.admin_root',
-            '$ref:breadcrumb_components.users_list',
+            $adminRootRef,
+            $usersListRef,
         ],
         'users.create' => [
-            '$ref:breadcrumb_components.admin_root',
-            '$ref:breadcrumb_components.users_list',
+            $adminRootRef,
+            $usersListRef,
             '$ref:breadcrumb_components.users_create',
         ],
         'users.edit' => [
-            '$ref:breadcrumb_components.admin_root',
-            '$ref:breadcrumb_components.users_list',
+            $adminRootRef,
+            $usersListRef,
             '$ref:breadcrumb_components.users_edit',
+        ],
+        'roles.index' => [
+            $adminRootRef,
+            '$ref:breadcrumb_components.roles_list',
+        ],
+        'roles.create' => [
+            $adminRootRef,
+            '$ref:breadcrumb_components.roles_list',
+            '$ref:breadcrumb_components.roles_create',
+        ],
+        'roles.edit' => [
+            $adminRootRef,
+            '$ref:breadcrumb_components.roles_list',
+            '$ref:breadcrumb_components.roles_edit',
+        ],
+        'permissions.index' => [
+            $adminRootRef,
+            '$ref:breadcrumb_components.permissions_list',
         ],
     ],
 ];

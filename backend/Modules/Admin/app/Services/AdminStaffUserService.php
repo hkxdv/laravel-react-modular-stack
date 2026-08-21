@@ -6,20 +6,23 @@ namespace Modules\Admin\App\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Cache;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
+use Modules\Core\Contracts\PermissionVerifierInterface;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
-
-use function Foundry\Helpers\cacheInt;
 
 /**
  * Servicio para manejar la lógica de negocio de la gestión de usuarios del personal (Staff).
  * Implementa las operaciones definidas en la interfaz StaffUserManagerInterface.
  */
-final class AdminStaffUserService implements StaffUserManagerInterface
+final readonly class AdminStaffUserService implements StaffUserManagerInterface
 {
+    public function __construct(
+        private PermissionVerifierInterface $permissionVerifier,
+    ) {
+        //
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -212,16 +215,7 @@ final class AdminStaffUserService implements StaffUserManagerInterface
 
         $user->syncRoles($finalRoles);
 
-        $registrar = app()->make(PermissionRegistrar::class);
-        $registrar->forgetCachedPermissions();
-
-        $currentVersion = cacheInt('user.'.$user->id.'.perm_version', 0);
-
-        Cache::put(
-            'user.'.$user->id.'.perm_version',
-            $currentVersion + 1,
-            now()->addDays(7)
-        );
+        $this->permissionVerifier->clearCache($user);
     }
 
     /**

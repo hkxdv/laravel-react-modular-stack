@@ -24,4 +24,12 @@ final class Module02PermissionRegistry implements PermissionRegistryInterface
             ],
         ];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function moduleName(): string
+    {
+        return 'Module02';
+    }
 }

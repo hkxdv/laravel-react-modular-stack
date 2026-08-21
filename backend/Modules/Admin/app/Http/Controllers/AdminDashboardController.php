@@ -7,9 +7,6 @@ namespace Modules\Admin\App\Http\Controllers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request as IlluminateRequest;
 use Inertia\Response as InertiaResponse;
-use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
-use Modules\Core\Contracts\MenuBuilderInterface;
-use Modules\Core\Contracts\ModuleOrchestratorInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Core\Domain\Stats\EnhancedStat;
 use Spatie\Activitylog\Models\Activity;
@@ -25,16 +22,9 @@ final class AdminDashboardController extends AbstractAdminController
      * @param  StatsServiceInterface  $statsService  Servicio de estadísticas del panel del módulo.
      */
     public function __construct(
-        ModuleOrchestratorInterface $moduleOrchestrator,
-        MenuBuilderInterface $navigationBuilder,
-        StaffUserManagerInterface $staffUserManager,
         private readonly StatsServiceInterface $statsService
     ) {
-        parent::__construct(
-            orchestrator: $moduleOrchestrator,
-            navigationBuilder: $navigationBuilder,
-            staffUserManager: $staffUserManager
-        );
+        //
     }
 
     /**
@@ -96,8 +86,8 @@ final class AdminDashboardController extends AbstractAdminController
 
             $created = $activity->created_at;
             $timestamp = $created instanceof \Carbon\Carbon
-                ? $created->toIso8601String()
-                : now()->toIso8601String();
+              ? $created->toIso8601String()
+              : now()->toIso8601String();
 
             return [
                 'id' => $activity->id,

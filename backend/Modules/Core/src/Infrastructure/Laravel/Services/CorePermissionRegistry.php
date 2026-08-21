@@ -29,4 +29,12 @@ final class CorePermissionRegistry implements PermissionRegistryInterface
             ],
         ];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function moduleName(): string
+    {
+        return 'Core';
+    }
 }

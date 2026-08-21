@@ -32,10 +32,7 @@ abstract class AbstractAdminController extends Controller
         protected readonly MenuBuilderInterface $navigationBuilder,
         protected readonly StaffUserManagerInterface $staffUserManager
     ) {
-        $configuredSlug = config('admin.module_slug');
-        $this->moduleSlug = is_string($configuredSlug) && $configuredSlug !== ''
-            ? $configuredSlug
-            : 'admin';
+        $this->moduleSlug = $this->resolveModuleSlug();
     }
 
     /**
@@ -46,5 +43,17 @@ abstract class AbstractAdminController extends Controller
     protected function getModuleSlug(): string
     {
         return $this->moduleSlug;
+    }
+
+    /**
+     * Resuelve el slug del módulo desde la configuración o un valor predeterminado.
+     */
+    private function resolveModuleSlug(): string
+    {
+        $configured = config('admin.module_slug');
+
+        return is_string($configured) && $configured !== ''
+            ? $configured
+            : 'admin';
     }
 }

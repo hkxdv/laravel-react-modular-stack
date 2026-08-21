@@ -16,4 +16,9 @@ interface PermissionRegistryInterface
      * @return array<int, array{name: string, description: string, guard: string}>
      */
     public function permissions(): array;
+
+    /**
+     * Devuelve el nombre del módulo al que pertenecen los permisos.
+     */
+    public function moduleName(): string;
 }

@@ -44,4 +44,12 @@ final class ExamplesPermissionRegistry implements PermissionRegistryInterface
             ],
         ];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function moduleName(): string
+    {
+        return 'Examples';
+    }
 }

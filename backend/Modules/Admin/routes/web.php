@@ -33,5 +33,11 @@ Route::middleware([
 
         // Rutas para la gestión de usuarios (CRUD de vistas).
         require_once sprintf('%s/users.php', __DIR__);
+
+        // Rutas para la gestión de roles (CRUD).
+        require_once sprintf('%s/roles.php', __DIR__);
+
+        // Rutas para la consulta de permisos (solo lectura).
+        require_once sprintf('%s/permissions.php', __DIR__);
     }
 );

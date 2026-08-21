@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\App\Http\Controllers\StaffUsers\CreateStaffUserController;
+use Modules\Admin\App\Http\Controllers\StaffUsers\DeleteStaffUserController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\EditStaffUserController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\ListStaffUsersController;
 
@@ -49,7 +50,7 @@ Route::prefix('users')->name('users.')->group(
 
         // Elimina el usuario.
         Route::delete('/{user}', [
-            EditStaffUserController::class,
+            DeleteStaffUserController::class,
             'destroy',
         ])->middleware('permission:staff-users.delete,staff')
             ->name('destroy');

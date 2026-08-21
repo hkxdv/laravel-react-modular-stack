@@ -45,11 +45,11 @@ it('syncs all 22 granular permissions from registries', function (): void {
         );
     }
 
-    // Verify total count (14 staff + 4 tenant = 18)
+    // Verify total count (16 staff + 4 tenant = 20)
     $staffCount = Permission::query()->where('guard_name', 'staff')->count();
     $tenantCount = Permission::query()->where('guard_name', 'tenant')->count();
 
-    expect($staffCount)->toBe(14)
+    expect($staffCount)->toBe(16)
         ->and($tenantCount)->toBe(4);
 });
 

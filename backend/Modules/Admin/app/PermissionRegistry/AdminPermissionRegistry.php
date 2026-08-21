@@ -53,8 +53,18 @@ final class AdminPermissionRegistry implements PermissionRegistryInterface
                 'guard' => 'staff',
             ],
             [
-                'name' => 'roles.manage',
-                'description' => 'Gestionar roles del sistema',
+                'name' => 'roles.create',
+                'description' => 'Crear roles del sistema',
+                'guard' => 'staff',
+            ],
+            [
+                'name' => 'roles.update',
+                'description' => 'Actualizar roles del sistema',
+                'guard' => 'staff',
+            ],
+            [
+                'name' => 'roles.delete',
+                'description' => 'Eliminar roles del sistema',
                 'guard' => 'staff',
             ],
             [
@@ -68,5 +78,13 @@ final class AdminPermissionRegistry implements PermissionRegistryInterface
                 'guard' => 'staff',
             ],
         ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function moduleName(): string
+    {
+        return 'Admin';
     }
 }
