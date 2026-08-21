@@ -25,7 +25,13 @@ final class StaffUserRequest extends FormRequest
         /** @var StaffUser|null $user */
         $user = Auth::user();
 
-        return $user && $user->can('access-admin');
+        if (! $user instanceof StaffUser) {
+            return false;
+        }
+
+        $permission = $this->isMethod('POST') ? 'staff-users.create' : 'staff-users.update';
+
+        return $user->hasPermissionTo($permission, 'staff');
     }
 
     /**

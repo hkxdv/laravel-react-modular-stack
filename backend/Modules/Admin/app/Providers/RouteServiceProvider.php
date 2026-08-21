@@ -6,7 +6,7 @@ namespace Modules\Admin\App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
-use Modules\Admin\App\Models\StaffUser;
+use Spatie\Permission\Models\Role;
 
 /**
  * Provider para el registro de rutas del módulo Admin.
@@ -14,65 +14,18 @@ use Modules\Admin\App\Models\StaffUser;
 final class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * El namespace del controlador del módulo.
-     */
-    private string $moduleNamespace = 'Modules\\Admin\\App\\Http\\Controllers';
-
-    /**
-     * Registra los servicios del módulo.
-     */
-    public function register(): void
-    {
-        parent::register();
-    }
-
-    /**
      * Define las rutas del módulo.
      */
     public function boot(): void
     {
         Route::bind(
-            'staff_user',
-            fn ($value) => StaffUser::query()->findOrFail($value)
+            'role',
+            fn ($value) => Role::query()->findOrFail($value)
         );
 
         $this->routes(function (): void {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(module_path('Admin', 'routes/api.php'));
-
             Route::middleware('web')
                 ->group(module_path('Admin', 'routes/web.php'));
         });
-    }
-
-    /**
-     * Define las rutas para el módulo.
-     */
-    public function map(): void
-    {
-        $this->mapWebRoutes();
-        $this->mapApiRoutes();
-    }
-
-    /**
-     * Define las rutas web para el módulo.
-     */
-    private function mapWebRoutes(): void
-    {
-        Route::middleware('web')
-            ->namespace($this->moduleNamespace)
-            ->group(module_path('Admin', '/routes/web.php'));
-    }
-
-    /**
-     * Define las rutas API para el módulo.
-     */
-    private function mapApiRoutes(): void
-    {
-        Route::prefix('api')
-            ->middleware('api')
-            ->namespace($this->moduleNamespace)
-            ->group(module_path('Admin', '/routes/api.php'));
     }
 }

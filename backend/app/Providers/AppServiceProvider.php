@@ -9,7 +9,6 @@ use App\Services\ApiResponseService;
 use App\Services\JsonbQueryService;
 use App\Services\RouteFilterService;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Examples\App\Models\ExampleTenantUser;
@@ -57,15 +56,5 @@ final class AppServiceProvider extends ServiceProvider
             'staff-user' => StaffUser::class,
             'tenant-user' => ExampleTenantUser::class,
         ]);
-
-        // Define una regla global 'before' para la autorización.
-        Gate::before(function ($user, $ability) {
-            if (
-                $user instanceof StaffUser
-                && ($user->hasRole('ADMIN') || $user->hasRole('DEV'))
-            ) {
-                return true;
-            }
-        });
     }
 }
