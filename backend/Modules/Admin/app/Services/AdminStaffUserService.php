@@ -269,10 +269,7 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
                         'description',
                         'Acceso al Módulo 01'
                     ),
-                    'MOD-02' => $role->setAttribute(
-                        'description',
-                        'Acceso al Módulo 02'
-                    ),
+
                     default => $role->setAttribute(
                         'description',
                         is_string($nameAttr) ? ('Rol de '.$nameAttr) : 'Rol'

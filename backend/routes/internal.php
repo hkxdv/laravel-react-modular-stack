@@ -67,7 +67,5 @@ Route::prefix('internal')->name('internal.')->group(function (): void {
             return redirect($target, 301);
         })->where('path', '.*');
 
-        Route::redirect('/module-01', '/internal/staff/module-01', 301);
-        Route::redirect('/module-02', '/internal/staff/module-02', 301);
     });
 });

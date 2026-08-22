@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Modules\Admin\App\PermissionRegistry\AdminPermissionRegistry;
 use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use Modules\Examples\App\PermissionRegistry\ExamplesPermissionRegistry;
-use Modules\Module02\App\PermissionRegistry\Module02PermissionRegistry;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
@@ -19,7 +18,6 @@ it('syncs all 22 granular permissions from registries', function (): void {
     $registries = [
         new CorePermissionRegistry(),
         new AdminPermissionRegistry(),
-        new Module02PermissionRegistry(),
         new ExamplesPermissionRegistry(),
     ];
 
@@ -49,14 +47,13 @@ it('syncs all 22 granular permissions from registries', function (): void {
     $staffCount = Permission::query()->where('guard_name', 'staff')->count();
     $tenantCount = Permission::query()->where('guard_name', 'tenant')->count();
 
-    expect($staffCount)->toBe(16)
+    expect($staffCount)->toBe(15)
         ->and($tenantCount)->toBe(4);
 });
 
 it('does not contain broad permissions from old seeder', function (): void {
     // Ensure old broad permissions don't exist
     Permission::query()->where('name', 'access-module-01')->delete();
-    Permission::query()->where('name', 'access-module-02')->delete();
     Permission::query()->where('name', 'access-admin')->delete();
 
     expect(Permission::query()->where('name', 'access-module-01')->exists())->toBeFalse()

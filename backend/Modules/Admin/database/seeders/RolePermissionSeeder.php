@@ -39,8 +39,6 @@ final class RolePermissionSeeder extends Seeder
             'roles.delete',
             'permissions.view',
             'permissions.manage',
-            // Module02
-            'module02.dashboard.access',
             // Examples (staff)
             'examples.dashboard.access',
         ];
@@ -91,12 +89,6 @@ final class RolePermissionSeeder extends Seeder
             'name' => 'MOD-01',
             'guard_name' => 'staff',
         ])->givePermissionTo('examples.dashboard.access');
-
-        // MOD-02: solo permisos de module02
-        Role::query()->firstOrCreate([
-            'name' => 'MOD-02',
-            'guard_name' => 'staff',
-        ])->givePermissionTo('module02.dashboard.access');
 
         // ROLES TENANT
         // ADMIN (tenant): todos los permisos tenant
