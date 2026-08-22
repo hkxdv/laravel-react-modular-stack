@@ -17,6 +17,8 @@ export default function PermissionListPage({
   globalNavItems,
   breadcrumbs,
   flash,
+  pageTitle,
+  description,
 }: Readonly<PermissionListPageProps>) {
   const { auth } = usePage().props;
 
@@ -62,10 +64,10 @@ export default function PermissionListPage({
       moduleNavItems={moduleNavItems}
       globalNavItems={globalNavItems}
     >
-      <Head title="Permisos del Sistema" />
+      <Head title={pageTitle ?? 'Permisos del Sistema'} />
       <ModuleDashboardLayout
-        title="Permisos del Sistema"
-        description="Consultar permisos granulares por modulo."
+        title={pageTitle ?? 'Permisos del Sistema'}
+        description={description ?? 'Consultar permisos granulares por modulo.'}
         userName={userData?.name ?? ''}
         showGreeting={false}
         mainContent={

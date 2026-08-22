@@ -115,9 +115,6 @@ final readonly class ComposeInertiaProps
             'auth' => [
                 'user' => $transformedStaffUser,
                 'staff' => $transformedStaffUser,
-                'can' => $staffUser instanceof AbstractDomainUser
-                  ? ($staffUser->getAttribute('frontend_permissions') ?? [])
-                  : [],
                 'impersonate' => $staffUser && $request->session()->has('impersonated_by'),
             ],
         ];

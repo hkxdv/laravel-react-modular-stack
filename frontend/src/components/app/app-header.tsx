@@ -59,11 +59,11 @@ export function AppHeader({ breadcrumbs = [] }: Readonly<AppHeaderProps>) {
   let displayName = 'Usuario';
 
   // Simplificado: asumimos StaffUser
-  if (user?.data.name) {
-    displayName = user.data.name;
+  if (user?.name) {
+    displayName = user.name;
   }
 
-  const avatarSrc = user?.data.avatar;
+  const avatarSrc = user?.avatar;
 
   return (
     <>
@@ -195,7 +195,7 @@ export function AppHeader({ breadcrumbs = [] }: Readonly<AppHeaderProps>) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                {user?.data && <UserMenuContent user={user.data} />}
+                {user && <UserMenuContent user={user} />}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

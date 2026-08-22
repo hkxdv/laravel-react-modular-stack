@@ -231,9 +231,9 @@ final class AddonRegistryService implements AddonRegistryInterface
             && is_array($coreConfig['nav_components'])
             && isset($coreConfig['nav_components']['groups'])
             && is_array($coreConfig['nav_components']['groups'])
-            && isset($coreConfig['nav_components']['groups']['user_settings_nav'])
+            && isset($coreConfig['nav_components']['groups']['user_profile_nav'])
         ) {
-            $settingsGroup = (array) $coreConfig['nav_components']['groups']['user_settings_nav'];
+            $settingsGroup = (array) $coreConfig['nav_components']['groups']['user_profile_nav'];
         }
 
         $keyParts[] = md5((string) json_encode($settingsGroup));

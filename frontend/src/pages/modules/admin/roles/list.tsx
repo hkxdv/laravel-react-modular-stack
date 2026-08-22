@@ -32,6 +32,8 @@ export default function RoleListPage({
   globalNavItems,
   breadcrumbs,
   flash,
+  pageTitle,
+  description,
 }: Readonly<RoleListPageProps>) {
   const { auth } = usePage().props;
 
@@ -117,10 +119,10 @@ export default function RoleListPage({
       moduleNavItems={moduleNavItems}
       globalNavItems={globalNavItems}
     >
-      <Head title="Lista de Roles" />
+      <Head title={pageTitle ?? 'Lista de Roles'} />
       <ModuleDashboardLayout
-        title="Lista de Roles"
-        description="Crear, editar o eliminar roles del sistema."
+        title={pageTitle ?? 'Lista de Roles'}
+        description={description ?? 'Crear, editar o eliminar roles del sistema.'}
         userName={userData?.name ?? ''}
         showGreeting={false}
         actions={

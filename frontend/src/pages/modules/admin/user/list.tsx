@@ -162,6 +162,8 @@ export default function UserListPage({
   globalNavItems,
   breadcrumbs,
   flash,
+  pageTitle,
+  description,
 }: Readonly<UserListPageProps>) {
   const { auth } = usePage().props;
   const { showError } = useToastNotifications();
@@ -230,7 +232,7 @@ export default function UserListPage({
         accessorKey: 'name',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Nombre" />,
         cell: ({ row }) => {
-          const isCurrentUser = row.original.id === auth.user?.data.id;
+          const isCurrentUser = row.original.id === auth.user?.id;
           return (
             <div className="flex items-center space-x-2">
               <User className="text-muted-foreground h-4 w-4" />
@@ -318,9 +320,9 @@ export default function UserListPage({
           <DataTableColumnHeader className="pr-4 text-right" column={column} title="" />
         ),
         cell: ({ row }) =>
-          auth.user?.data.id ? (
+          auth.user?.id ? (
             <div className="flex justify-end">
-              <UserActionsCell row={row} authUserId={auth.user.data.id} />
+              <UserActionsCell row={row} authUserId={auth.user.id} />
             </div>
           ) : null,
         enableSorting: false,
@@ -357,10 +359,10 @@ export default function UserListPage({
       moduleNavItems={moduleNavItems}
       globalNavItems={globalNavItems}
     >
-      <Head title="Lista de Usuarios" />
+      <Head title={pageTitle ?? 'Lista de Usuarios'} />
       <ModuleDashboardLayout
-        title="Lista de Usuarios"
-        description="Añadir, editar o eliminar cuentas de usuario del sistema interno."
+        title={pageTitle ?? 'Lista de Usuarios'}
+        description={description ?? 'Añadir, editar o eliminar cuentas de usuario del sistema interno.'}
         userName={userData?.name ?? ''}
         showGreeting={false}
         actions={

@@ -7,7 +7,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { type NavItemDefinition } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 
 interface NavMainProps {
   items: NavItemDefinition[];
@@ -15,7 +15,6 @@ interface NavMainProps {
 }
 
 export function NavMain({ items, label }: Readonly<NavMainProps>) {
-  const page = usePage();
   return (
     <SidebarGroup className="px-2 py-0">
       {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
@@ -24,7 +23,7 @@ export function NavMain({ items, label }: Readonly<NavMainProps>) {
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
               asChild
-              isActive={item.href === page.url}
+              isActive={item.current === true}
               tooltip={{ children: item.title }}
             >
               <Link href={item.href} prefetch>

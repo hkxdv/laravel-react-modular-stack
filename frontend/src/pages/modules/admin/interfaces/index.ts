@@ -62,6 +62,8 @@ export interface UserListPageProps {
   mainNavItems: NavItemDefinition[];
   moduleNavItems: NavItemDefinition[];
   globalNavItems: NavItemDefinition[];
+  pageTitle?: string;
+  description?: string;
   auth: AuthData;
   flash?: {
     success?: string | null;
@@ -162,6 +164,8 @@ export interface RoleListPageProps {
   mainNavItems: NavItemDefinition[];
   moduleNavItems: NavItemDefinition[];
   globalNavItems: NavItemDefinition[];
+  pageTitle?: string;
+  description?: string;
   auth: AuthData;
   flash?: {
     success?: string | null;
@@ -222,6 +226,8 @@ export interface PermissionListPageProps {
   moduleNavItems: NavItemDefinition[];
   globalNavItems: NavItemDefinition[];
   breadcrumbs: BreadcrumbItem[];
+  pageTitle?: string;
+  description?: string;
   flash?: {
     success?: string | null;
     error?: string | null;

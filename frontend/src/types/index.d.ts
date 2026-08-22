@@ -171,7 +171,7 @@ export interface UserListItem {
  */
 export interface AuthData {
   /** El objeto de usuario autenticado, o `null` si es un invitado. */
-  user: { data: User } | null;
+  user: User | null;
   /** Un objeto que contiene las habilidades/permisos del usuario. */
   can?: {
     /** Si el usuario puede suplantar a otros. */
@@ -212,6 +212,8 @@ export interface NavItemDefinition {
   icon?: LucideIcon | string | null;
   /** Si el elemento debe aparecer como activo. */
   isActive?: boolean;
+  /** Indica si este ítem corresponde a la página actual (booleano del backend). */
+  current?: boolean;
   /** El permiso o lista de permisos necesarios para ver este elemento. */
   permission?: string | string[];
   /** Si se requieren todos los permisos de la lista para ver el elemento. `false` por defecto (requiere al menos uno). */

@@ -20,6 +20,8 @@ final class StaffUserPresenter implements AuthUserPresenterInterface
     public function present(AuthenticatableUser $user): array
     {
         if ($user instanceof StaffUser) {
+            $user->loadMissing('roles');
+
             return new StaffUserResource($user)->toArray(request());
         }
 
