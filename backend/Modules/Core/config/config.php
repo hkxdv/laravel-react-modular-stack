@@ -149,4 +149,8 @@ return [
             '$ref:breadcrumb_components.user_profile_notifications',
         ],
     ],
+
+    'module-config' => [
+        'frontend_path' => 'frontend/src/pages/modules',
+    ],
 ];

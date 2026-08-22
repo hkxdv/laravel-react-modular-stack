@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Infrastructure\Laravel\Providers;
 
 use Illuminate\Foundation\AliasLoader;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Application\AccountSecurity\ConfirmTwoFactorAuth;
 use Modules\Core\Application\AccountSecurity\DisableTwoFactorAuth;
@@ -24,6 +25,7 @@ use Modules\Core\Contracts\AuditTrailInterface;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
 use Modules\Core\Contracts\Auth\ImpersonatesUsersInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Contracts\ModuleConfigInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
 use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferencesInterface;
@@ -32,12 +34,16 @@ use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\PermissionsSyncRegistry;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\SyncGuardPermissionsCommand;
+use Modules\Core\Infrastructure\Laravel\Console\Commands\ValidateModuleConfig;
 use Modules\Core\Infrastructure\Laravel\Services\AddonRegistryService;
 use Modules\Core\Infrastructure\Laravel\Services\AuditTrailService;
 use Modules\Core\Infrastructure\Laravel\Services\AuthService;
+use Modules\Core\Infrastructure\Laravel\Services\CoreModuleConfig;
 use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use Modules\Core\Infrastructure\Laravel\Services\LoginAttemptService;
 use Modules\Core\Infrastructure\Laravel\Services\MenuBuilderService;
+use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigRegistry;
+use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigValidator;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleOrchestratorService;
 use Modules\Core\Infrastructure\Laravel\Services\NavigationComposer;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionRegistryAggregator;
@@ -109,6 +115,10 @@ final class CoreServiceProvider extends ServiceProvider
 
         // PermissionRegistryAggregator: singleton que agrupa todos los registries taggeados
         $this->app->singleton(PermissionRegistryAggregator::class);
+
+        // Module config: tag + registry
+        $this->app->tag(CoreModuleConfig::class, 'module-config');
+        $this->app->singleton(ModuleConfigRegistry::class);
     }
 
     /**
@@ -126,9 +136,30 @@ final class CoreServiceProvider extends ServiceProvider
             }
         }
 
+        // ModuleConfigRegistry: populate from 'module-config' tagged instances
+        $moduleConfigRegistry = $this->app->make(ModuleConfigRegistry::class);
+        foreach ($this->app->tagged('module-config') as $config) {
+            if ($config instanceof ModuleConfigInterface) {
+                $moduleConfigRegistry->register($config);
+            }
+        }
+
+        // Boot validation: local/testing only
+        if (app()->environment('local', 'testing')) {
+            $validator = $this->app->make(ModuleConfigValidator::class);
+            $result = $validator->validateAll();
+
+            if ($result->hasFailures()) {
+                Log::error('Module config validation failed during boot', [
+                    'failures' => $result->failures(),
+                ]);
+            }
+        }
+
         $this->commands([
             SyncGuardPermissionsCommand::class,
             PermissionsSyncRegistry::class,
+            ValidateModuleConfig::class,
         ]);
 
         $facades = [
