@@ -9,6 +9,7 @@ use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Examples\App\Http\Controllers\AbstractExamplesController;
 use Modules\Examples\App\Http\Controllers\ExamplesDashboardController;
+use Modules\Examples\App\Http\Controllers\TenantAuthController;
 use Modules\Examples\App\PermissionRegistry\ExamplesPermissionRegistry;
 use Modules\Examples\App\Services\ExamplesStatsService;
 use Modules\Examples\App\Services\TenantUserPresenter;
@@ -44,6 +45,9 @@ final class ExamplesServiceProvider extends ServiceProvider
             ->needs(StatsServiceInterface::class)
             ->give(ExamplesStatsService::class);
         $this->app->when(ExamplesDashboardController::class)
+            ->needs(StatsServiceInterface::class)
+            ->give(ExamplesStatsService::class);
+        $this->app->when(TenantAuthController::class)
             ->needs(StatsServiceInterface::class)
             ->give(ExamplesStatsService::class);
 
