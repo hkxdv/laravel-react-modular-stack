@@ -19,6 +19,7 @@ $usersListRef = '$ref:breadcrumb_components.users_list';
 return [
     // Configuración básica del módulo
     'module_slug' => 'admin',
+    'inertia_view_directory' => 'admin',
     'auth_guard' => 'staff',
     'functional_name' => 'Módulo de Administración',
     'description' => 'Explora las opciones de administración del sistema y revisa las estadísticas clave.',
