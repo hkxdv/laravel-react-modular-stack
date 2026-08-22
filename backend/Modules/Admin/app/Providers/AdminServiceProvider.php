@@ -10,6 +10,7 @@ use Modules\Admin\App\Http\Controllers\AdminDashboardController;
 use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
+use Modules\Admin\App\ModuleConfig\AdminModuleConfig;
 use Modules\Admin\App\PermissionRegistry\AdminPermissionRegistry;
 use Modules\Admin\App\Policies\PermissionPolicy;
 use Modules\Admin\App\Policies\RolePolicy;
@@ -76,6 +77,9 @@ final class AdminServiceProvider extends ServiceProvider
 
         // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
         $this->app->tag(AdminPermissionRegistry::class, 'permission-registry');
+
+        // Module config: tag with 'module-config' for ModuleConfigRegistry
+        $this->app->tag(AdminModuleConfig::class, 'module-config');
     }
 
     public function boot(): void

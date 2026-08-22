@@ -10,6 +10,7 @@ use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Examples\App\Http\Controllers\AbstractExamplesController;
 use Modules\Examples\App\Http\Controllers\ExamplesDashboardController;
 use Modules\Examples\App\Http\Controllers\TenantAuthController;
+use Modules\Examples\App\ModuleConfig\ExamplesModuleConfig;
 use Modules\Examples\App\PermissionRegistry\ExamplesPermissionRegistry;
 use Modules\Examples\App\Services\ExamplesStatsService;
 use Modules\Examples\App\Services\TenantUserPresenter;
@@ -53,6 +54,9 @@ final class ExamplesServiceProvider extends ServiceProvider
 
         // Permission registry: tag with 'permission-registry' for PermissionsSyncRegistry
         $this->app->tag(ExamplesPermissionRegistry::class, 'permission-registry');
+
+        // Module config: tag with 'module-config' for ModuleConfigRegistry
+        $this->app->tag(ExamplesModuleConfig::class, 'module-config');
     }
 
     /**
