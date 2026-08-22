@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Modules\Core\Contracts;
 
 use Modules\Core\Domain\Addon\AddonConfig;
+use Modules\Core\Domain\Menu\BreadcrumbMap;
+use Modules\Core\Domain\Menu\ContextualNavMap;
+use Modules\Core\Domain\Menu\NavItem;
+use Modules\Core\Domain\Panel\PanelItem;
 
 /**
  * Contrato para la configuración declarativa de cada módulo.
- * Cada módulo implementa esta interfaz declarando sus arrays actuales.
+ * Cada módulo implementa esta interfaz declarando sus DTOs tipados.
  */
 interface ModuleConfigInterface
 {
@@ -19,29 +23,23 @@ interface ModuleConfigInterface
 
     /**
      * Devuelve el ítem de navegación principal, o null si no se muestra en nav.
-     *
-     * @return array<string, mixed>|null
      */
-    public function navItem(): ?array;
+    public function navItem(): ?NavItem;
 
     /**
      * Devuelve la navegación contextual, claveada por sufijo de ruta.
-     *
-     * @return array<string, array<int, mixed>>
      */
-    public function contextualNav(): array;
+    public function contextualNav(): ContextualNavMap;
 
     /**
      * Devuelve los breadcrumbs, claveados por sufijo de ruta.
-     *
-     * @return array<string, array<int, mixed>>
      */
-    public function breadcrumbs(): array;
+    public function breadcrumbs(): BreadcrumbMap;
 
     /**
      * Devuelve los ítems del panel.
      *
-     * @return array<int, array{name: string, description: string, route_name_suffix: string, icon: string, permission: string|null}>
+     * @return list<PanelItem>
      */
     public function panelItems(): array;
 }

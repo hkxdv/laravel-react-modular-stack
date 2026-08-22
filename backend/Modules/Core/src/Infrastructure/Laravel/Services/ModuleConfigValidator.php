@@ -126,18 +126,16 @@ final readonly class ModuleConfigValidator
     {
         $nav = $config->navItem();
 
-        if ($nav === null) {
+        if (! $nav instanceof \Modules\Core\Domain\Menu\NavItem) {
             return $this->pass($slug, 'nav-route-name', 'No navItem — skipped');
         }
 
-        /** @var array<mixed> $nav */
-        $showInNav = $nav['show_in_nav'] ?? false;
-        if (! $showInNav) {
+        if (! $nav->showInNav) {
             return $this->pass($slug, 'nav-route-name', 'show_in_nav is false — skipped');
         }
 
-        $routeName = $nav['route_name'] ?? '';
-        if (is_string($routeName) && $routeName !== '') {
+        $routeName = $nav->routeNameSuffix;
+        if ($routeName !== '') {
             return $this->pass($slug, 'nav-route-name', sprintf("route_name '%s' is valid", $routeName));
         }
 
@@ -150,12 +148,12 @@ final readonly class ModuleConfigValidator
     private function checkDanglingRefs(string $slug, ModuleConfigInterface $config): array
     {
         $resolver = new MenuConfigResolver();
-        /** @var array<string, mixed> $rawConfig */
-        $rawConfig = (array) config($slug, []);
 
+        // ponytail: scanned via toArray() for belt-and-suspenders $ref leak detection.
+        // DTOs are pre-resolved during construction, so this rarely finds anything.
         $arrays = [
-            'contextual_nav' => $config->contextualNav(),
-            'breadcrumbs' => $config->breadcrumbs(),
+            'contextual_nav' => $config->contextualNav()->toArray(),
+            'breadcrumbs' => $config->breadcrumbs()->toArray(),
             'panel_items' => $config->panelItems(),
         ];
 
@@ -163,6 +161,9 @@ final readonly class ModuleConfigValidator
             if ($arr === []) {
                 continue;
             }
+
+            /** @var array<string, mixed> $rawConfig */
+            $rawConfig = (array) config($slug, []);
 
             /** @var array<mixed> $resolved */
             $resolved = $resolver->resolve($arr, $rawConfig);
