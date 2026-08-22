@@ -14,7 +14,7 @@ import type { PageProps } from '@inertiajs/core';
  * Nota: `stats` es un objeto tipado por el backend y usado para construir
  * tarjetas de estadísticas en el frontend. Mantener nombres de campos estables.
  */
-export interface Module01IndexPageProps extends PageProps, BaseModulePageProps {
+export interface ExamplesIndexPageProps extends PageProps, BaseModulePageProps {
   panelItems: ModuleNavItem[];
   mainNavItems: NavItemDefinition[];
   moduleNavItems: NavItemDefinition[];

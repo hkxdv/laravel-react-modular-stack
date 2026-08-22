@@ -8,12 +8,12 @@ import { getLucideIcon } from '@/utils/lucide-icons';
 import { extractUserData } from '@/utils/user-data';
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
-import type { Module01IndexPageProps } from './interfaces';
+import type { ExamplesIndexPageProps } from './interfaces';
 
 /**
  * Componente para el panel principal del Módulo 01.
  */
-export default function Module01IndexPanel() {
+export default function ExamplesIndexPanel() {
   const {
     auth,
     panelItems,
@@ -26,7 +26,7 @@ export default function Module01IndexPanel() {
     description,
     breadcrumbs,
     flash,
-  } = usePage<Module01IndexPageProps>().props;
+  } = usePage<ExamplesIndexPageProps>().props;
 
   const isNavigating = useNavigationProgress({ delayMs: 150 });
   const userData = extractUserData(auth.user);
