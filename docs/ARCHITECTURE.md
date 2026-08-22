@@ -1,7 +1,7 @@
 # Arquitectura (alto nivel)
 
 > **Estado:** Desarrollo activo (alpha)  
-> **Última actualización:** 2026-08-13
+> **Última actualización:** 2026-08-21
 
 Este documento describe la arquitectura actual a un nivel alto. La intención es que sirva como “mapa mental” para encontrar dónde vive cada cosa y cuáles son los límites importantes del sistema.
 
@@ -37,7 +37,8 @@ Foundry Stack es un baseline para sistemas internos con:
 - `backend/Modules/`: módulos del sistema (nwidart/laravel-modules).
   - `Core`: módulo transversal (auth/permisos/navegación/vistas) con separación por capas.
   - `Admin`: módulo de administración (estructura más tradicional).
-  - `Module01`, `Module02`: placeholders de ejemplo.
+  - `Examples` (antes `Module01`): módulo de ejemplo con guard `tenant` y `ExampleTenantUser` (validación multi-usuario).
+  - `Module02`: placeholder de ejemplo.
 
 **Frontend (`frontend/`)**
 
@@ -60,10 +61,17 @@ Foundry Stack es un baseline para sistemas internos con:
 3. Se arma un payload de props para Inertia.
 4. El frontend renderiza la página React correspondiente.
 
-**Autenticación y autorización (staff)**
+**Autenticación y autorización (multi-guard)**
 
-- El sistema usa un guard de staff y RBAC con Spatie.
-- Los módulos declaran su permiso base (p.ej. `access-admin`) y el acceso se filtra en backend.
+- El sistema soporta múltiples guards vía `config('core.guards')` (staff, web, sanctum, tenant). Cada guard tiene su propio provider, login_route y redirect_route.
+- `AbstractDomainUser` (base abstracta en Core) con `AuthenticatableUser` (interfaz) habilitan nuevos tipos de usuario sin tocar Core.
+- `StaffUser` (Eloquent) vive en `Modules/Admin/App/Models`; `ExampleTenantUser` en `Modules/Examples`.
+- Sesiones polimórficas (`authenticatable_type` + `authenticatable_id`) con morph map (`'staff-user'`, `'tenant-user'`).
+- RBAC granular con Spatie: 22 permisos `recurso.accion` declarados vía `PermissionRegistryInterface` + comando `permissions:sync-registry`.
+- Policies de Laravel (`StaffUserPolicy`, `RolePolicy`, `PermissionPolicy`) con autorización por permiso granular.
+- Bypass de superuser vía permiso `system.bypass` (data auditable, no hardcoded role check).
+- CRUD admin de roles en `Modules/Admin` con middleware granular por acción.
+- Unión discriminada `User = StaffUser | TenantUser` en frontend con type guards por `user_type`.
 
 ## Invariantes arquitectónicas (reglas que conviene no romper)
 
