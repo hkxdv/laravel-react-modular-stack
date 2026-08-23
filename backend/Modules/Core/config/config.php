@@ -48,37 +48,37 @@ return [
         'links' => [
             'dashboard' => [
                 'title' => 'Dashboard',
-                'route_name' => 'internal.staff.dashboard',
+                'route_name_suffix' => 'internal.staff.dashboard',
                 'icon' => 'LayoutDashboard',
                 'permission' => null,
             ],
             'profile' => [
                 'title' => 'Perfil',
-                'route_name' => 'internal.staff.profile.edit',
+                'route_name_suffix' => 'internal.staff.profile.edit',
                 'icon' => 'UserCog',
                 'permission' => null,
             ],
             'password' => [
                 'title' => 'Contraseña',
-                'route_name' => 'internal.staff.password.edit',
+                'route_name_suffix' => 'internal.staff.password.edit',
                 'icon' => 'KeyRound',
                 'permission' => null,
             ],
             'appearance' => [
                 'title' => 'Apariencia',
-                'route_name' => 'internal.staff.appearance',
+                'route_name_suffix' => 'internal.staff.appearance',
                 'icon' => 'Palette',
                 'permission' => null,
             ],
             'account_security' => [
                 'title' => 'Seguridad',
-                'route_name' => 'internal.staff.security.edit',
+                'route_name_suffix' => 'internal.staff.security.edit',
                 'icon' => 'Shield',
                 'permission' => null,
             ],
             'notification_preferences' => [
                 'title' => 'Notificaciones',
-                'route_name' => 'internal.staff.notifications.edit',
+                'route_name_suffix' => 'internal.staff.notifications.edit',
                 'icon' => 'Bell',
                 'permission' => null,
             ],
@@ -86,67 +86,67 @@ return [
 
         'groups' => [
             'user_profile_nav' => [
-                '$ref:nav_components.links.profile',
-                '$ref:nav_components.links.password',
-                '$ref:nav_components.links.appearance',
-                '$ref:nav_components.links.account_security',
-                '$ref:nav_components.links.notification_preferences',
+                'profile',
+                'password',
+                'appearance',
+                'account_security',
+                'notification_preferences',
             ],
         ],
     ],
 
     'contextual_nav' => [
         'default' => [
-            '$ref:groups.user_profile_nav',
+            'group:user_profile_nav',
         ],
     ],
 
     'breadcrumb_components' => [
         'user_profile_root' => [
             'title' => 'Configuración',
-            'route_name' => 'internal.staff.profile.edit',
+            'route_name_suffix' => 'internal.staff.profile.edit',
         ],
         'user_profile_profile' => [
             'title' => 'Perfil',
-            'route_name' => 'internal.staff.profile.edit',
+            'route_name_suffix' => 'internal.staff.profile.edit',
         ],
         'user_profile_password' => [
             'title' => 'Contraseña',
-            'route_name' => 'internal.staff.password.edit',
+            'route_name_suffix' => 'internal.staff.password.edit',
         ],
         'user_profile_appearance' => [
             'title' => 'Apariencia',
-            'route_name' => 'internal.staff.appearance',
+            'route_name_suffix' => 'internal.staff.appearance',
         ],
         'user_profile_security' => [
             'title' => 'Seguridad',
-            'route_name' => 'internal.staff.security.edit',
+            'route_name_suffix' => 'internal.staff.security.edit',
         ],
         'user_profile_notifications' => [
             'title' => 'Notificaciones',
-            'route_name' => 'internal.staff.notifications.edit',
+            'route_name_suffix' => 'internal.staff.notifications.edit',
         ],
     ],
     'breadcrumbs' => [
         'profile.edit' => [
-            '$ref:breadcrumb_components.user_profile_root',
-            '$ref:breadcrumb_components.user_profile_profile',
+            'user_profile_root',
+            'user_profile_profile',
         ],
         'password.edit' => [
-            '$ref:breadcrumb_components.user_profile_root',
-            '$ref:breadcrumb_components.user_profile_password',
+            'user_profile_root',
+            'user_profile_password',
         ],
         'appearance' => [
-            '$ref:breadcrumb_components.user_profile_root',
-            '$ref:breadcrumb_components.user_profile_appearance',
+            'user_profile_root',
+            'user_profile_appearance',
         ],
         'security.edit' => [
-            '$ref:breadcrumb_components.user_profile_root',
-            '$ref:breadcrumb_components.user_profile_security',
+            'user_profile_root',
+            'user_profile_security',
         ],
         'notifications.edit' => [
-            '$ref:breadcrumb_components.user_profile_root',
-            '$ref:breadcrumb_components.user_profile_notifications',
+            'user_profile_root',
+            'user_profile_notifications',
         ],
     ],
 

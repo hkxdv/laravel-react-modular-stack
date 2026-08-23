@@ -2,20 +2,6 @@
 
 declare(strict_types=1);
 
-$usersListTitle = 'Lista de Usuarios';
-$usersListRoute = 'users.index';
-$adminRoot = [
-    'title' => 'Módulo de Administración',
-    'route_name_suffix' => 'index',
-];
-$usersList = [
-    'title' => $usersListTitle,
-    'route_name_suffix' => $usersListRoute,
-];
-$backToPanelRef = '$ref:nav_components.links.back_to_panel';
-$adminRootRef = '$ref:breadcrumb_components.admin_root';
-$usersListRef = '$ref:breadcrumb_components.users_list';
-
 return [
     // Configuración básica del módulo
     'module_slug' => 'admin',
@@ -43,7 +29,8 @@ return [
                 'permission' => 'rbac.view',
             ],
             'users_list' => [
-                ...$usersList,
+                'title' => 'Lista de Usuarios',
+                'route_name_suffix' => 'users.index',
                 'icon' => 'ScrollText',
                 'permission' => 'staff-users.view',
             ],
@@ -61,7 +48,7 @@ return [
             ],
             'back_to_list' => [
                 'title' => 'Volver a la lista',
-                'route_name_suffix' => $usersListRoute,
+                'route_name_suffix' => 'users.index',
                 'icon' => 'ArrowLeft',
                 'permission' => 'staff-users.view',
             ],
@@ -81,17 +68,14 @@ return [
 
         // Grupos comunes de enlaces para reutilizar
         'groups' => [
-            'admin_panel_nav' => [
-                '$ref:nav_components.links.users_list',
-            ],
             'user_management' => [
-                '$ref:nav_components.links.panel',
-                '$ref:nav_components.links.users_list',
-                '$ref:nav_components.links.users_create',
+                'panel',
+                'users_list',
+                'users_create',
             ],
             'back_navigation' => [
-                '$ref:nav_components.links.back_to_panel',
-                '$ref:nav_components.links.back_to_list',
+                'back_to_panel',
+                'back_to_list',
             ],
         ],
     ],
@@ -99,48 +83,47 @@ return [
     // Configuración de navegación contextual
     'contextual_nav' => [
         'default' => [
-            '$ref:nav_components.groups.user_management',
+            'group:user_management',
         ],
 
         // Rutas para la gestión de usuarios
         'users.index' => [
-            $backToPanelRef,
-            '$ref:nav_components.links.users_create',
+            'back_to_panel',
+            'users_create',
         ],
         'users.create' => [
-            '$ref:nav_components.groups.back_navigation',
+            'group:back_navigation',
         ],
         'users.edit' => [
-            $backToPanelRef,
-            '$ref:nav_components.links.back_to_list',
+            'back_to_panel',
+            'back_to_list',
         ],
 
         // Rutas para la gestión de roles
         'roles.index' => [
-            $backToPanelRef,
+            'back_to_panel',
         ],
         'roles.create' => [
-            $backToPanelRef,
-            '$ref:nav_components.links.roles_list',
+            'back_to_panel',
+            'roles_list',
         ],
         'roles.edit' => [
-            $backToPanelRef,
-            '$ref:nav_components.links.roles_list',
+            'back_to_panel',
+            'roles_list',
         ],
 
         // Rutas para permisos
         'permissions.index' => [
-            $backToPanelRef,
+            'back_to_panel',
         ],
-
     ],
 
     // Configuración de ítems del panel
     'panel_items' => [
         [
-            'name' => $usersListTitle,
+            'name' => 'Lista de Usuarios',
             'description' => 'Añadir, editar o eliminar cuentas de usuario.',
-            'route_name_suffix' => $usersListRoute,
+            'route_name_suffix' => 'users.index',
             'icon' => 'Users',
             'permission' => 'staff-users.view',
         ],
@@ -163,10 +146,12 @@ return [
     // Componentes reutilizables de breadcrumbs
     'breadcrumb_components' => [
         'admin_root' => [
-            ...$adminRoot,
+            'title' => 'Módulo de Administración',
+            'route_name_suffix' => 'index',
         ],
         'users_list' => [
-            ...$usersList,
+            'title' => 'Lista de Usuarios',
+            'route_name_suffix' => 'users.index',
         ],
         'users_create' => [
             'title' => 'Crear Usuario',
@@ -199,39 +184,39 @@ return [
     // Configuración de breadcrumbs para cada ruta
     'breadcrumbs' => [
         'default' => [
-            $adminRootRef,
+            'admin_root',
         ],
         'users.index' => [
-            $adminRootRef,
-            $usersListRef,
+            'admin_root',
+            'users_list',
         ],
         'users.create' => [
-            $adminRootRef,
-            $usersListRef,
-            '$ref:breadcrumb_components.users_create',
+            'admin_root',
+            'users_list',
+            'users_create',
         ],
         'users.edit' => [
-            $adminRootRef,
-            $usersListRef,
-            '$ref:breadcrumb_components.users_edit',
+            'admin_root',
+            'users_list',
+            'users_edit',
         ],
         'roles.index' => [
-            $adminRootRef,
-            '$ref:breadcrumb_components.roles_list',
+            'admin_root',
+            'roles_list',
         ],
         'roles.create' => [
-            $adminRootRef,
-            '$ref:breadcrumb_components.roles_list',
-            '$ref:breadcrumb_components.roles_create',
+            'admin_root',
+            'roles_list',
+            'roles_create',
         ],
         'roles.edit' => [
-            $adminRootRef,
-            '$ref:breadcrumb_components.roles_list',
-            '$ref:breadcrumb_components.roles_edit',
+            'admin_root',
+            'roles_list',
+            'roles_edit',
         ],
         'permissions.index' => [
-            $adminRootRef,
-            '$ref:breadcrumb_components.permissions_list',
+            'admin_root',
+            'permissions_list',
         ],
     ],
 ];

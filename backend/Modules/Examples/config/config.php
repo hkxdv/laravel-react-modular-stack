@@ -17,15 +17,22 @@ return [
         'icon' => 'ClipboardList',
     ],
 
-    // Configuración de navegación contextual (mínima)
-    'contextual_nav' => [
-        'default' => [
-            [
+    // Componentes reutilizables de navegación
+    'nav_components' => [
+        'links' => [
+            'example_panel' => [
                 'title' => 'Panel de ejemplo',
                 'route_name_suffix' => 'index',
                 'icon' => 'LayoutDashboard',
                 'permission' => 'access-examples',
             ],
+        ],
+    ],
+
+    // Configuración de navegación contextual (mínima)
+    'contextual_nav' => [
+        'default' => [
+            'example_panel',
         ],
     ],
 
