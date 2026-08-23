@@ -86,8 +86,7 @@ export default function PermissionListPage({
                   />
                 </TooltipTrigger>
                 <TooltipContent>
-                  Los permisos se organizan por modulo. Cada modulo declara sus permisos
-                  granulares.
+                  Los permisos se organizan por modulo. Cada modulo declara sus permisos granulares.
                 </TooltipContent>
               </Tooltip>
             </div>

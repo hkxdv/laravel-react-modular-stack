@@ -66,15 +66,11 @@ export default function RoleListPage({
       },
       {
         accessorKey: 'permissions_count',
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Permisos" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Permisos" />,
         cell: ({ row }) => (
           <div className="flex items-center space-x-2">
             <KeyRound className="text-muted-foreground h-4 w-4" />
-            <Badge variant="outline">
-              {row.original.permissions_count} permisos
-            </Badge>
+            <Badge variant="outline">{row.original.permissions_count} permisos</Badge>
           </div>
         ),
         enableSorting: false,

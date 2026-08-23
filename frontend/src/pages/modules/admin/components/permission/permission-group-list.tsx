@@ -36,10 +36,7 @@ export function PermissionGroupList({ permissionsByModule }: Readonly<Permission
           <CardContent>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {permissions.map((perm) => (
-                <div
-                  key={perm.name}
-                  className="border-border flex flex-col rounded-md border p-3"
-                >
+                <div key={perm.name} className="border-border flex flex-col rounded-md border p-3">
                   <span className="text-sm font-medium">{perm.name}</span>
                   <span className="text-muted-foreground mt-0.5 text-xs">{perm.description}</span>
                 </div>

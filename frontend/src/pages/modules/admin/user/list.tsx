@@ -362,7 +362,9 @@ export default function UserListPage({
       <Head title={pageTitle ?? 'Lista de Usuarios'} />
       <ModuleDashboardLayout
         title={pageTitle ?? 'Lista de Usuarios'}
-        description={description ?? 'Añadir, editar o eliminar cuentas de usuario del sistema interno.'}
+        description={
+          description ?? 'Añadir, editar o eliminar cuentas de usuario del sistema interno.'
+        }
         userName={userData?.name ?? ''}
         showGreeting={false}
         actions={

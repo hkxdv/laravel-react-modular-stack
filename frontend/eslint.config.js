@@ -104,7 +104,14 @@ export default [
     },
   },
   {
-    ignores: ['node_modules/', 'dist/', 'src/ziggy.js', 'src/types/generated/', '*.config.js', '*.config.cjs'],
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'src/ziggy.js',
+      'src/types/generated/',
+      '*.config.js',
+      '*.config.cjs',
+    ],
   },
   prettier,
 ];
