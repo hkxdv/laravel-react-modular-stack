@@ -103,7 +103,26 @@ Estos comandos se ejecutan vía `bun run fe <script>`.
 
 ---
 
-## 6. Docker
+## 6. Laravel Boost MCP
+
+El proyecto tiene configurado el MCP de **Laravel Boost** en `opencode.json` (raíz del repo). Se ejecuta con `php backend/artisan boost:mcp` y es accesible desde cualquier agente OpenCode que trabaje desde la raíz del monorepo.
+
+### Herramientas disponibles
+
+| Herramienta             | Descripción                                                                         |
+| :---------------------- | :---------------------------------------------------------------------------------- |
+| `search-docs`           | Documentación version-specific de Laravel y ecosistema. Usar antes de code changes. |
+| `database-schema`       | Inspecciona tablas y columnas antes de escribir migrations/models.                  |
+| `database-query`        | Queries read-only (SELECT/SHOW/EXPLAIN) para debugging.                             |
+| `tinker`                | Ejecuta PHP en contexto Laravel. No crear modelos sin aprobación.                   |
+| `list-artisan-commands` | Verifica parámetros de comandos Artisan antes de ejecutarlos.                       |
+| `application-info`      | Versión de PHP, Laravel, DB engine y paquetes instalados.                           |
+| `browser-logs`          | Logs del navegador para debug frontend.                                             |
+| `last-error`            | Último error/exception del backend.                                                 |
+
+---
+
+## 7. Docker
 
 Comandos para gestionar el entorno contenerizado. Se ejecutan desde la raíz.
 
