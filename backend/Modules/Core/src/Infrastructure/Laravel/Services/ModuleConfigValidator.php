@@ -7,7 +7,8 @@ namespace Modules\Core\Infrastructure\Laravel\Services;
 use Illuminate\Filesystem\Filesystem;
 use Modules\Core\Contracts\ModuleConfigInterface;
 use Modules\Core\Domain\Addon\AddonConfig;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
+use Modules\Core\Domain\Menu\NavComponentGroup;
+use Modules\Core\Domain\Menu\NavComponentLink;
 use Modules\Core\Domain\Validation\ValidationResult;
 
 /**
@@ -127,19 +128,20 @@ final readonly class ModuleConfigValidator
         $nav = $config->navItem();
 
         if (! $nav instanceof \Modules\Core\Domain\Menu\NavItem) {
-            return $this->pass($slug, 'nav-route-name', 'No navItem — skipped');
+            $result = $this->pass($slug, 'nav-route-name', 'No navItem — skipped');
+        } elseif (! $nav->showInNav) {
+            $result = $this->pass($slug, 'nav-route-name', 'show_in_nav is false — skipped');
+        } elseif ($nav->routeNameSuffix !== '') {
+            $result = $this->pass(
+                $slug,
+                'nav-route-name',
+                sprintf("route_name '%s' is valid", $nav->routeNameSuffix),
+            );
+        } else {
+            $result = $this->fail($slug, 'nav-route-name', 'route_name must be non-empty when show_in_nav is true');
         }
 
-        if (! $nav->showInNav) {
-            return $this->pass($slug, 'nav-route-name', 'show_in_nav is false — skipped');
-        }
-
-        $routeName = $nav->routeNameSuffix;
-        if ($routeName !== '') {
-            return $this->pass($slug, 'nav-route-name', sprintf("route_name '%s' is valid", $routeName));
-        }
-
-        return $this->fail($slug, 'nav-route-name', 'route_name must be non-empty when show_in_nav is true');
+        return $result;
     }
 
     /**
@@ -147,35 +149,36 @@ final readonly class ModuleConfigValidator
      */
     private function checkDanglingRefs(string $slug, ModuleConfigInterface $config): array
     {
-        $resolver = new MenuConfigResolver();
-
-        // ponytail: scanned via toArray() for belt-and-suspenders $ref leak detection.
+        // ponytail: walk DTOs directly for belt-and-suspenders $ref leak detection.
         // DTOs are pre-resolved during construction, so this rarely finds anything.
-        $arrays = [
-            'contextual_nav' => $config->contextualNav()->toArray(),
-            'breadcrumbs' => $config->breadcrumbs()->toArray(),
-            'panel_items' => $config->panelItems(),
-        ];
+        $dangling = [];
 
-        foreach ($arrays as $key => $arr) {
-            if ($arr === []) {
-                continue;
+        // Walk ContextualNavMap items
+        foreach ($config->contextualNav()->items as $entries) {
+            foreach ($entries as $entry) {
+                if ($entry instanceof NavComponentLink) {
+                    $dangling = array_merge($dangling, $this->findDanglingRefsInObject($entry));
+                } elseif ($entry instanceof NavComponentGroup) {
+                    foreach ($entry->links as $link) {
+                        $dangling = array_merge($dangling, $this->findDanglingRefsInObject($link));
+                    }
+                }
             }
+        }
 
-            /** @var array<string, mixed> $rawConfig */
-            $rawConfig = (array) config($slug, []);
-
-            /** @var array<mixed> $resolved */
-            $resolved = $resolver->resolve($arr, $rawConfig);
-            $dangling = $this->findDanglingRefs($resolved);
-
-            if ($dangling !== []) {
-                return $this->fail(
-                    $slug,
-                    'dangling-ref',
-                    'Unresolved $ref in '.$key.': '.implode(', ', $dangling)
-                );
+        // Walk BreadcrumbMap items
+        foreach ($config->breadcrumbs()->items as $crumbs) {
+            foreach ($crumbs as $crumb) {
+                $dangling = array_merge($dangling, $this->findDanglingRefsInObject($crumb));
             }
+        }
+
+        if ($dangling !== []) {
+            return $this->fail(
+                $slug,
+                'dangling-ref',
+                'Unresolved $ref: '.implode(', ', $dangling)
+            );
         }
 
         return $this->pass($slug, 'dangling-ref', 'No unresolved $ref strings');
@@ -184,19 +187,13 @@ final readonly class ModuleConfigValidator
     /**
      * @return list<string>
      */
-    private function findDanglingRefs(mixed $data): array
+    private function findDanglingRefsInObject(object $obj): array
     {
-        if (is_string($data) && str_starts_with($data, '$ref:')) {
-            return [$data];
-        }
-
-        if (! is_array($data)) {
-            return [];
-        }
-
         $refs = [];
-        foreach ($data as $value) {
-            $refs = array_merge($refs, $this->findDanglingRefs($value));
+        foreach (get_object_vars($obj) as $value) {
+            if (is_string($value) && str_starts_with($value, '$ref:')) {
+                $refs[] = $value;
+            }
         }
 
         return $refs;

@@ -39,6 +39,7 @@ final class ExamplesModuleConfig implements ModuleConfigInterface
         $icon = $nav['icon'] ?? '';
         $permission = $nav['permission'] ?? null;
         $showInNav = $nav['show_in_nav'] ?? true;
+        $showInMainNav = $nav['show_in_main_nav'] ?? false;
 
         return new NavItem(
             title: is_string($title) ? $title : '',
@@ -46,6 +47,7 @@ final class ExamplesModuleConfig implements ModuleConfigInterface
             icon: is_string($icon) ? $icon : '',
             permission: is_string($permission) ? $permission : null,
             showInNav: is_bool($showInNav) ? $showInNav : true,
+            showInMainNav: is_bool($showInMainNav) && $showInMainNav,
         );
     }
 

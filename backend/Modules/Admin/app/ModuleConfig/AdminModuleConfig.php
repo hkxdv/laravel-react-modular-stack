@@ -9,7 +9,7 @@ use Modules\Core\Domain\Addon\AddonConfig;
 use Modules\Core\Domain\Menu\BreadcrumbItem;
 use Modules\Core\Domain\Menu\BreadcrumbMap;
 use Modules\Core\Domain\Menu\ContextualNavMap;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
+use Modules\Core\Domain\Menu\NavComponentGroup;
 use Modules\Core\Domain\Menu\NavComponentLink;
 use Modules\Core\Domain\Menu\NavItem;
 use Modules\Core\Domain\Panel\PanelItem;
@@ -41,6 +41,7 @@ final class AdminModuleConfig implements ModuleConfigInterface
         $icon = $nav['icon'] ?? '';
         $permission = $nav['permission'] ?? null;
         $showInNav = $nav['show_in_nav'] ?? true;
+        $showInMainNav = $nav['show_in_main_nav'] ?? false;
 
         return new NavItem(
             title: is_string($title) ? $title : '',
@@ -48,43 +49,55 @@ final class AdminModuleConfig implements ModuleConfigInterface
             icon: is_string($icon) ? $icon : '',
             permission: is_string($permission) ? $permission : null,
             showInNav: is_bool($showInNav) ? $showInNav : true,
+            showInMainNav: is_bool($showInMainNav) && $showInMainNav,
         );
     }
 
     public function contextualNav(): ContextualNavMap
     {
-        $resolver = new MenuConfigResolver();
-        /** @var array<string, mixed> $rawConfig */
-        $rawConfig = (array) config('admin');
-        /** @var array<string, array<int, mixed>> $contextualNav */
-        $contextualNav = (array) config('admin.contextual_nav', []);
-        /** @var array<string, array<int, mixed>> $resolved */
-        $resolved = $resolver->resolve($contextualNav, $rawConfig);
+        $panel = $this->buildPanelLink();
+        $usersList = $this->buildUsersListLink();
+        $usersCreate = $this->buildUsersCreateLink();
+        $backToPanel = $this->buildBackToPanelLink();
+        $backToList = $this->buildBackToListLink();
+        $rolesList = $this->buildRolesListLink();
+        $this->buildPermissionsListLink();
 
-        /** @var array<string, list<NavComponentLink>> $items */
-        $items = [];
-        foreach ($resolved as $suffix => $entries) {
-            $items[$suffix] = $this->buildNavLinks($entries);
-        }
+        /** @var array<string, list<NavComponentLink|NavComponentGroup>> $items */
+        $items = [
+            'default' => [
+                new NavComponentGroup(name: 'user_management', links: [$panel, $usersList, $usersCreate]),
+            ],
+            'users.index' => [$backToPanel, $usersCreate],
+            'users.create' => [
+                new NavComponentGroup(name: 'back_navigation', links: [$backToPanel, $backToList]),
+            ],
+            'users.edit' => [$backToPanel, $backToList],
+            'roles.index' => [$backToPanel],
+            'roles.create' => [$backToPanel, $rolesList],
+            'roles.edit' => [$backToPanel, $rolesList],
+            'permissions.index' => [$backToPanel],
+        ];
 
         return ContextualNavMap::of($items);
     }
 
     public function breadcrumbs(): BreadcrumbMap
     {
-        $resolver = new MenuConfigResolver();
-        /** @var array<string, mixed> $rawConfig */
-        $rawConfig = (array) config('admin');
-        /** @var array<string, array<int, mixed>> $breadcrumbs */
-        $breadcrumbs = (array) config('admin.breadcrumbs', []);
-        /** @var array<string, array<int, mixed>> $resolved */
-        $resolved = $resolver->resolve($breadcrumbs, $rawConfig);
+        $adminRoot = $this->buildBreadcrumbAdminRoot();
+        $usersList = $this->buildBreadcrumbUsersList();
 
         /** @var array<string, list<BreadcrumbItem>> $items */
-        $items = [];
-        foreach ($resolved as $suffix => $crumbs) {
-            $items[$suffix] = $this->buildBreadcrumbItems($crumbs);
-        }
+        $items = [
+            'default' => [$adminRoot],
+            'users.index' => [$adminRoot, $usersList],
+            'users.create' => [$adminRoot, $usersList, $this->buildBreadcrumbUsersCreate()],
+            'users.edit' => [$adminRoot, $usersList, $this->buildBreadcrumbUsersEdit()],
+            'roles.index' => [$adminRoot, $this->buildBreadcrumbRolesList()],
+            'roles.create' => [$adminRoot, $this->buildBreadcrumbRolesList(), $this->buildBreadcrumbRolesCreate()],
+            'roles.edit' => [$adminRoot, $this->buildBreadcrumbRolesList(), $this->buildBreadcrumbRolesEdit()],
+            'permissions.index' => [$adminRoot, $this->buildBreadcrumbPermissionsList()],
+        ];
 
         return new BreadcrumbMap($items);
     }
@@ -117,78 +130,150 @@ final class AdminModuleConfig implements ModuleConfigInterface
         return $result;
     }
 
-    /**
-     * Construye NavComponentLink items desde arrays resueltos.
-     *
-     * @param  array<int, mixed>  $entries
-     * @return list<NavComponentLink>
-     */
-    private function buildNavLinks(array $entries): array
+    // ── Nav component links (shared definitions) ──
+
+    private function buildPanelLink(): NavComponentLink
     {
-        $links = [];
-
-        foreach ($entries as $entry) {
-            if (! is_array($entry)) {
-                continue;
-            }
-
-            if (! isset($entry['title'])) {
-                continue;
-            }
-
-            /** @var array<string, mixed> $entry */
-            $title = $entry['title'];
-            $icon = $entry['icon'] ?? '';
-            $permission = $entry['permission'] ?? null;
-            $routeNameSuffix = $entry['route_name_suffix'] ?? $entry['route_name'] ?? '';
-
-            if (is_string($title) && is_string($routeNameSuffix) && $routeNameSuffix !== '') {
-                $links[] = new NavComponentLink(
-                    key: $routeNameSuffix,
-                    title: $title,
-                    routeNameSuffix: $routeNameSuffix,
-                    icon: is_string($icon) ? $icon : '',
-                    permission: is_string($permission) ? $permission : null,
-                );
-            }
-        }
-
-        return $links;
+        return new NavComponentLink(
+            key: 'panel',
+            title: 'Módulo de Administración',
+            routeNameSuffix: 'index',
+            icon: 'LayoutDashboard',
+            permission: 'rbac.view',
+        );
     }
 
-    /**
-     * Construye BreadcrumbItem items desde arrays resueltos.
-     *
-     * @param  array<int, mixed>  $crumbs
-     * @return list<BreadcrumbItem>
-     */
-    private function buildBreadcrumbItems(array $crumbs): array
+    private function buildUsersListLink(): NavComponentLink
     {
-        $items = [];
+        return new NavComponentLink(
+            key: 'users_list',
+            title: 'Lista de Usuarios',
+            routeNameSuffix: 'users.index',
+            icon: 'ScrollText',
+            permission: 'staff-users.view',
+        );
+    }
 
-        foreach ($crumbs as $crumb) {
-            if (! is_array($crumb)) {
-                continue;
-            }
+    private function buildUsersCreateLink(): NavComponentLink
+    {
+        return new NavComponentLink(
+            key: 'users_create',
+            title: 'Crear Usuario',
+            routeNameSuffix: 'users.create',
+            icon: 'UserPlus',
+            permission: 'staff-users.create',
+        );
+    }
 
-            if (! isset($crumb['title'])) {
-                continue;
-            }
+    private function buildBackToPanelLink(): NavComponentLink
+    {
+        return new NavComponentLink(
+            key: 'back_to_panel',
+            title: 'Volver al panel',
+            routeNameSuffix: 'index',
+            icon: 'ArrowLeft',
+            permission: 'rbac.view',
+        );
+    }
 
-            /** @var array<string, mixed> $crumb */
-            $title = $crumb['title'];
-            $routeNameSuffix = $crumb['route_name_suffix'] ?? $crumb['route_name'] ?? '';
-            $dynamicTitleProp = $crumb['dynamic_title_prop'] ?? null;
+    private function buildBackToListLink(): NavComponentLink
+    {
+        return new NavComponentLink(
+            key: 'back_to_list',
+            title: 'Volver a la lista',
+            routeNameSuffix: 'users.index',
+            icon: 'ArrowLeft',
+            permission: 'staff-users.view',
+        );
+    }
 
-            if (is_string($title) && is_string($routeNameSuffix) && $title !== '') {
-                $items[] = new BreadcrumbItem(
-                    title: $title,
-                    routeNameSuffix: $routeNameSuffix,
-                    dynamicTitleProp: is_string($dynamicTitleProp) ? $dynamicTitleProp : null,
-                );
-            }
-        }
+    private function buildRolesListLink(): NavComponentLink
+    {
+        return new NavComponentLink(
+            key: 'roles_list',
+            title: 'Gestión de Roles',
+            routeNameSuffix: 'roles.index',
+            icon: 'Shield',
+            permission: 'roles.view',
+        );
+    }
 
-        return $items;
+    private function buildPermissionsListLink(): NavComponentLink
+    {
+        return new NavComponentLink(
+            key: 'permissions_list',
+            title: 'Permisos del Sistema',
+            routeNameSuffix: 'permissions.index',
+            icon: 'KeyRound',
+            permission: 'permissions.view',
+        );
+    }
+
+    // ── Breadcrumb components (shared definitions) ──
+
+    private function buildBreadcrumbAdminRoot(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Módulo de Administración',
+            routeNameSuffix: 'index',
+        );
+    }
+
+    private function buildBreadcrumbUsersList(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Lista de Usuarios',
+            routeNameSuffix: 'users.index',
+        );
+    }
+
+    private function buildBreadcrumbUsersCreate(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Crear Usuario',
+            routeNameSuffix: 'users.create',
+        );
+    }
+
+    private function buildBreadcrumbUsersEdit(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Editar Usuario',
+            routeNameSuffix: 'users.edit',
+            dynamicTitleProp: 'user.name',
+        );
+    }
+
+    private function buildBreadcrumbRolesList(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Gestión de Roles',
+            routeNameSuffix: 'roles.index',
+        );
+    }
+
+    private function buildBreadcrumbRolesCreate(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Crear Rol',
+            routeNameSuffix: 'roles.create',
+        );
+    }
+
+    private function buildBreadcrumbRolesEdit(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Editar Rol',
+            routeNameSuffix: 'roles.edit',
+            dynamicTitleProp: 'role.name',
+        );
+    }
+
+    private function buildBreadcrumbPermissionsList(): BreadcrumbItem
+    {
+        return new BreadcrumbItem(
+            title: 'Permisos del Sistema',
+            routeNameSuffix: 'permissions.index',
+        );
     }
 }
