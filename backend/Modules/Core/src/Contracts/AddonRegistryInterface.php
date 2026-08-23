@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Contracts;
 
 use App\Interfaces\AuthenticatableUser;
+use Deprecated;
 use Modules\Core\Domain\Addon\AddonInstance;
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Nwidart\Modules\Laravel\Module;
@@ -45,7 +46,15 @@ interface AddonRegistryInterface
      * @param  string  $moduleName  Nombre del módulo
      * @return array<string, mixed> Configuración del módulo
      */
+    #[Deprecated(message: 'Use getModuleConfig() instead.')]
     public function getAddonConfig(string $moduleName): array;
+
+    /**
+     * Obtiene la configuración tipada de un módulo específico por su slug.
+     *
+     * @param  string  $slug  Slug del módulo
+     */
+    public function getModuleConfig(string $slug): ?ModuleConfigInterface;
 
     /**
      * Obtiene un addon como entidad de dominio con configuración normalizada.

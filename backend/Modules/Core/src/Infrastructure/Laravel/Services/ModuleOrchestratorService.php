@@ -10,12 +10,14 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Response as InertiaResponse;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Contracts\ModuleConfigInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
 use Modules\Core\Domain\User\DomainUser;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Mappers\DomainUserMapper;
+use RuntimeException;
 
 use function Foundry\Helpers\configArray;
 use function Foundry\Helpers\configNullableString;
@@ -52,36 +54,39 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
     ): ?Authenticatable {
         $config = $this->resolveModuleConfig($moduleSlug, $moduleConfig);
 
-        $guard = $config['auth_guard'] ?? null;
-        $guardName = is_string($guard) ? $guard : null;
+        $guard = $config->addon()->authGuard;
+        $user = null;
+        $guardResolved = false;
 
-        if ($guardName !== null && $guardName !== '') {
-            $user = $request->user($guardName);
-
-            return $user instanceof Authenticatable ? $user : null;
+        if ($guard !== null && $guard !== '') {
+            $user = $request->user($guard);
+            $guardResolved = true;
         }
 
-        $guardsArr = configArray('auth.guards');
-        foreach (array_keys($guardsArr) as $candidateGuard) {
-            if ($candidateGuard === '') {
-                continue;
+        if (! $guardResolved) {
+            $guardsArr = configArray('auth.guards');
+            foreach (array_keys($guardsArr) as $candidateGuard) {
+                if ($candidateGuard === '') {
+                    continue;
+                }
+
+                if (Auth::guard($candidateGuard)->check()) {
+                    $user = $request->user($candidateGuard);
+                    $guardResolved = true;
+
+                    break;
+                }
             }
+        }
 
-            if (Auth::guard($candidateGuard)->check()) {
-                $user = $request->user($candidateGuard);
-
-                return $user instanceof Authenticatable ? $user : null;
+        if (! $guardResolved) {
+            $defaultGuardName = configNullableString('auth.defaults.guard');
+            if ($defaultGuardName !== null) {
+                $user = $request->user($defaultGuardName);
             }
         }
 
-        $defaultGuardName = configNullableString('auth.defaults.guard');
-        if ($defaultGuardName !== null) {
-            $user = $request->user($defaultGuardName);
-
-            return $user instanceof Authenticatable ? $user : null;
-        }
-
-        return null;
+        return $user instanceof Authenticatable ? $user : null;
     }
 
     /**
@@ -102,8 +107,8 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
     ): InertiaResponse {
         $config = $this->resolveModuleConfig($moduleSlug, $moduleConfig);
 
-        $user = $this->resolveAuthenticatedUser($request, $moduleSlug, $config)
-            ?: abort(403, 'Usuario no autenticado');
+        $user = $this->resolveAuthenticatedUser($request, $moduleSlug, $moduleConfig)
+          ?: abort(403, 'Usuario no autenticado');
 
         if ($routeParams === []) {
             $route = $request->route();
@@ -117,32 +122,19 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
 
         $routeParams = $normalizedRouteParams;
 
-        $panelItemsConfig = $customPanelItems ?? ($config['panel_items'] ?? []);
+        // Leer panel_items y contextual_nav desde DTOs
+        $panelItemsConfig = $customPanelItems ?? $this->panelItemsToConfig($config);
         $contextualNavItemsConfig = $customNavItems
-            ?? $this->resolveContextualNavConfig($config, $moduleSlug, $request);
-
-        if ($navigationService instanceof MenuBuilderInterface) {
-            $panelItemsConfig = $navigationService->resolveConfigReferences(
-                $panelItemsConfig,
-                $config
-            );
-            $contextualNavItemsConfig = $navigationService->resolveConfigReferences(
-                $contextualNavItemsConfig,
-                $config
-            );
-        }
+          ?? $this->resolveContextualNavConfig($config, $moduleSlug, $request);
 
         /** @var array<int, array<string, mixed>> $panelItemsConfig */
-        $panelItemsConfig = is_array($panelItemsConfig)
-            ? array_values(array_filter($panelItemsConfig, is_array(...)))
-            : [];
+        $panelItemsConfig = array_values(array_filter($panelItemsConfig, is_array(...)));
         /** @var array<int, array<string, mixed>> $contextualNavItemsConfig */
-        $contextualNavItemsConfig = is_array($contextualNavItemsConfig)
-            ? array_values(array_filter($contextualNavItemsConfig, is_array(...)))
-            : [];
+        $contextualNavItemsConfig = array_values(array_filter($contextualNavItemsConfig, is_array(...)));
 
-        $functionalNameRaw = $config['functional_name'] ?? null;
-        $functionalName = is_string($functionalNameRaw) ? $functionalNameRaw : null;
+        $functionalName = $config->addon()->functionalName !== ''
+          ? $config->addon()->functionalName
+          : null;
 
         $routeSuffix ??= $this->extractRouteSuffixFromRequest($request, $moduleSlug);
 
@@ -185,10 +177,9 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
             routeParams: $routeParams
         );
 
-        $inertiaDirRaw = $config['inertia_view_directory'] ?? null;
-        $inertiaDir = is_string($inertiaDirRaw) && $inertiaDirRaw !== ''
-            ? $inertiaDirRaw
-            : $moduleSlug;
+        $inertiaDir = $config->addon()->inertiaViewDirectory !== ''
+          ? $config->addon()->inertiaViewDirectory
+          : $moduleSlug;
 
         return $this->viewComposer->renderModuleView(
             view: $view,
@@ -198,47 +189,93 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
     }
 
     /**
+     * Resuelve la configuración del módulo desde el DTO o el array raw.
+     *
      * @param  array<string, mixed>|null  $moduleConfig
-     * @return array<string, mixed>
      */
     private function resolveModuleConfig(
         string $moduleSlug,
         ?array $moduleConfig
-    ): array {
+    ): ModuleConfigInterface {
         if (is_array($moduleConfig) && $moduleConfig !== []) {
-            return $this->normalizeModuleConfig($moduleConfig);
+            // Legacy path: convert array to ModuleConfigInterface via registry
+            // This only happens when controllers pass raw config arrays
+            $dtoConfig = $this->addonRegistry->getModuleConfig($moduleSlug);
+            if ($dtoConfig instanceof ModuleConfigInterface) {
+                return $dtoConfig;
+            }
         }
 
-        return $this->normalizeModuleConfig(
-            $this->addonRegistry->getAddonConfig($moduleSlug)
-        );
+        $dtoConfig = $this->addonRegistry->getModuleConfig($moduleSlug);
+
+        if (! $dtoConfig instanceof ModuleConfigInterface) {
+            throw new RuntimeException(
+                sprintf('No ModuleConfigInterface registered for slug "%s".', $moduleSlug)
+            );
+        }
+
+        return $dtoConfig;
     }
 
     /**
-     * @param  array<string, mixed>  $moduleConfig
-     * @return array<int, mixed>
+     * Convierte panelItems del DTO a array de configuración para el builder.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function panelItemsToConfig(ModuleConfigInterface $config): array
+    {
+        $items = [];
+
+        foreach ($config->panelItems() as $panelItem) {
+            $items[] = [
+                'name' => $panelItem->name,
+                'description' => $panelItem->description,
+                'route_name_suffix' => $panelItem->routeNameSuffix,
+                'icon' => $panelItem->icon,
+                'permission' => $panelItem->permission,
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Resuelve la configuración de navegación contextual desde el DTO.
+     *
+     * @return array<int, array<string, mixed>>
      */
     private function resolveContextualNavConfig(
-        array $moduleConfig,
+        ModuleConfigInterface $config,
         string $moduleSlug,
         Request $request
     ): array {
-        $navConfigAll = $moduleConfig['contextual_nav'] ?? [];
-        if (! is_array($navConfigAll)) {
-            return [];
-        }
-
+        $contextualNav = $config->contextualNav();
         $suffix = $this->extractRouteSuffixFromRequest($request, $moduleSlug);
 
-        if (isset($navConfigAll[$suffix]) && is_array($navConfigAll[$suffix])) {
-            return array_values($navConfigAll[$suffix]);
+        $entries = $contextualNav->items[$suffix] ?? $contextualNav->items['default'] ?? [];
+
+        $result = [];
+        foreach ($entries as $entry) {
+            if ($entry instanceof \Modules\Core\Domain\Menu\NavComponentLink) {
+                $result[] = [
+                    'title' => $entry->title,
+                    'route_name_suffix' => $entry->routeNameSuffix,
+                    'icon' => $entry->icon,
+                    'permission' => $entry->permission,
+                ];
+            } elseif ($entry instanceof \Modules\Core\Domain\Menu\NavComponentGroup) {
+                foreach ($entry->links as $link) {
+                    $result[] = [
+                        'title' => $link->title,
+                        'route_name_suffix' => $link->routeNameSuffix,
+                        'icon' => $link->icon,
+                        'permission' => $link->permission,
+                    ];
+                }
+            }
         }
 
-        if (isset($navConfigAll['default']) && is_array($navConfigAll['default'])) {
-            return array_values($navConfigAll['default']);
-        }
-
-        return [];
+        return $result;
     }
 
     private function extractRouteSuffixFromRequest(
@@ -275,19 +312,5 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
         $parts = explode('.', $currentRoute ?? '');
 
         return end($parts) ?: 'panel';
-    }
-
-    /**
-     * @param  array<mixed, mixed>  $raw
-     * @return array<string, mixed>
-     */
-    private function normalizeModuleConfig(array $raw): array
-    {
-        $normalized = [];
-        foreach ($raw as $key => $value) {
-            $normalized[(string) $key] = $value;
-        }
-
-        return $normalized;
     }
 }

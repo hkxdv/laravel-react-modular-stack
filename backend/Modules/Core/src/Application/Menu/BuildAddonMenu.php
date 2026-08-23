@@ -46,36 +46,42 @@ final readonly class BuildAddonMenu
 
         foreach ($modules as $module) {
             $moduleName = mb_strtolower($module->getName());
-            $config = $this->moduleRegistry->getAddonConfig($moduleName);
-
-            if (! $this->shouldShowInNav($config)) {
+            $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleName);
+            if (! $moduleConfig instanceof \Modules\Core\Contracts\ModuleConfigInterface) {
                 continue;
             }
 
-            /** @var array<string, mixed> $navItem */
-            $navItem = $config['nav_item'];
-            $permission = $config['base_permission'] ?? null;
+            if (! $this->shouldShowInNav($moduleConfig)) {
+                continue;
+            }
+
+            $navItem = $moduleConfig->navItem();
+            if (! $navItem instanceof \Modules\Core\Domain\Menu\NavItem) {
+                continue;
+            }
+
+            $permission = $moduleConfig->addon()->basePermission;
             $allowed = ! $permission || $permissionChecker($permission);
 
             if ($allowed) {
-                $routeName = isset($navItem['route_name']) && is_string($navItem['route_name'])
-                    ? $navItem['route_name']
+                $routeName = $navItem->routeNameSuffix !== ''
+                    ? $navItem->routeNameSuffix
                     : null;
 
                 $item = [
-                    'title' => isset($config['functional_name']) && is_string($config['functional_name'])
-                        ? $config['functional_name']
+                    'title' => $moduleConfig->addon()->functionalName !== ''
+                        ? $moduleConfig->addon()->functionalName
                         : $moduleName,
                     'href' => $routeName !== null
                         ? $this->generateRoute($routeName)
                         : '#',
-                    'icon' => isset($navItem['icon']) && is_string($navItem['icon'])
-                        ? $navItem['icon']
+                    'icon' => $navItem->icon !== ''
+                        ? $navItem->icon
                         : null,
                     'current' => $routeName !== null && $this->isCurrentRoute($routeName),
                 ];
 
-                if ($navItem['show_in_main_nav'] ?? false) {
+                if ($navItem->showInMainNav) {
                     $navItems[] = $item;
                     $includedMain++;
                 } else {
@@ -83,7 +89,7 @@ final readonly class BuildAddonMenu
                 }
             } else {
                 $this->recordNavPermissionDenial(
-                    is_string($permission) ? $permission : null,
+                    $permission,
                     $moduleName
                 );
                 $deniedCount++;
@@ -117,39 +123,45 @@ final readonly class BuildAddonMenu
 
         foreach ($modules as $module) {
             $moduleName = mb_strtolower($module->getName());
-            $config = $this->moduleRegistry->getAddonConfig($moduleName);
-
-            if (! $this->shouldShowInNav($config)) {
+            $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleName);
+            if (! $moduleConfig instanceof \Modules\Core\Contracts\ModuleConfigInterface) {
                 continue;
             }
 
-            /** @var array<string, mixed> $navItem */
-            $navItem = $config['nav_item'];
-            $permission = $config['base_permission'] ?? null;
+            if (! $this->shouldShowInNav($moduleConfig)) {
+                continue;
+            }
+
+            $navItem = $moduleConfig->navItem();
+            if (! $navItem instanceof \Modules\Core\Domain\Menu\NavItem) {
+                continue;
+            }
+
+            $permission = $moduleConfig->addon()->basePermission;
             $allowed = ! $permission || $permissionChecker($permission);
-            $showInMainNav = $navItem['show_in_main_nav'] ?? false;
+            $showInMainNav = $navItem->showInMainNav;
 
             if ($allowed && ! $showInMainNav) {
-                $routeName = isset($navItem['route_name']) && is_string($navItem['route_name'])
-                    ? $navItem['route_name']
+                $routeName = $navItem->routeNameSuffix !== ''
+                    ? $navItem->routeNameSuffix
                     : null;
 
                 $moduleItems[] = [
-                    'title' => isset($config['functional_name']) && is_string($config['functional_name'])
-                        ? $config['functional_name']
+                    'title' => $moduleConfig->addon()->functionalName !== ''
+                        ? $moduleConfig->addon()->functionalName
                         : $moduleName,
                     'href' => $routeName !== null
                         ? $this->generateRoute($routeName)
                         : '#',
-                    'icon' => isset($navItem['icon']) && is_string($navItem['icon'])
-                        ? $navItem['icon']
+                    'icon' => $navItem->icon !== ''
+                        ? $navItem->icon
                         : null,
                     'current' => $routeName !== null && $this->isCurrentRoute($routeName),
                 ];
                 $includedCount++;
             } elseif (! $allowed) {
                 $this->recordNavPermissionDenial(
-                    is_string($permission) ? $permission : null,
+                    $permission,
                     $moduleName
                 );
                 $deniedCount++;
@@ -184,31 +196,36 @@ final readonly class BuildAddonMenu
 
         foreach ($allModules as $module) {
             $moduleNameLower = mb_strtolower($module->getName());
-            $config = $this->moduleRegistry->getAddonConfig($moduleNameLower);
-
-            if (! $this->shouldShowInNav($config)) {
+            $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleNameLower);
+            if (! $moduleConfig instanceof \Modules\Core\Contracts\ModuleConfigInterface) {
                 continue;
             }
 
-            /** @var array<string, mixed> $navItem */
-            $navItem = $config['nav_item'];
+            if (! $this->shouldShowInNav($moduleConfig)) {
+                continue;
+            }
 
-            $routeName = isset($navItem['route_name']) && is_string($navItem['route_name'])
-                ? $navItem['route_name']
+            $navItem = $moduleConfig->navItem();
+            if (! $navItem instanceof \Modules\Core\Domain\Menu\NavItem) {
+                continue;
+            }
+
+            $routeName = $navItem->routeNameSuffix !== ''
+                ? $navItem->routeNameSuffix
                 : null;
             $canAccess = isset($accessibleNames[$moduleNameLower]);
 
             $moduleCards[] = [
-                'name' => isset($config['functional_name']) && is_string($config['functional_name'])
-                    ? $config['functional_name']
+                'name' => $moduleConfig->addon()->functionalName !== ''
+                    ? $moduleConfig->addon()->functionalName
                     : $module->getName(),
-                'description' => $config['description']
+                'description' => $moduleConfig->addon()->description
                     ?? '',
                 'href' => $routeName !== null
                     ? $this->generateRoute($routeName)
                     : '#',
-                'icon' => isset($navItem['icon']) && is_string($navItem['icon'])
-                    ? $navItem['icon']
+                'icon' => $navItem->icon !== ''
+                    ? $navItem->icon
                     : null,
                 'canAccess' => $canAccess,
             ];
@@ -219,16 +236,17 @@ final readonly class BuildAddonMenu
 
     /**
      * Determina si el módulo debe mostrarse en la navegación.
-     *
-     * @param  array<string, mixed>  $config
      */
-    private function shouldShowInNav(array $config): bool
-    {
-        if (! isset($config['nav_item']) || ! is_array($config['nav_item'])) {
+    private function shouldShowInNav(
+        \Modules\Core\Contracts\ModuleConfigInterface $moduleConfig
+    ): bool {
+        $navItem = $moduleConfig->navItem();
+
+        if (! $navItem instanceof \Modules\Core\Domain\Menu\NavItem) {
             return false;
         }
 
-        return (bool) ($config['nav_item']['show_in_nav'] ?? false);
+        return $navItem->showInNav;
     }
 
     private function generateRoute(string $routeName): string

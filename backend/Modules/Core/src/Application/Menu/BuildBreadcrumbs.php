@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Contracts\AddonRegistryInterface;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
 
 use function Foundry\Helpers\cacheArray;
 use function Foundry\Helpers\cacheInt;
@@ -28,11 +27,9 @@ final readonly class BuildBreadcrumbs
      * Constructor de la clase BuildBreadcrumbs.
      *
      * @param  AddonRegistryInterface  $moduleRegistry  Servicio de registro de módulos.
-     * @param  MenuConfigResolver  $configResolver  Resolutor de configuración de navegación.
      */
     public function __construct(
         private AddonRegistryInterface $moduleRegistry,
-        private MenuConfigResolver $configResolver
     ) {
         //
     }
@@ -67,7 +64,7 @@ final readonly class BuildBreadcrumbs
             $ttlSeconds = 300;
         }
 
-        $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
+        $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
 
         $navVersion = cacheInt($navVersionKey, 0);
 
@@ -106,16 +103,12 @@ final readonly class BuildBreadcrumbs
             }
         }
 
-        /** @var array<string, mixed> $moduleConfigArr */
-        $moduleConfigArr = $moduleConfig;
-
-        // Verificar si existen breadcrumbs configurados para esta ruta
+        // Leer breadcrumbs desde el DTO
         if (
-            ! isset($moduleConfigArr['breadcrumbs'])
-            || ! is_array($moduleConfigArr['breadcrumbs'])
-            || ! isset($moduleConfigArr['breadcrumbs'][$routeSuffix])
+            ! $moduleConfig instanceof \Modules\Core\Contracts\ModuleConfigInterface
+            || ! isset($moduleConfig->breadcrumbs()->items[$routeSuffix])
         ) {
-            $fallback = $this->getFallbackBreadcrumb($moduleConfigArr, $moduleSlug);
+            $fallback = $this->getFallbackBreadcrumb($moduleConfig, $moduleSlug);
             Cache::put($cacheKey, $fallback, now()->addSeconds($ttlSeconds));
 
             $this->logBuild($moduleSlug, $routeSuffix, count($fallback), false, $t0);
@@ -123,94 +116,42 @@ final readonly class BuildBreadcrumbs
             return $fallback;
         }
 
-        $breadcrumbsConfig = $moduleConfigArr['breadcrumbs'][$routeSuffix];
-        $resolvedBreadcrumbsConfig = $this->configResolver->resolve(
-            $breadcrumbsConfig,
-            $moduleConfig,
-            $routeParams
-        );
+        $breadcrumbsMap = $moduleConfig->breadcrumbs();
+        $breadcrumbItems = $breadcrumbsMap->items[$routeSuffix] ?? [];
 
-        if (! is_array($resolvedBreadcrumbsConfig)) {
-            $fallback = $this->getFallbackBreadcrumb($moduleConfigArr, $moduleSlug);
+        if ($breadcrumbItems === []) {
+            $fallback = $this->getFallbackBreadcrumb($moduleConfig, $moduleSlug);
             Cache::put($cacheKey, $fallback, now()->addSeconds($ttlSeconds));
 
             $this->logBuild($moduleSlug, $routeSuffix, count($fallback), false, $t0);
 
             return $fallback;
         }
-
-        $resolvedBreadcrumbsConfig = $this->flattenResolvedConfig($resolvedBreadcrumbsConfig);
 
         $breadcrumbs = [];
 
-        foreach ($resolvedBreadcrumbsConfig as $config) {
-            if (! is_array($config)) {
-                continue;
-            }
-
-            $title = isset($config['title']) && is_string($config['title'])
-                ? $config['title']
-                : '';
+        foreach ($breadcrumbItems as $crumb) {
+            $title = $crumb->title;
 
             // Manejar títulos dinámicos
-            $dynamicKey = isset($config['dynamic_title'])
-                ? 'dynamic_title'
-                : (isset($config['dynamic_title_prop'])
-                    ? 'dynamic_title_prop'
-                    : null
-                );
+            $dynamicProp = $crumb->dynamicTitleProp;
 
-            if (
-                $dynamicKey
-                && isset($config[$dynamicKey])
-                && is_string($config[$dynamicKey])
-                && $config[$dynamicKey] !== ''
-            ) {
-                $dynamicTitle = $this->extractDynamicTitle($config[$dynamicKey], $viewData);
+            if ($dynamicProp !== null && $dynamicProp !== '') {
+                $dynamicTitle = $this->extractDynamicTitle($dynamicProp, $viewData);
                 if ($dynamicTitle !== null) {
                     $title = $title.': '.$dynamicTitle;
                 }
             }
 
             // Determinar href
-            if (isset($config['href']) && is_string($config['href']) && $config['href'] !== '') {
-                $href = $config['href'];
-            } else {
-                $routeName = isset($config['route_name']) && is_string($config['route_name'])
-                    ? $config['route_name']
-                    : null;
+            $routeNameSuffix = $crumb->routeNameSuffix;
+            $routeName = in_array($routeNameSuffix, ['', '0'], true)
+                ? null
+                : sprintf('internal.staff.%s.%s', $moduleSlug, $routeNameSuffix);
 
-                if (in_array($routeName, [null, '', '0'], true)) {
-                    $routeNameSuffix = isset($config['route_name_suffix']) && is_string($config['route_name_suffix'])
-                        ? $config['route_name_suffix']
-                        : null;
-                    $routeName = in_array($routeNameSuffix, [null, '', '0'], true)
-                        ? null
-                        : sprintf('internal.staff.%s.%s', $moduleSlug, $routeNameSuffix);
-                }
-
-                $itemRouteParams = isset($config['route_params'])
-                    ? (array) $config['route_params']
-                    : (isset($config['route_parameters'])
-                        ? (array) $config['route_parameters']
-                        : []
-                    );
-
-                $itemRouteParams = $this->normalizeRouteParameters($itemRouteParams);
-
-                if (
-                    $routeName === null
-                    && isset($config['route'])
-                    && is_string($config['route'])
-                    && $config['route'] !== ''
-                ) {
-                    $routeName = $config['route'];
-                }
-
-                $href = $routeName !== null
-                    ? $this->generateRoute($routeName, $itemRouteParams)
-                    : '#';
-            }
+            $href = $routeName !== null
+                ? $this->generateRoute($routeName)
+                : '#';
 
             $breadcrumbs[] = [
                 'title' => $title,
@@ -239,7 +180,7 @@ final readonly class BuildBreadcrumbs
         string $currentRoute
     ): array {
         if (! str_starts_with($currentRoute, sprintf('internal.staff.%s.', $moduleSlug))) {
-            $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
+            $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
 
             return $this->getFallbackBreadcrumb(
                 $moduleConfig,
@@ -252,15 +193,12 @@ final readonly class BuildBreadcrumbs
             $currentRoute,
             mb_strlen(sprintf('internal.staff.%s.', $moduleSlug))
         );
-        $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
+        $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
 
         if (
-            isset($moduleConfig['breadcrumbs'])
-            && is_array($moduleConfig['breadcrumbs'])
-            && isset($moduleConfig['breadcrumbs'][$routeSuffix])
+            $moduleConfig instanceof \Modules\Core\Contracts\ModuleConfigInterface
+            && isset($moduleConfig->breadcrumbs()->items[$routeSuffix])
         ) {
-            // Nota: Aquí no tenemos viewData ni routeParams fácilmente,
-            // pero si se llama a este método es un fallback.
             return $this->execute($moduleSlug, $routeSuffix);
         }
 
@@ -300,60 +238,29 @@ final readonly class BuildBreadcrumbs
     }
 
     /**
-     * @param  array<mixed>  $resolvedConfig
-     * @return array<mixed>
-     */
-    private function flattenResolvedConfig(array $resolvedConfig): array
-    {
-        $flattened = [];
-
-        foreach ($resolvedConfig as $item) {
-            if (is_array($item) && array_is_list($item)) {
-                $allNestedArrays = true;
-                foreach ($item as $nested) {
-                    if (! is_array($nested)) {
-                        $allNestedArrays = false;
-                        break;
-                    }
-                }
-
-                if ($allNestedArrays) {
-                    foreach ($item as $nested) {
-                        $flattened[] = $nested;
-                    }
-
-                    continue;
-                }
-            }
-
-            $flattened[] = $item;
-        }
-
-        return $flattened;
-    }
-
-    /**
      * Obtiene una breadcrumb de respaldo.
      *
-     * @param  array<string, mixed>  $config  Configuración del módulo.
-     * @param  string  $slug  Slug del módulo.
      * @return array<int, array<string, mixed>> Lista con la breadcrumb de respaldo.
      */
-    private function getFallbackBreadcrumb(array $config, string $slug): array
-    {
+    private function getFallbackBreadcrumb(
+        ?\Modules\Core\Contracts\ModuleConfigInterface $config,
+        string $slug
+    ): array {
         $routeName = null;
-        if (isset($config['nav_item']) && is_array($config['nav_item'])) {
-            $navItemRouteName = $config['nav_item']['route_name'] ?? null;
-            $routeName = is_string($navItemRouteName) && $navItemRouteName !== ''
-                ? $navItemRouteName
-                : null;
+        if ($config instanceof \Modules\Core\Contracts\ModuleConfigInterface) {
+            $navItem = $config->navItem();
+            if ($navItem instanceof \Modules\Core\Domain\Menu\NavItem) {
+                $routeName = $navItem->routeNameSuffix !== ''
+                    ? $navItem->routeNameSuffix
+                    : null;
+            }
         }
 
         $routeName ??= sprintf('internal.staff.%s.index', $slug);
 
         return [[
-            'title' => (isset($config['functional_name']) && is_string($config['functional_name']))
-                ? $config['functional_name']
+            'title' => ($config instanceof \Modules\Core\Contracts\ModuleConfigInterface && $config->addon()->functionalName !== '')
+                ? $config->addon()->functionalName
                 : ucfirst($slug),
             'href' => $this->generateRoute($routeName),
         ]];
@@ -382,24 +289,6 @@ final readonly class BuildBreadcrumbs
         }
 
         return is_scalar($value) ? (string) $value : null;
-    }
-
-    /**
-     * Normaliza los parámetros de la ruta para asegurar que sean un array asociativo válido.
-     *
-     * @param  array<mixed>  $params  Parámetros a normalizar.
-     * @return array<string, mixed> Parámetros normalizados.
-     */
-    private function normalizeRouteParameters(array $params): array
-    {
-        $normalized = [];
-        foreach ($params as $key => $value) {
-            if (is_string($key)) {
-                $normalized[$key] = $value;
-            }
-        }
-
-        return $normalized;
     }
 
     /**

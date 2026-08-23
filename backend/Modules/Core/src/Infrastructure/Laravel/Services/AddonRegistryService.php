@@ -8,6 +8,7 @@ use App\Interfaces\AuthenticatableUser as User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Contracts\AddonRegistryInterface;
+use Modules\Core\Contracts\ModuleConfigInterface;
 use Modules\Core\Domain\Addon\AddonConfig;
 use Modules\Core\Domain\Addon\AddonInstance;
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
@@ -38,6 +39,12 @@ final class AddonRegistryService implements AddonRegistryInterface
      */
     private array $configCache = [];
 
+    public function __construct(
+        private readonly ModuleConfigRegistry $moduleConfigRegistry,
+    ) {
+        //
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -49,7 +56,7 @@ final class AddonRegistryService implements AddonRegistryInterface
         return array_values(
             collect(Module::allEnabled())
                 ->filter(fn ($module): bool => $module instanceof ModuleInstance
-                    && $this->canUserAccessModule($user, $module))
+                  && $this->canUserAccessModule($user, $module))
                 ->values()
                 ->all()
         );
@@ -122,6 +129,14 @@ final class AddonRegistryService implements AddonRegistryInterface
 
         /** @var array<string, mixed> $config */
         return $config;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getModuleConfig(string $slug): ?ModuleConfigInterface
+    {
+        return $this->moduleConfigRegistry->getForModule($slug);
     }
 
     /**
@@ -217,23 +232,40 @@ final class AddonRegistryService implements AddonRegistryInterface
             $version = cacheInt('user.'.$userId.'.perm_version', 0);
             $keyParts[] = 'v'.$version;
             $permissions = $user instanceof AbstractDomainUser
-                ? $user->getAttribute('frontend_permissions')
-                : null;
+              ? $user->getAttribute('frontend_permissions')
+              : null;
             $keyParts[] = md5((string) json_encode($permissions));
         } else {
             $keyParts[] = 'guest';
         }
 
-        $coreConfig = $this->getAddonConfig('core');
+        $coreConfig = $this->getModuleConfig('core');
         $settingsGroup = [];
-        if (
-            isset($coreConfig['nav_components'])
-            && is_array($coreConfig['nav_components'])
-            && isset($coreConfig['nav_components']['groups'])
-            && is_array($coreConfig['nav_components']['groups'])
-            && isset($coreConfig['nav_components']['groups']['user_profile_nav'])
-        ) {
-            $settingsGroup = (array) $coreConfig['nav_components']['groups']['user_profile_nav'];
+        if ($coreConfig instanceof ModuleConfigInterface) {
+            $coreNav = $coreConfig->contextualNav();
+            if (isset($coreNav->items['user_profile_nav'])) {
+                $entries = $coreNav->items['user_profile_nav'];
+                $settingsGroup = [];
+                foreach ($entries as $entry) {
+                    if ($entry instanceof \Modules\Core\Domain\Menu\NavComponentLink) {
+                        $settingsGroup[] = [
+                            'title' => $entry->title,
+                            'route_name_suffix' => $entry->routeNameSuffix,
+                            'icon' => $entry->icon,
+                            'permission' => $entry->permission,
+                        ];
+                    } elseif ($entry instanceof \Modules\Core\Domain\Menu\NavComponentGroup) {
+                        foreach ($entry->links as $link) {
+                            $settingsGroup[] = [
+                                'title' => $link->title,
+                                'route_name_suffix' => $link->routeNameSuffix,
+                                'icon' => $link->icon,
+                                'permission' => $link->permission,
+                            ];
+                        }
+                    }
+                }
+            }
         }
 
         $keyParts[] = md5((string) json_encode($settingsGroup));
@@ -248,11 +280,11 @@ final class AddonRegistryService implements AddonRegistryInterface
                 }
 
                 $title = is_string($v['title'] ?? null)
-                    ? $v['title'] : '';
+                  ? $v['title'] : '';
                 $routeName = is_string($v['route_name'] ?? null)
-                    ? $v['route_name'] : '';
+                  ? $v['route_name'] : '';
                 $icon = is_string($v['icon'] ?? null)
-                    ? $v['icon'] : null;
+                  ? $v['icon'] : null;
                 $permission = $v['permission'] ?? null;
 
                 $cachedItems[] = [
@@ -271,42 +303,13 @@ final class AddonRegistryService implements AddonRegistryInterface
 
         $items = [];
         foreach ($settingsGroup as $entry) {
-            $value = null;
-            if (is_string($entry) && str_starts_with($entry, '$ref:')) {
-                $path = mb_substr($entry, 5);
-                $parts = explode('.', $path);
-                $cursor = $coreConfig;
-                foreach ($parts as $part) {
-                    if (! is_array($cursor) || ! array_key_exists($part, $cursor)) {
-                        $cursor = null;
-                        break;
-                    }
-
-                    $cursor = $cursor[$part];
-                }
-
-                if (is_array($cursor)) {
-                    $value = $cursor;
-                }
-            } elseif (is_array($entry)) {
-                $value = $entry;
-            }
-
-            if (! is_array($value)) {
-                continue;
-            }
-
-            $title = is_string($value['title'] ?? null)
-                ? $value['title'] : '';
-            $routeName = is_string($value['route_name'] ?? null)
-                ? $value['route_name'] : '';
-            $icon = is_string($value['icon'] ?? null)
-                ? $value['icon'] : null;
-            $permission = $value['permission'] ?? null;
+            $title = $entry['title'];
+            $routeName = $entry['route_name_suffix'];
+            $icon = $entry['icon'];
+            $permission = $entry['permission'];
 
             if (
                 $permission !== null
-                && is_string($permission)
                 && $user instanceof User
                 && ! $user->hasPermissionToCross($permission)
             ) {
@@ -361,34 +364,26 @@ final class AddonRegistryService implements AddonRegistryInterface
         User $user,
         ModuleInstance $module
     ): bool {
-        $config = $this->getAddonConfig($module->getName());
+        $moduleConfig = $this->getModuleConfig($module->getName());
 
-        // Si no hay configuración, no permitir acceso
-        if ($config === []) {
-            return false;
+        $canAccess = false;
+
+        if ($moduleConfig instanceof ModuleConfigInterface) {
+            $permission = $moduleConfig->addon()->basePermission;
+            $permissionStr = is_string($permission) ? $permission : null;
+            $authGuard = $moduleConfig->addon()->authGuard;
+            $authGuardStr = is_string($authGuard) ? $authGuard : null;
+
+            // Si el guard del módulo no coincide con el del usuario, denegar acceso.
+            $guardMatches = ! $authGuardStr || $user->getAuthGuard() === $authGuardStr;
+
+            // Preferir verificación entre guards usando método del contrato.
+            $canAccess = $guardMatches
+              && ($user->hasPermissionToCross('system.bypass')
+                || $permissionStr === null
+                || $user->hasPermissionToCross($permissionStr));
         }
 
-        $permission = $config['base_permission'] ?? null;
-        $permissionStr = is_string($permission) ? $permission : null;
-        $authGuardVal = $config['auth_guard'] ?? null;
-        $authGuardStr = is_string($authGuardVal) ? $authGuardVal : null;
-
-        // Si el guard del módulo no coincide con el del usuario, denegar acceso.
-        if ($authGuardStr && $user->getAuthGuard() !== $authGuardStr) {
-            return false;
-        }
-
-        // ADMIN y DEV (del guard 'staff') tienen acceso a todo.
-        if ($user->hasPermissionToCross('system.bypass')) {
-            return true;
-        }
-
-        // Si no se requiere permiso, permitir acceso.
-        if ($permissionStr === null) {
-            return true;
-        }
-
-        // Preferir verificación entre guards usando método del contrato.
-        return $user->hasPermissionToCross($permissionStr);
+        return $canAccess;
     }
 }

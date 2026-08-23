@@ -131,18 +131,6 @@ interface MenuBuilderInterface
     ): array;
 
     /**
-     * Resuelve referencias en la configuración del formato '$ref:path.to.component'.
-     *
-     * @param  mixed  $config  Configuración con posibles referencias
-     * @param  array<string, mixed>  $moduleConfig  Configuración completa del módulo
-     * @return mixed Configuración con referencias resueltas
-     */
-    public function resolveConfigReferences(
-        $config,
-        array $moduleConfig
-    ): mixed;
-
-    /**
      * Construye los ítems de navegación global.
      *
      * @param  array<int, array<string, mixed>>  $itemsConfig  Configuración de los ítems

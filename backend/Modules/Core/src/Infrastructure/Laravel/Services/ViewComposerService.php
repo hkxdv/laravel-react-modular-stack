@@ -74,8 +74,8 @@ final readonly class ViewComposerService implements ViewComposerInterface
             );
 
         // Obtener descripción desde el config del módulo
-        $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
-        $moduleDescription = $moduleConfig['description'] ?? null;
+        $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
+        $moduleDescription = $moduleConfig?->addon()->description ?? null;
 
         $statsList = is_array($stats)
             ? array_values($stats)
@@ -112,15 +112,15 @@ final readonly class ViewComposerService implements ViewComposerInterface
         array $routeParams = []
     ): array {
         // Normalizar nombre funcional y obtener descripción desde config del módulo
-        $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
-        $fn = $moduleConfig['functional_name'] ?? null;
+        $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
+        $fn = $moduleConfig?->addon()->functionalName ?? null;
         $functionalName = is_string($functionalName)
             ? $functionalName
             : (is_string($fn)
                 ? $fn
                 : ucfirst($moduleSlug)
             );
-        $moduleDescription = $moduleConfig['description'] ?? null;
+        $moduleDescription = $moduleConfig?->addon()->description ?? null;
 
         $suffix = is_string($routeSuffix) && $routeSuffix !== ''
             ? $routeSuffix

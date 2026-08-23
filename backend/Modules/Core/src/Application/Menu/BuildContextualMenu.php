@@ -8,11 +8,9 @@ use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
-use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Domain\Menu\DTO\ContextualMenuItem;
 use Modules\Core\Domain\Menu\DTO\PanelMenuItem;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
 use Modules\Core\Infrastructure\Laravel\Events\MenuPermissionDenied;
 
 /**
@@ -50,8 +48,6 @@ final readonly class BuildContextualMenu
     ];
 
     public function __construct(
-        private AddonRegistryInterface $moduleRegistry,
-        private MenuConfigResolver $configResolver
     ) {
         //
     }
@@ -76,18 +72,8 @@ final readonly class BuildContextualMenu
             return [];
         }
 
-        // Resolver referencias en la configuración si existen
-        $moduleConfig = $this->moduleRegistry->getAddonConfig($moduleSlug);
-
-        $resolvedConfig = $this->configResolver->resolve(
-            $itemsConfig,
-            $moduleConfig
-        );
-
-        // Asegurar que la configuración resuelta sea un array secuencial de ítems
-        $resolvedConfig = is_array($resolvedConfig)
-            ? array_values($resolvedConfig)
-            : [];
+        // Asegurar que la configuración sea un array secuencial de ítems
+        $resolvedConfig = array_values($itemsConfig);
         /** @var array<int, array<mixed>> $resolvedConfig */
         $resolvedConfig = array_values(
             array_filter(

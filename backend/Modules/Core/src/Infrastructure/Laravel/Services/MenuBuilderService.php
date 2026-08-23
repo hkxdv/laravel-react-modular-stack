@@ -13,7 +13,6 @@ use Modules\Core\Application\Menu\BuildBreadcrumbs;
 use Modules\Core\Application\Menu\BuildContextualMenu;
 use Modules\Core\Application\Menu\BuildGlobalMenu;
 use Modules\Core\Contracts\MenuBuilderInterface;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
 
 /**
  * Servicio adaptador para construcción de navegación y breadcrumbs.
@@ -29,7 +28,6 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         private BuildAddonMenu $moduleBuilder,
         private BuildContextualMenu $contextualBuilder,
         private BuildBreadcrumbs $breadcrumbsBuilder,
-        private MenuConfigResolver $configResolver
     ) {
         //
     }
@@ -153,16 +151,6 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         callable $permissionChecker
     ): array {
         return $this->globalBuilder->execute($itemsConfig, $permissionChecker);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function resolveConfigReferences(
-        $config,
-        array $moduleConfig
-    ): mixed {
-        return $this->configResolver->resolve($config, $moduleConfig);
     }
 
     /**
