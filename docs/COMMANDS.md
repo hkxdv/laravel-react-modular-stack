@@ -1,7 +1,7 @@
 # Guía de Comandos Foundry Stack
 
-> **Versión:** 2.1
-> **Última Actualización:** 2026-01-28
+> **Versión:** 2.2
+> **Última Actualización:** 2026-08-23
 
 Este proyecto utiliza **Bun** como gestor de paquetes _frontend_ y ejecutor de scripts principal. La estructura se basa en **Workspaces** (`backend`, `frontend` y `packages/*`) orquestados desde la raíz.
 
@@ -13,11 +13,13 @@ Todos los comandos se pueden ejecutar desde la raíz del proyecto utilizando: `b
 
 Scripts de orquestación y utilidad general definidos en `package.json` (raíz).
 
-| Script   | Comando                                 | Descripción                                                                     |
-| :------- | :-------------------------------------- | :------------------------------------------------------------------------------ |
-| `i:all`  | `bun i && bun run be i && bun run fe i` | Instala todas las dependencias (raíz, backend y frontend).                      |
-| `dev`    | `concurrently ...`                      | **Modo Desarrollo (SQLite)**: Inicia Backend, Colas y Frontend en paralelo.     |
-| `pg:dev` | `concurrently ...`                      | **Modo Desarrollo (PostgreSQL)**: Igual que `dev` pero usando PostgreSQL local. |
+| Script         | Comando                                 | Descripción                                                                          |
+| :------------- | :-------------------------------------- | :----------------------------------------------------------------------------------- |
+| `i:all`        | `bun i && bun run be i && bun run fe i` | Instala todas las dependencias (raíz, backend y frontend).                           |
+| `dev`          | `bun run --parallel ...`                | **Modo Desarrollo (SQLite)**: Inicia Backend, Colas, Frontend y Mailpit en paralelo. |
+| `pg:dev`       | `bun run --parallel ...`                | **Modo Desarrollo (PostgreSQL)**: Igual que `dev` pero usando PostgreSQL local.      |
+| `mailpit`      | `bun run dk up -d mailpit`              | Levanta solo Mailpit (SMTP `:1025`, Web UI `:8025`).                                 |
+| `mailpit:logs` | `bun run dk logs -f mailpit`            | Muestra los logs de Mailpit en tiempo real.                                          |
 
 ---
 
@@ -126,15 +128,17 @@ El proyecto tiene configurado el MCP de **Laravel Boost** en `opencode.json` (ra
 
 Comandos para gestionar el entorno contenerizado. Se ejecutan desde la raíz.
 
-| Script       | Descripción                                                     |
-| :----------- | :-------------------------------------------------------------- |
-| `dk`         | Alias para `docker-compose` con el archivo de entorno docker.   |
-| `dk:start`   | Levanta el stack Docker y el frontend local conectado a él.     |
-| `dk:up`      | Levanta contenedores en segundo plano (`-d`).                   |
-| `dk:up:fg`   | Levanta contenedores en primer plano.                           |
-| `dk:build`   | Reconstruye las imágenes de Docker.                             |
-| `dk:down`    | Detiene y elimina contenedores.                                 |
-| `dk:logs`    | Muestra logs de los contenedores en tiempo real.                |
-| `dk:artisan` | Ejecuta Artisan _dentro_ del contenedor backend.                |
-| `dk:sh`      | Abre una shell dentro del contenedor backend.                   |
-| `dev:fe:dk`  | Inicia el frontend local configurado para el backend en Docker. |
+| Script         | Descripción                                                     |
+| :------------- | :-------------------------------------------------------------- |
+| `dk`           | Alias para `docker-compose` con el archivo de entorno docker.   |
+| `dk:start`     | Levanta el stack Docker y el frontend local conectado a él.     |
+| `dk:up`        | Levanta contenedores en segundo plano (`-d`).                   |
+| `dk:up:fg`     | Levanta contenedores en primer plano.                           |
+| `dk:build`     | Reconstruye las imágenes de Docker.                             |
+| `dk:down`      | Detiene y elimina contenedores.                                 |
+| `dk:logs`      | Muestra logs de los contenedores en tiempo real.                |
+| `dk:artisan`   | Ejecuta Artisan _dentro_ del contenedor backend.                |
+| `dk:sh`        | Abre una shell dentro del contenedor backend.                   |
+| `dev:fe:dk`    | Inicia el frontend local configurado para el backend en Docker. |
+| `mailpit`      | Levanta solo Mailpit (SMTP `:1025`, Web UI `:8025`).            |
+| `mailpit:logs` | Logs de Mailpit en tiempo real.                                 |

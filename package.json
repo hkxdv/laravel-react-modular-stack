@@ -16,7 +16,7 @@
     "fe": "bun --cwd ./frontend",
     "be": "bun --cwd ./backend",
     "i:all": "bun i && bun run be i && bun run fe i",
-    "dev": "bun run --parallel 'bun run be dev' 'bun run be ql' 'bun run fe dev'",
+    "dev": "bun run --parallel 'bun run be dev' 'bun run be ql' 'bun run fe dev' 'bun run mailpit'",
     "// DOCKER": "------------------------------------------------------------",
     "dk": "docker-compose --env-file ./.envs/.env.docker",
     "dk:start": "bun run --parallel 'bun run dk:up:fg' 'bun run dev:fe:dk'",
@@ -28,8 +28,10 @@
     "dk:logs": "bun run dk logs -f",
     "dk:artisan": "bun run dk exec backend php artisan",
     "dk:sh": "bun run dk exec backend sh",
+    "mailpit": "bun run dk up -d mailpit",
+    "mailpit:logs": "bun run dk logs -f mailpit",
     "// POSTGRESQL (LOCAL)": "-----------------------------------------------",
-    "pg:dev": "bun run --parallel 'bun run be pg:dev' 'bun run be pg:ql' 'bun run fe dev'"
+    "pg:dev": "bun run --parallel 'bun run be pg:dev' 'bun run be pg:ql' 'bun run fe dev' 'bun run mailpit'"
   },
   "repository": {
     "type": "git",
