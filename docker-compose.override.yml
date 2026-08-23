@@ -46,6 +46,31 @@ services:
     ports:
       - "5432:5432" # Exponer puerto de PostgreSQL solo para desarrollo
 
+  # Servicio de captura de correo para desarrollo local (Mailpit)
+  # Interfaz web: http://localhost:8025 | SMTP: localhost:1025
+  # Compartido por .env.local, .env.pg.local (host) y .env.docker (contenedor).
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: fs-mailpit
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - fs-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "128M"
+        reservations:
+          memory: "32M"
+    restart: unless-stopped
+
   # Servicio de administración de PostgreSQL (pgAdmin)
   pgadmin:
     build:
