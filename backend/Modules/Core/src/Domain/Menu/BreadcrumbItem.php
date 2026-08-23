@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Core\Domain\Menu;
 
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * DTO inmutable para un ítem de breadcrumb.
  *
  * Valida en constructor que title no esté vacío.
- * toArray() preserva la key shape exacta del config actual.
  */
+#[TypeScript]
 final readonly class BreadcrumbItem
 {
     /**
@@ -29,24 +30,5 @@ final readonly class BreadcrumbItem
             InvalidAddonConfig::class,
             'BreadcrumbItem requires non-empty title'
         );
-    }
-
-    /**
-     * Devuelve el array con la key shape exacta del config actual.
-     *
-     * @return array{title: string, route_name: string, dynamic_title_prop?: string}
-     */
-    public function toArray(): array
-    {
-        $result = [
-            'title' => $this->title,
-            'route_name' => $this->routeNameSuffix,
-        ];
-
-        if ($this->dynamicTitleProp !== null) {
-            $result['dynamic_title_prop'] = $this->dynamicTitleProp;
-        }
-
-        return $result;
     }
 }

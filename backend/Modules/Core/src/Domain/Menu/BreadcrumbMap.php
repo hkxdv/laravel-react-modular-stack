@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Core\Domain\Menu;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * DTO inmutable para el mapa de breadcrumbs.
  *
  * Claveado por sufijo de ruta, cada entrada contiene una lista de BreadcrumbItem.
  */
+#[TypeScript]
 final readonly class BreadcrumbMap
 {
     /**
@@ -26,24 +29,5 @@ final readonly class BreadcrumbMap
     public static function empty(): self
     {
         return new self([]);
-    }
-
-    /**
-     * Devuelve el array con la key shape exacta del config actual.
-     *
-     * @return array<string, list<array>>
-     */
-    public function toArray(): array
-    {
-        $result = [];
-
-        foreach ($this->items as $suffix => $crumbs) {
-            $result[$suffix] = array_map(
-                static fn (BreadcrumbItem $crumb): array => $crumb->toArray(),
-                $crumbs,
-            );
-        }
-
-        return $result;
     }
 }

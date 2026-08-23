@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Core\Domain\Panel;
 
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * DTO inmutable para un ítem del panel de un módulo.
  *
  * Valida en constructor que name y routeNameSuffix no estén vacíos.
- * toArray() preserva la key shape exacta del config actual.
  */
+#[TypeScript]
 final readonly class PanelItem
 {
     /**
@@ -39,21 +40,5 @@ final readonly class PanelItem
             InvalidAddonConfig::class,
             'PanelItem requires non-empty routeNameSuffix'
         );
-    }
-
-    /**
-     * Devuelve el array con la key shape exacta del config actual.
-     *
-     * @return array{name: string, description: string, route_name_suffix: string, icon: string, permission: string|null}
-     */
-    public function toArray(): array
-    {
-        return [
-            'name' => $this->name,
-            'description' => $this->description,
-            'route_name_suffix' => $this->routeNameSuffix,
-            'icon' => $this->icon,
-            'permission' => $this->permission,
-        ];
     }
 }

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Core\Domain\Menu;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * DTO inmutable para un grupo de enlaces de navegación reutilizables.
  *
  * Contiene una lista de NavComponentLink items.
  */
+#[TypeScript]
 final readonly class NavComponentGroup
 {
     /**
@@ -20,18 +23,5 @@ final readonly class NavComponentGroup
         public array $links,
     ) {
         //
-    }
-
-    /**
-     * Devuelve el array con la key shape exacta del config actual.
-     *
-     * @return list<array{title: string, route_name_suffix: string, icon: string, permission: string|null}>
-     */
-    public function toArray(): array
-    {
-        return array_map(
-            static fn (NavComponentLink $link): array => $link->toArray(),
-            $this->links,
-        );
     }
 }

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Core\Domain\Addon;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * Value object para la configuración declarativa de un addon.
  *
  * Centraliza normalización y acceso a metadata clave (slug, guard, permisos base y rutas)
  * sin acoplar el dominio a detalles de Infrastructure o del framework.
  */
+#[TypeScript]
 final readonly class AddonConfig
 {
     /**
