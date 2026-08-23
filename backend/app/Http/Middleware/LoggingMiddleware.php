@@ -53,7 +53,7 @@ final class LoggingMiddleware
             'internal.staff.password.edit',
             'internal.staff.appearance',
             'internal.staff.admin.index',
-            'internal.staff.module01.index',
+            'internal.tenant.examples.index',
         ];
 
         $currentRoute = $request->route()?->getName();
