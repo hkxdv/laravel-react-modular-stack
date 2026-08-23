@@ -110,13 +110,6 @@ final class FakeMenuBuilder implements MenuBuilderInterface
         return [];
     }
 
-    public function resolveConfigReferences(
-        $config,
-        array $moduleConfig
-    ): mixed {
-        return $config;
-    }
-
     public function isCurrentRoute(string $routeName): bool
     {
         return false;

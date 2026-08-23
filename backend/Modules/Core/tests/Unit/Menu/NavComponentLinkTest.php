@@ -42,20 +42,3 @@ it('throws InvalidAddonConfig when routeNameSuffix is empty', function (): void 
         icon: 'Users',
     );
 })->throws(InvalidAddonConfig::class, 'NavComponentLink requires non-empty routeNameSuffix');
-
-it('preserves toArray key shape', function (): void {
-    $link = new NavComponentLink(
-        key: 'users_list',
-        title: 'Users',
-        routeNameSuffix: 'users.index',
-        icon: 'Users',
-        permission: 'staff-users.view',
-    );
-
-    expect($link->toArray())->toBe([
-        'title' => 'Users',
-        'route_name_suffix' => 'users.index',
-        'icon' => 'Users',
-        'permission' => 'staff-users.view',
-    ]);
-});

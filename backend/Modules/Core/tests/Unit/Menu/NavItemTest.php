@@ -42,23 +42,6 @@ it('throws InvalidAddonConfig when routeNameSuffix is empty', function (): void 
     );
 })->throws(InvalidAddonConfig::class, 'NavItem requires non-empty routeNameSuffix');
 
-it('preserves toArray key shape', function (): void {
-    $nav = new NavItem(
-        title: 'Admin',
-        routeNameSuffix: 'internal.staff.admin.index',
-        icon: 'ShieldCheck',
-        permission: 'rbac.view',
-        showInNav: true,
-    );
-
-    expect($nav->toArray())->toBe([
-        'show_in_nav' => true,
-        'route_name' => 'internal.staff.admin.index',
-        'icon' => 'ShieldCheck',
-        'permission' => 'rbac.view',
-    ]);
-});
-
 it('show factory creates NavItem with showInNav true', function (): void {
     $nav = NavItem::show(
         routeName: 'internal.staff.admin.index',

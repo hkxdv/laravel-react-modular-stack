@@ -29,27 +29,3 @@ it('creates a NavComponentGroup with valid data', function (): void {
     expect($group->name)->toBe('user_management')
         ->and($group->links)->toHaveCount(2);
 });
-
-it('toArray maps each link to its toArray output', function (): void {
-    $link = new NavComponentLink(
-        key: 'users_list',
-        title: 'Users',
-        routeNameSuffix: 'users.index',
-        icon: 'Users',
-        permission: 'staff-users.view',
-    );
-
-    $group = new NavComponentGroup(
-        name: 'user_management',
-        links: [$link],
-    );
-
-    expect($group->toArray())->toBe([
-        [
-            'title' => 'Users',
-            'route_name_suffix' => 'users.index',
-            'icon' => 'Users',
-            'permission' => 'staff-users.view',
-        ],
-    ]);
-});

@@ -5,9 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Modules\Core\Application\Menu\BuildContextualMenu;
-use Modules\Core\Domain\Menu\MenuConfigResolver;
 use Modules\Core\Infrastructure\Laravel\Events\MenuPermissionDenied;
-use Modules\Core\Tests\Fakes\FakeAddonRegistry;
 use Modules\Core\Tests\Fakes\FakePermissionChecker;
 
 uses(Tests\TestCase::class);
@@ -21,13 +19,7 @@ beforeEach(function (): void {
 it('increments denial counter and dispatches MenuPermissionDenied when permission is denied', function (): void {
     Event::fake([MenuPermissionDenied::class]);
 
-    $registry = new FakeAddonRegistry();
-    $registry->configs = [
-        'core' => [],
-    ];
-
-    $configResolver = new MenuConfigResolver();
-    $builder = new BuildContextualMenu($registry, $configResolver);
+    $builder = new BuildContextualMenu();
 
     $itemsConfig = [
         [

@@ -51,21 +51,3 @@ it('throws InvalidAddonConfig when routeNameSuffix is empty', function (): void 
         icon: 'Users',
     );
 })->throws(InvalidAddonConfig::class, 'PanelItem requires non-empty routeNameSuffix');
-
-it('preserves toArray key shape', function (): void {
-    $panel = new PanelItem(
-        name: 'Users',
-        description: 'Manage users',
-        routeNameSuffix: 'users.index',
-        icon: 'Users',
-        permission: 'staff-users.view',
-    );
-
-    expect($panel->toArray())->toBe([
-        'name' => 'Users',
-        'description' => 'Manage users',
-        'route_name_suffix' => 'users.index',
-        'icon' => 'Users',
-        'permission' => 'staff-users.view',
-    ]);
-});

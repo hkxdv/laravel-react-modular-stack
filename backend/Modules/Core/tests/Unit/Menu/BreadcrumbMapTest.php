@@ -26,23 +26,3 @@ it('empty factory creates empty BreadcrumbMap', function (): void {
 
     expect($map->items)->toBeEmpty();
 });
-
-it('toArray maps each entry to its items toArray output', function (): void {
-    $crumb = new BreadcrumbItem(
-        title: 'Admin',
-        routeNameSuffix: 'index',
-    );
-
-    $map = new BreadcrumbMap([
-        'default' => [$crumb],
-    ]);
-
-    expect($map->toArray())->toBe([
-        'default' => [
-            [
-                'title' => 'Admin',
-                'route_name' => 'index',
-            ],
-        ],
-    ]);
-});

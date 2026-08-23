@@ -28,27 +28,3 @@ it('of factory creates ContextualNavMap', function (): void {
 
     expect($map->items)->toBeEmpty();
 });
-
-it('toArray maps each entry to its items toArray output', function (): void {
-    $link = new NavComponentLink(
-        key: 'dashboard',
-        title: 'Dashboard',
-        routeNameSuffix: 'index',
-        icon: 'LayoutDashboard',
-    );
-
-    $map = ContextualNavMap::of([
-        'default' => [$link],
-    ]);
-
-    expect($map->toArray())->toBe([
-        'default' => [
-            [
-                'title' => 'Dashboard',
-                'route_name_suffix' => 'index',
-                'icon' => 'LayoutDashboard',
-                'permission' => null,
-            ],
-        ],
-    ]);
-});
