@@ -51,4 +51,44 @@ final readonly class NavItem
             showInNav: true,
         );
     }
+
+    /**
+     * Fábrica: construye un NavItem desde un array de configuración.
+     *
+     * @param  array<string, mixed>  $data  Array de configuración con route_name (requerido).
+     * @param  string  $fallbackTitle  Título de respaldo cuando title está vacío o ausente.
+     *
+     * @throws InvalidAddonConfig Si route_name falta o está vacío.
+     */
+    public static function fromConfigArray(array $data, string $fallbackTitle = ''): self
+    {
+        $rawRouteName = $data['route_name'] ?? '';
+        $rawTitle = $data['title'] ?? '';
+        $rawIcon = $data['icon'] ?? '';
+        $rawPermission = $data['permission'] ?? null;
+        $rawShowInNav = $data['show_in_nav'] ?? true;
+        $rawShowInMainNav = $data['show_in_main_nav'] ?? false;
+
+        $routeName = is_string($rawRouteName) ? $rawRouteName : '';
+        $title = is_string($rawTitle) ? $rawTitle : '';
+        $icon = is_string($rawIcon) ? $rawIcon : '';
+        $permission = is_string($rawPermission) && $rawPermission !== '' ? $rawPermission : null;
+        $showInNav = is_bool($rawShowInNav) ? $rawShowInNav : true;
+        $showInMainNav = is_bool($rawShowInMainNav) && $rawShowInMainNav;
+
+        throw_if(
+            $routeName === '',
+            InvalidAddonConfig::class,
+            'NavItem fromConfigArray requires non-empty route_name'
+        );
+
+        return new self(
+            title: $title !== '' ? $title : $fallbackTitle,
+            routeNameSuffix: $routeName,
+            icon: $icon,
+            permission: $permission,
+            showInNav: $showInNav,
+            showInMainNav: $showInMainNav,
+        );
+    }
 }

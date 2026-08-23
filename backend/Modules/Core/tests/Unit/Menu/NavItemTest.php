@@ -54,3 +54,49 @@ it('show factory creates NavItem with showInNav true', function (): void {
         ->and($nav->icon)->toBe('ShieldCheck')
         ->and($nav->permission)->toBe('rbac.view');
 });
+
+// ── fromConfigArray ──
+
+it('fromConfigArray creates NavItem with valid data', function (): void {
+    $nav = NavItem::fromConfigArray([
+        'route_name' => 'internal.staff.admin.index',
+        'title' => 'Admin',
+        'icon' => 'ShieldCheck',
+        'permission' => 'rbac.view',
+        'show_in_nav' => true,
+        'show_in_main_nav' => false,
+    ]);
+
+    expect($nav->title)->toBe('Admin')
+        ->and($nav->routeNameSuffix)->toBe('internal.staff.admin.index')
+        ->and($nav->icon)->toBe('ShieldCheck')
+        ->and($nav->permission)->toBe('rbac.view')
+        ->and($nav->showInNav)->toBeTrue()
+        ->and($nav->showInMainNav)->toBeFalse();
+});
+
+it('fromConfigArray uses fallbackTitle when title is empty', function (): void {
+    $nav = NavItem::fromConfigArray(
+        ['route_name' => 'index', 'icon' => 'ShieldCheck'],
+        fallbackTitle: 'Módulo de Administración',
+    );
+
+    expect($nav->title)->toBe('Módulo de Administración');
+});
+
+it('fromConfigArray prefers title over fallbackTitle', function (): void {
+    $nav = NavItem::fromConfigArray(
+        ['route_name' => 'index', 'title' => 'Custom', 'icon' => 'ShieldCheck'],
+        fallbackTitle: 'Fallback',
+    );
+
+    expect($nav->title)->toBe('Custom');
+});
+
+it('fromConfigArray throws on missing route_name', function (): void {
+    NavItem::fromConfigArray(['icon' => 'ShieldCheck']);
+})->throws(InvalidAddonConfig::class, 'NavItem fromConfigArray requires non-empty route_name');
+
+it('fromConfigArray throws on empty route_name', function (): void {
+    NavItem::fromConfigArray(['route_name' => '', 'icon' => 'ShieldCheck']);
+})->throws(InvalidAddonConfig::class, 'NavItem fromConfigArray requires non-empty route_name');
