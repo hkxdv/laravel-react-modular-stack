@@ -9,6 +9,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Modules\Admin\App\Models\StaffUser;
 use Tighten\Ziggy\Ziggy;
 
 /**
@@ -23,6 +24,7 @@ final class RouteServiceProvider extends ServiceProvider
     {
         Route::pattern('id', '[0-9]+');
         Route::pattern('slug', '[a-z0-9-]+');
+        Route::model('staffUser', StaffUser::class);
 
         $this->configureRateLimiting();
         $this->configureZiggyRouteGroups();
