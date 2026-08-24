@@ -71,9 +71,19 @@ it('has zero hasRole bypass in RoleService', function (): void {
         ->and($file)->not->toContain("hasRole(['ADMIN'");
 });
 
-it('has zero hasRole bypass in StaffUserRequest', function (): void {
+it('has zero hasRole bypass in CreateStaffUserRequest', function (): void {
     $file = file_get_contents(
-        base_path('Modules/Admin/app/Http/Requests/StaffUserRequest.php')
+        base_path('Modules/Admin/app/Http/Requests/CreateStaffUserRequest.php')
+    );
+
+    expect($file)->not->toContain("hasRole('ADMIN')")
+        ->and($file)->not->toContain("hasRole('DEV')")
+        ->and($file)->not->toContain("hasRole(['ADMIN'");
+});
+
+it('has zero hasRole bypass in UpdateStaffUserRequest', function (): void {
+    $file = file_get_contents(
+        base_path('Modules/Admin/app/Http/Requests/UpdateStaffUserRequest.php')
     );
 
     expect($file)->not->toContain("hasRole('ADMIN')")
