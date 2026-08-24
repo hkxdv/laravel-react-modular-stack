@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Http\Controllers\StaffUsers\Concerns;
 
 use Illuminate\Http\Request as IlluminateRequest;
-use Modules\Admin\App\Http\Requests\StaffUserRequest;
+use Illuminate\Support\Facades\Hash;
+use Modules\Admin\App\Http\Requests\CreateStaffUserRequest;
+use Modules\Admin\App\Http\Requests\UpdateStaffUserRequest;
 
 /**
  * Normaliza payloads y roles de usuarios staff para controladores.
@@ -15,15 +17,15 @@ trait NormalizesStaffUserPayload
     /**
      * Construye el payload de creación con contraseña lista para persistencia.
      *
-     * @param  StaffUserRequest  $request  Solicitud validada de creación
+     * @param  CreateStaffUserRequest  $request  Solicitud validada de creación
      * @return array<string, mixed> Datos listos para persistencia
      */
-    protected function buildCreatePayload(StaffUserRequest $request): array
+    protected function buildCreatePayload(CreateStaffUserRequest $request): array
     {
         $validatedData = $request->validated();
         $rawPassword = $validatedData['password'] ?? null;
         $validatedData['password'] = is_string($rawPassword)
-            ? bcrypt($rawPassword)
+            ? Hash::make($rawPassword)
             : '';
 
         return $validatedData;
@@ -32,10 +34,10 @@ trait NormalizesStaffUserPayload
     /**
      * Construye el payload de actualización con manejo opcional de contraseña.
      *
-     * @param  StaffUserRequest  $request  Solicitud validada de actualización
+     * @param  UpdateStaffUserRequest  $request  Solicitud validada de actualización
      * @return array<string, mixed> Datos listos para persistencia
      */
-    protected function buildUpdatePayload(StaffUserRequest $request): array
+    protected function buildUpdatePayload(UpdateStaffUserRequest $request): array
     {
         $validatedData = $request->validated();
         $rawPassword = $validatedData['password'] ?? null;
@@ -43,7 +45,7 @@ trait NormalizesStaffUserPayload
         if (! is_string($rawPassword) || $rawPassword === '') {
             unset($validatedData['password']);
         } else {
-            $validatedData['password'] = bcrypt($rawPassword);
+            $validatedData['password'] = Hash::make($rawPassword);
             $validatedData['password_changed_at'] = now();
         }
 

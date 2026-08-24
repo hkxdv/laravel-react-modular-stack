@@ -81,7 +81,6 @@ return [
         'staff' => [
             'driver' => 'eloquent',
             'model' => StaffUser::class,
-            'table' => 'staff',
             'password_reset_expiration' => 15, // 15 minutos
         ],
         'tenant' => [

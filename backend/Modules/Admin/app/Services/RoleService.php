@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use InvalidArgumentException;
 use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Spatie\Permission\Models\Role;
@@ -81,6 +82,13 @@ final readonly class RoleService implements RolesInterface
     public function updateRole(int $id, array $data): Role
     {
         $role = Role::query()->findOrFail($id);
+
+        throw_if(
+            ! isset($data['name']) &&
+            ! isset($data['permissions']),
+            InvalidArgumentException::class,
+            'Update payload must contain at least one of: name, permissions.'
+        );
 
         if (isset($data['name']) && $role->name !== $data['name']) {
             if (in_array(mb_strtoupper($role->name), self::PROTECTED_ROLES, true)) {
