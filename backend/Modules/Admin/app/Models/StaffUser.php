@@ -21,11 +21,11 @@ use Spatie\Activitylog\LogOptions;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $email_verified_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, StaffUsersLoginInfo> $loginInfos
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, StaffUserLoginInfo> $loginInfos
  *
  * @use HasFactory<StaffUsersFactory>
  */
-class StaffUser extends AbstractDomainUser implements MustVerifyEmail
+final class StaffUser extends AbstractDomainUser implements MustVerifyEmail
 {
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
@@ -93,13 +93,13 @@ class StaffUser extends AbstractDomainUser implements MustVerifyEmail
     }
 
     /**
-     * Relación con el historial de inicios de sesión.
+     * Relación con el historial de inicio de sesión.
      *
-     * @return HasMany<StaffUsersLoginInfo, $this>
+     * @return HasMany<StaffUserLoginInfo, $this>
      */
     public function loginInfos(): HasMany
     {
-        return $this->hasMany(StaffUsersLoginInfo::class, 'staff_user_id');
+        return $this->hasMany(StaffUserLoginInfo::class, 'staff_user_id');
     }
 
     /**
@@ -111,7 +111,7 @@ class StaffUser extends AbstractDomainUser implements MustVerifyEmail
         ?string $ip,
         ?string $userAgent,
         array $deviceInfo
-    ): StaffUsersLoginInfo {
+    ): StaffUserLoginInfo {
         // Buscar si ya existe un registro para este dispositivo e IP
         $query = $this->loginInfos()
             ->where('ip_address', $ip);
@@ -120,7 +120,7 @@ class StaffUser extends AbstractDomainUser implements MustVerifyEmail
         }
 
         $loginInfo = $query->get()
-            ->filter(fn (StaffUsersLoginInfo $info): bool => $info->matches(
+            ->filter(fn (StaffUserLoginInfo $info): bool => $info->matches(
                 $ip,
                 $userAgent
             ))
@@ -133,7 +133,7 @@ class StaffUser extends AbstractDomainUser implements MustVerifyEmail
             return $loginInfo;
         }
 
-        /** @var StaffUsersLoginInfo */
+        /** @var StaffUserLoginInfo */
         return $this->loginInfos()->create([
             'ip_address' => $ip,
             'user_agent' => $userAgent,
@@ -161,7 +161,7 @@ class StaffUser extends AbstractDomainUser implements MustVerifyEmail
         $knownDevice = $this->loginInfos()
             ->where('is_trusted', true)
             ->get()
-            ->filter(fn (StaffUsersLoginInfo $info): bool => $info->matches(
+            ->filter(fn (StaffUserLoginInfo $info): bool => $info->matches(
                 $ip,
                 $userAgent
             ))

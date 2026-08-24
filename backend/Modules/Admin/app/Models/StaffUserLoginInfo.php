@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Admin\App\Models\StaffUsersLoginInfo as StaffUsersLoginInfoModel;
 
 /**
  * Modelo que almacena el historial de inicios de sesión del personal (Staff).
@@ -30,11 +29,11 @@ use Modules\Admin\App\Models\StaffUsersLoginInfo as StaffUsersLoginInfoModel;
  * @property int $login_count Contador de inicios de sesión desde este dispositivo.
  * @property-read StaffUser $staffUser
  *
- * @use HasFactory<Factory<StaffUsersLoginInfoModel>>
+ * @use HasFactory<Factory<StaffUserLoginInfo>>
  */
-final class StaffUsersLoginInfo extends Model
+final class StaffUserLoginInfo extends Model
 {
-    /** @use HasFactory<Factory<StaffUsersLoginInfoModel>> */
+    /** @use HasFactory<Factory<StaffUserLoginInfo>> */
     use HasFactory;
 
     /**

@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Admin\App\Models\StaffUser;
-use Modules\Admin\App\Models\StaffUsersLoginInfo;
+use Modules\Admin\App\Models\StaffUserLoginInfo;
 
 /**
  * Controlador para gestionar la confianza de los dispositivos de inicio de sesión.
@@ -22,14 +22,14 @@ final class LoginDeviceController extends Controller
      * Marca un dispositivo como confiable a través de un enlace firmado.
      *
      * Este método utiliza Route Model Binding para inyectar automáticamente la instancia
-     * de `StaffUsersLoginInfo` correspondiente al ID en la URL. La ruta que invoca
+     * de `StaffUserLoginInfo` correspondiente al ID en la URL. La ruta que invoca
      * este método debe estar protegida por el middleware 'signed' para prevenir ataques
      * de manipulación de URL y 'auth' para asegurar que el usuario esté autenticado.
      *
      * @param  Request  $request  La solicitud HTTP entrante.
-     * @param  StaffUsersLoginInfo  $loginInfo  El registro de inicio de sesión inyectado por la ruta.
+     * @param  StaffUserLoginInfo  $loginInfo  El registro de inicio de sesión inyectado por la ruta.
      */
-    public function trust(Request $request, StaffUsersLoginInfo $loginInfo): RedirectResponse
+    public function trust(Request $request, StaffUserLoginInfo $loginInfo): RedirectResponse
     {
         /** @var StaffUser $user */
         $user = $request->user();
