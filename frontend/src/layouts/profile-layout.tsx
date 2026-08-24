@@ -1,41 +1,44 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { type NavItemDefinition } from '@/types';
 import { cn } from '@/utils/cn';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState, type PropsWithChildren } from 'react';
 
-const sidebarNavItems: NavItemDefinition[] = [
-  {
-    title: 'Perfil',
-    href: route('internal.staff.profile.edit'),
-    icon: null,
-  },
-  {
-    title: 'Contraseña',
-    href: route('internal.staff.password.edit'),
-    icon: null,
-  },
-  {
-    title: 'Apariencia',
-    href: route('internal.staff.appearance'),
-    icon: null,
-  },
-  {
-    title: 'Seguridad',
-    href: route('internal.staff.security.edit'),
-    icon: null,
-  },
-  {
-    title: 'Notificaciones',
-    href: route('internal.staff.notifications.edit'),
-    icon: null,
-  },
+interface ProfileNavItem {
+  title: string;
+  href: string;
+  icon?: unknown;
+  current?: boolean;
+  permission?: unknown;
+}
+
+interface ProfileLayoutProps {
+  children: React.ReactNode;
+  contextualNavItems?: ProfileNavItem[];
+}
+
+// ponytail: hardcoded fallback — remove after backend wiring verified
+const defaultNavItems: ProfileNavItem[] = [
+  { title: 'Perfil', href: route('internal.staff.profile.edit') },
+  { title: 'Contraseña', href: route('internal.staff.password.edit') },
+  { title: 'Apariencia', href: route('internal.staff.appearance') },
+  { title: 'Seguridad', href: route('internal.staff.security.edit') },
+  { title: 'Notificaciones', href: route('internal.staff.notifications.edit') },
 ];
 
-export default function ProfileLayout({ children }: Readonly<PropsWithChildren>) {
+export default function ProfileLayout({
+  children,
+  contextualNavItems,
+}: Readonly<PropsWithChildren<ProfileLayoutProps>>) {
   const [currentPath, setCurrentPath] = useState('');
+
+  // Consume contextualNavItems from backend page props as fallback
+  const pageProps = usePage().props;
+  const navItems: ProfileNavItem[] =
+    contextualNavItems ??
+    (pageProps.contextualNavItems as ProfileNavItem[] | undefined) ??
+    defaultNavItems;
 
   useEffect(() => {
     setCurrentPath(globalThis.window.location.pathname);
@@ -48,7 +51,7 @@ export default function ProfileLayout({ children }: Readonly<PropsWithChildren>)
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
         <aside className="w-full max-w-xl lg:w-48">
           <nav className="flex flex-col space-y-1 space-x-0">
-            {sidebarNavItems.map((item) => (
+            {navItems.map((item) => (
               <Button
                 key={item.href}
                 size="default"

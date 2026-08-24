@@ -1,6 +1,9 @@
 import type { IconName } from '@/utils/lucide-icons';
 import type { LucideIcon } from 'lucide-react';
 
+// Re-export generated types that align with manual definitions
+export type { ResolvedNavItem } from '@/types/generated';
+
 /**
  * Props base compartidas para páginas de módulos.
  * Incluye elementos de navegación contextual, items del panel principal,

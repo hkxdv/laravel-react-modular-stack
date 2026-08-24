@@ -14,23 +14,6 @@ import type {
 import { type PageProps } from '@inertiajs/core';
 
 /**
- * Define la estructura de un ítem del panel de administración.
- * Estos ítems se muestran como tarjetas clicables que navegan a diferentes secciones.
- */
-export interface PanelItem {
-  /** Nombre descriptivo del ítem, se muestra en la tarjeta. */
-  name: string;
-  /** Descripción breve de la funcionalidad del ítem. */
-  description: string;
-  /** Nombre de la ruta de Laravel a la que navegará el ítem. */
-  route_name: string;
-  /** Nombre del ícono de Lucide (opcional) a mostrar en la tarjeta. */
-  icon?: string;
-  /** Permiso de Spatie requerido (opcional) para ver/acceder al ítem. */
-  permission?: string;
-}
-
-/**
  * Props para la página principal del panel de administración (`AdminIndex`).
  */
 export interface AdminIndexPageProps extends PageProps, BaseModulePageProps<EnhancedStat[]> {
