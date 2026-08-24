@@ -22,9 +22,9 @@ final class CreateStaffUserController extends AbstractAdminController
 {
     use NormalizesStaffUserPayload;
 
-    private const CREATE_ERROR_MESSAGE = 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.';
+    private const string CREATE_ERROR_MESSAGE = 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.';
 
-    private const CREATE_VIEW = 'user/create';
+    private const string CREATE_VIEW = 'user/create';
 
     /**
      * Muestra el formulario de creación de un nuevo usuario.
@@ -53,11 +53,11 @@ final class CreateStaffUserController extends AbstractAdminController
      * Almacena un nuevo usuario.
      *
      * @param  CreateStaffUserRequest  $request  Solicitud validada para creación de usuario
-     * @return RedirectResponse|InertiaResponse Redirección o respuesta Inertia
+     * @return RedirectResponse Redirección o respuesta Inertia
      *
      * @throws \Illuminate\Validation\ValidationException Si la validación de entrada falla.
      */
-    public function store(CreateStaffUserRequest $request): RedirectResponse|InertiaResponse
+    public function store(CreateStaffUserRequest $request): RedirectResponse
     {
         $isInertiaRequest = (bool) $request->header('X-Inertia');
         $response = null;
