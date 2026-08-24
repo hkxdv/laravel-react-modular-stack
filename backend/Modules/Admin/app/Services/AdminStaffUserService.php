@@ -6,6 +6,7 @@ namespace Modules\Admin\App\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\PermissionVerifierInterface;
@@ -19,6 +20,7 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
 {
     public function __construct(
         private PermissionVerifierInterface $permissionVerifier,
+        private RolesInterface $rolesInterface,
     ) {
         //
     }
@@ -239,45 +241,6 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
      */
     public function getAllRoles(): Collection
     {
-        // Usar el modelo Role directamente con where para obtener una Eloquent\Collection
-        $roles = Role::query()->where('guard_name', 'staff')->get([
-            'id',
-            'name',
-            'guard_name',
-        ]);
-
-        // Añadir descripción para cada rol
-        $roles->each(
-            function (Role $role): void {
-                // Asegurarnos de que el ID sea un entero para evitar problemas de tipado en el frontend
-                $role->id = (int) $role->id;
-
-                // Obtener el nombre de forma segura y decidir la descripción
-                $nameAttr = $role->getAttribute('name');
-                $upperName = is_string($nameAttr) ? mb_strtoupper($nameAttr) : '';
-
-                match ($upperName) {
-                    'ADMIN' => $role->setAttribute(
-                        'description',
-                        'Acceso completo a todas las funciones del sistema'
-                    ),
-                    'DEV' => $role->setAttribute(
-                        'description',
-                        'Acceso de desarrollador con privilegios especiales'
-                    ),
-                    'MOD-01' => $role->setAttribute(
-                        'description',
-                        'Acceso al Módulo 01'
-                    ),
-
-                    default => $role->setAttribute(
-                        'description',
-                        is_string($nameAttr) ? ('Rol de '.$nameAttr) : 'Rol'
-                    ),
-                };
-            }
-        );
-
-        return $roles;
+        return $this->rolesInterface->getAllRoles();
     }
 }
