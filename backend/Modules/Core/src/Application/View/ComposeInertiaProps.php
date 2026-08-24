@@ -32,25 +32,34 @@ final readonly class ComposeInertiaProps
      * Ejecuta la composición de props para Inertia.
      *
      * @param  Request  $request  Petición actual.
-     * @return array<string, mixed> Props compartidas.
      */
-    public function execute(Request $request): array
+    public function execute(Request $request): GlobalPageProps
     {
         /** @var AbstractDomainUser|null $staffUser */
         $staffUser = $request->user('staff');
 
         $navProps = $this->composeNavigationProps($staffUser);
-        $authProps = $this->composeAuthProps($staffUser, $request);
-        $securityProps = $this->composeSecurityProps($staffUser);
+        $authDto = $this->composeAuthProps($staffUser, $request);
+        $securityDto = $this->composeSecurityProps($staffUser);
         $notificationPrefsProps = $this->composeNotificationPreferencesProps($staffUser);
 
-        return $navProps + $authProps + $securityProps + $notificationPrefsProps;
+        return new GlobalPageProps(
+            breadcrumbs: $navProps['breadcrumbs'],
+            mainNavItems: $navProps['mainNavItems'],
+            moduleNavItems: $navProps['moduleNavItems'],
+            contextualNavItems: $navProps['contextualNavItems'],
+            globalNavItems: $navProps['globalNavItems'],
+            passwordChangeRequired: $navProps['passwordChangeRequired'],
+            auth: $authDto,
+            security: $securityDto,
+            notificationPreferences: $notificationPrefsProps['notificationPreferences'],
+        );
     }
 
     /**
      * Compone las propiedades de navegación.
      *
-     * @return array<string, mixed>
+     * @return array{breadcrumbs: array<int, array<string, mixed>>, mainNavItems: array<int, array<string, mixed>>, moduleNavItems: array<int, array<string, mixed>>, contextualNavItems: array<int, array<string, mixed>>, globalNavItems: array<int, array<string, mixed>>, passwordChangeRequired: bool}
      */
     private function composeNavigationProps(?AbstractDomainUser $staffUser): array
     {
@@ -101,38 +110,35 @@ final readonly class ComposeInertiaProps
 
     /**
      * Compone las propiedades de autenticación.
-     *
-     * @return array<string, mixed>
      */
     private function composeAuthProps(
         ?AbstractDomainUser $staffUser,
-        Request $request
-    ): array {
+        Request $request,
+    ): AuthPageProps {
         $transformedStaffUser = $staffUser instanceof AbstractDomainUser
           ? $this->authUserPresenter->present($staffUser) : null;
 
-        return [
-            'auth' => [
-                'user' => $transformedStaffUser,
-                'staff' => $transformedStaffUser,
-                'impersonate' => $staffUser && $request->session()->has('impersonated_by'),
-            ],
-        ];
+        $isImpersonating = $staffUser && $request->session()->has('impersonated_by');
+
+        return new AuthPageProps(
+            user: $transformedStaffUser,
+            staff: $transformedStaffUser,
+            impersonate: $isImpersonating,
+            can: ['impersonate' => $isImpersonating],
+        );
     }
 
     /**
-     * @return array<string, mixed>
+     * Compone las propiedades de seguridad.
      */
-    private function composeSecurityProps(?AbstractDomainUser $staffUser): array
+    private function composeSecurityProps(?AbstractDomainUser $staffUser): SecurityPageProps
     {
         if (! $staffUser instanceof AbstractDomainUser) {
-            return [
-                'security' => [
-                    'twoFactorRequired' => (bool) config('security.two_factor.staff.required', false),
-                    'twoFactorEnabled' => false,
-                    'twoFactorPending' => false,
-                ],
-            ];
+            return new SecurityPageProps(
+                twoFactorRequired: (bool) config('security.two_factor.staff.required', false),
+                twoFactorEnabled: false,
+                twoFactorPending: false,
+            );
         }
 
         $secretEncrypted = $staffUser->getAttribute('two_factor_secret');
@@ -142,17 +148,17 @@ final readonly class ComposeInertiaProps
           && $secretEncrypted !== ''
           && $confirmedAt === null;
 
-        return [
-            'security' => [
-                'twoFactorRequired' => (bool) config('security.two_factor.staff.required', false),
-                'twoFactorEnabled' => $confirmedAt !== null,
-                'twoFactorPending' => $pending,
-            ],
-        ];
+        return new SecurityPageProps(
+            twoFactorRequired: (bool) config('security.two_factor.staff.required', false),
+            twoFactorEnabled: $confirmedAt !== null,
+            twoFactorPending: $pending,
+        );
     }
 
     /**
-     * @return array<string, mixed>
+     * Compone las preferencias de notificación.
+     *
+     * @return array{notificationPreferences: array<string, mixed>}
      */
     private function composeNotificationPreferencesProps(
         ?AbstractDomainUser $staffUser

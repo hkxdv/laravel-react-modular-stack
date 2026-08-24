@@ -184,7 +184,7 @@ final readonly class ModuleOrchestratorService implements ModuleOrchestratorInte
         return $this->viewComposer->renderModuleView(
             view: $view,
             moduleViewPath: $inertiaDir,
-            data: $viewContext
+            data: (array) $viewContext,
         );
     }
 

@@ -112,19 +112,12 @@ it('returns result with all required navigation keys as arrays', function (): vo
         user: null,
     );
 
-    expect($result)->toHaveKeys([
-        'mainNavItems',
-        'moduleNavItems',
-        'contextualNavItems',
-        'globalNavItems',
-        'breadcrumbs',
-        'panelItems',
-    ]);
-
-    expect($result['mainNavItems'])->toBeArray();
-    expect($result['moduleNavItems'])->toBeArray();
-    expect($result['contextualNavItems'])->toBeArray();
-    expect($result['globalNavItems'])->toBeArray();
-    expect($result['breadcrumbs'])->toBeArray();
-    expect($result['panelItems'])->toBeArray();
+    // ModulePageProps readonly object - verify public properties
+    expect($result->mainNavItems)->toBeArray();
+    expect($result->moduleNavItems)->toBeArray();
+    expect($result->contextualNavItems)->toBeArray();
+    expect($result->globalNavItems)->toBeArray();
+    expect($result->breadcrumbs)->toBeArray();
+    expect($result->panelItems)->toBeArray();
+    expect($result->pageTitle)->toBeString();
 });

@@ -24,7 +24,7 @@ it('contextualNav returns ContextualNavMap with correct structure from config', 
     expect($defaultItems)->not->toBeEmpty();
 
     // user_management group resolves to NavComponentGroup
-    $group = array_first($defaultItems);
+    $group = Illuminate\Support\Arr::first($defaultItems);
     assert($group instanceof NavComponentGroup);
     expect($group->name)->toBe('user_management')
         ->and($group->links)->not->toBeEmpty();

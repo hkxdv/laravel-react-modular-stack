@@ -65,6 +65,6 @@ final class HandleInertiaRequests extends Middleware
         // Usar la nueva acción de composición del módulo Core
         $coreProps = $this->composeInertiaProps->execute($request);
 
-        return array_merge($baseProps, $coreProps, $sharedData);
+        return array_merge($baseProps, (array) $coreProps, $sharedData);
     }
 }

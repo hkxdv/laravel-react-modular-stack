@@ -36,9 +36,6 @@ parameters:
             message: '#Cannot call method .* on mixed#'
             path: Modules/Core/tests/*
         -
-            message: '#Cannot access offset .* on mixed#'
-            path: Modules/Core/tests/*
-        -
             message: '#Cannot access property .* on mixed#'
             path: Modules/Core/tests/*
         -

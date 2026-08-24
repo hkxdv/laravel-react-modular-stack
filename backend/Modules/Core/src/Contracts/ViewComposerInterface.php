@@ -7,6 +7,7 @@ namespace Modules\Core\Contracts;
 use App\Interfaces\AuthenticatableUser;
 use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
+use Modules\Core\Domain\Menu\ModulePageProps;
 
 /**
  * Interfaz para la composición de datos para vistas.
@@ -47,7 +48,8 @@ interface ViewComposerInterface
      * @param  array<int, mixed>|array<string, mixed>|null  $stats  Estadísticas del módulo
      * @param  string|null  $routeSuffix  Sufijo de ruta para los breadcrumbs configurados
      * @param  array<string, mixed>  $routeParams  Parámetros de ruta para los breadcrumbs
-     * @return array<string, mixed> Datos completos para la vista
+     * @param  array<int, array<string, mixed>>|null  $profileNavItems  Ítems de navegación de perfil (para rutas profile/*)
+     * @return ModulePageProps Datos completos para la vista
      */
     public function composeModuleViewContext(
         string $moduleSlug,
@@ -59,8 +61,9 @@ interface ViewComposerInterface
         array $data = [],
         ?array $stats = null,
         ?string $routeSuffix = null,
-        array $routeParams = []
-    ): array;
+        array $routeParams = [],
+        ?array $profileNavItems = null,
+    ): ModulePageProps;
 
     /**
      * Método específico para preparar datos del dashboard principal.

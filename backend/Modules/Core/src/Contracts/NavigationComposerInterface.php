@@ -22,7 +22,7 @@ interface NavigationComposerInterface
      * @param  string  $routeSuffix  Sufijo de ruta para breadcrumbs
      * @param  array<string, mixed>  $routeParams  Parámetros de ruta
      * @param  array<string, mixed>  $data  Datos adicionales de la vista
-     * @return array<string, mixed> Estructura de navegación con mainNavItems, moduleNavItems, contextualNavItems, globalNavItems, breadcrumbs
+     * @return array<string, mixed>
      */
     public function composeNavigation(
         string $moduleSlug,

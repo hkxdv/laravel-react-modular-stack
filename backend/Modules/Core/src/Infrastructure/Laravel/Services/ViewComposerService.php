@@ -12,6 +12,7 @@ use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
+use Modules\Core\Domain\Menu\ModulePageProps;
 
 /**
  * Servicio para componer y preparar datos para las vistas (Laravel/Inertia).
@@ -109,8 +110,9 @@ final readonly class ViewComposerService implements ViewComposerInterface
         array $data = [],
         ?array $stats = null,
         ?string $routeSuffix = null,
-        array $routeParams = []
-    ): array {
+        array $routeParams = [],
+        ?array $profileNavItems = null,
+    ): ModulePageProps {
         // Normalizar nombre funcional y obtener descripción desde config del módulo
         $moduleConfig = $this->moduleRegistry->getModuleConfig($moduleSlug);
         $fn = $moduleConfig?->addon()->functionalName ?? null;
@@ -127,7 +129,8 @@ final readonly class ViewComposerService implements ViewComposerInterface
             : 'panel';
 
         // Delegar composición de navegación con caché versionada
-        $navigationElements = $this->navigationComposer->composeNavigation(
+        /** @var array<string, mixed> */
+        $navRaw = $this->navigationComposer->composeNavigation(
             moduleSlug: $moduleSlug,
             contextualNavItemsConfig: $contextualNavItemsConfig,
             permissionChecker: $permissionChecker,
@@ -137,6 +140,17 @@ final readonly class ViewComposerService implements ViewComposerInterface
             routeParams: $routeParams,
             data: $data
         );
+
+        /** @var array<int, array<string, mixed>> */
+        $mainNavItems = $navRaw['mainNavItems'] ?? [];
+        /** @var array<int, array<string, mixed>> */
+        $moduleNavItems = $navRaw['moduleNavItems'] ?? [];
+        /** @var array<int, array<string, mixed>> */
+        $contextualNavItems = $navRaw['contextualNavItems'] ?? [];
+        /** @var array<int, array<string, mixed>> */
+        $globalNavItemsRaw = $navRaw['globalNavItems'] ?? [];
+        /** @var array<int, array<string, mixed>> */
+        $breadcrumbs = $navRaw['breadcrumbs'] ?? [];
 
         // Construir ítems del panel
         $panelItems = $this->navigationService
@@ -151,22 +165,25 @@ final readonly class ViewComposerService implements ViewComposerInterface
             ? array_values($stats)
             : [];
 
-        // Combinar todos los datos
-        return [
-            ...[
-                'panelItems' => $panelItems,
-                'mainNavItems' => $navigationElements['mainNavItems'] ?? [],
-                'moduleNavItems' => $navigationElements['moduleNavItems'] ?? [],
-                'contextualNavItems' => $navigationElements['contextualNavItems'] ?? [],
-                'globalNavItems' => $navigationElements['globalNavItems'] ?? [],
-                'breadcrumbs' => $navigationElements['breadcrumbs'] ?? [],
-                'stats' => $statsList,
-                'pageTitle' => $functionalName,
-                'description' => $moduleDescription,
-                'flash' => $this->getFlashMessages(request()),
-            ],
-            ...$data,
-        ];
+        // Si es una ruta de perfil, usar profileNavItems como globalNavItems
+        $isProfileRoute = is_string($routeSuffix) && str_starts_with($routeSuffix, 'profile');
+        /** @var array<int, array<string, mixed>> */
+        $finalGlobalNavItems = $isProfileRoute && $profileNavItems !== null
+            ? $profileNavItems
+            : $globalNavItemsRaw;
+
+        return new ModulePageProps(
+            panelItems: $panelItems,
+            mainNavItems: $mainNavItems,
+            moduleNavItems: $moduleNavItems,
+            contextualNavItems: $contextualNavItems,
+            globalNavItems: $finalGlobalNavItems,
+            breadcrumbs: $breadcrumbs,
+            stats: $statsList,
+            pageTitle: $functionalName,
+            description: $moduleDescription,
+            flash: $this->getFlashMessages(request()),
+        );
     }
 
     /**
