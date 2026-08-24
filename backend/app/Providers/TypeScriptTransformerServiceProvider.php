@@ -18,7 +18,10 @@ final class TypeScriptTransformerServiceProvider extends BaseTypeScriptTransform
             ->outputDirectory(dirname(__DIR__, 2).'/../frontend/src/types/generated')
             ->transformer(AttributedClassTransformer::class)
             ->transformer(EnumTransformer::class)
-            ->transformDirectories(dirname(__DIR__, 2).'/Modules/Core/src/Domain')
+            ->transformDirectories(
+                dirname(__DIR__, 2).'/Modules/Core/src/Domain',
+                dirname(__DIR__, 2).'/Modules/Core/src/Application/View',
+            )
             ->writer(new GlobalNamespaceWriter('generated.d.ts'));
     }
 }
