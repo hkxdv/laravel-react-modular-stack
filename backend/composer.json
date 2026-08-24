@@ -67,6 +67,7 @@
     "pint:test": "vendor/bin/pint --config=./pint.json --test",
     "test": "vendor/bin/pest",
     "test:types": "vendor/bin/phpstan analyze --configuration=phpstan.neon --memory-limit=512M",
+    "typescript:check": "cd ../frontend && bun run types",
     "rector:dry": "vendor/bin/rector --dry-run --clear-cache",
     "rector:fix": "vendor/bin/rector --clear-cache"
   },

@@ -1,0 +1,50 @@
+name: TypeScript
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/typescript.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/typescript.yml"
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, pdo, pdo-pgsql
+          coverage: none
+
+      - name: Install dependencies (frontend)
+        working-directory: frontend
+        run: bun install
+
+      - name: Install dependencies (backend)
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run TypeScript check
+        working-directory: frontend
+        run: bun run types
+
+      - name: Drift check (regenerate types + git diff)
+        working-directory: backend
+        run: |
+          php artisan typescript:transform
+          cd ..
+          git diff --exit-code frontend/src/types/generated/
