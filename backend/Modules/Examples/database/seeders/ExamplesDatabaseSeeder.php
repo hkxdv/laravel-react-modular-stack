@@ -23,7 +23,7 @@ final class ExamplesDatabaseSeeder extends Seeder
 
         // Crear permiso para guard tenant
         Permission::query()->firstOrCreate([
-            'name' => 'access-examples',
+            'name' => 'examples.dashboard.access',
             'guard_name' => 'tenant',
         ]);
 
@@ -32,7 +32,7 @@ final class ExamplesDatabaseSeeder extends Seeder
             'name' => 'ADMIN',
             'guard_name' => 'tenant',
         ]);
-        $role->givePermissionTo('access-examples');
+        $role->givePermissionTo('examples.dashboard.access');
 
         // Crear usuario tenant de prueba
         $tenantEmail = 'tenant@domain.com';

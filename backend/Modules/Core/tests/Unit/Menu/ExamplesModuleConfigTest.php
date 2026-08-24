@@ -24,7 +24,7 @@ it('contextualNav returns ContextualNavMap with example_panel link from config',
         ->and($defaultItems[0]->title)->toBe('Panel de ejemplo')
         ->and($defaultItems[0]->routeNameSuffix)->toBe('index')
         ->and($defaultItems[0]->icon)->toBe('LayoutDashboard')
-        ->and($defaultItems[0]->permission)->toBe('access-examples');
+        ->and($defaultItems[0]->permission)->toBe('examples.dashboard.access');
 });
 
 it('panelItems returns list of PanelItem from config', function (): void {
@@ -41,7 +41,7 @@ it('panelItems returns list of PanelItem from config', function (): void {
         ->and($first->description)->toBe('Item de ejemplo 1 para la demostración del proyecto.')
         ->and($first->routeNameSuffix)->toBe('index')
         ->and($first->icon)->toBe('FilePlus2')
-        ->and($first->permission)->toBe('access-examples');
+        ->and($first->permission)->toBe('examples.dashboard.access');
 });
 
 it('navItem returns NavItem with title from config', function (): void {

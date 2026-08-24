@@ -35,11 +35,14 @@ final class ExamplesServiceProvider extends ServiceProvider
             module_path($this->moduleName, 'database/migrations')
         );
 
-        // Registrar el presentador tenant para Inertia props
-        $this->app->bind(
-            AuthUserPresenterInterface::class,
-            TenantUserPresenter::class
-        );
+        // Contextual binding: Examples controllers receive TenantUserPresenter
+        $this->app->when([
+            AbstractExamplesController::class,
+            ExamplesDashboardController::class,
+            TenantAuthController::class,
+        ])
+            ->needs(AuthUserPresenterInterface::class)
+            ->give(TenantUserPresenter::class);
 
         // Contextual binding para evitar colisiones globales del contrato StatsServiceInterface
         $this->app->when(AbstractExamplesController::class)

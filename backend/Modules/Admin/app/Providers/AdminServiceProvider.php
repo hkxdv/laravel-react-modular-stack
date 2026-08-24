@@ -57,11 +57,15 @@ final class AdminServiceProvider extends ServiceProvider
             RoleService::class
         );
 
-        // Registrar el presentador de usuarios para Inertia props
-        $this->app->bind(
-            AuthUserPresenterInterface::class,
-            StaffUserPresenter::class
-        );
+        // Contextual binding: Admin controllers receive StaffUserPresenter
+        $this->app->when([
+            AdminDashboardController::class,
+        ])
+            ->needs(AuthUserPresenterInterface::class)
+            ->give(StaffUserPresenter::class);
+
+        // Fallback binding for non-controller consumers (e.g. ComposeInertiaProps singleton)
+        $this->app->singleton(AuthUserPresenterInterface::class, StaffUserPresenter::class);
 
         $this->app->when(AdminDashboardController::class)
             ->needs(StatsServiceInterface::class)

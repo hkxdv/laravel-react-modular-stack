@@ -26,16 +26,9 @@ it('outputs validation results for modules with findings', function (): void {
     Artisan::call('modules:validate-config');
     $output = Artisan::output();
 
-    // Modules sin findings no aparecen; Examples siempre genera el WARN legacy
-    expect($output)->toContain('[examples]')
-        ->toContain('access-examples');
-});
-
-it('detects base-permission warning for Examples (access-examples not in registry)', function (): void {
-    Artisan::call('modules:validate-config');
-    $output = Artisan::output();
-
-    expect($output)->toContain('access-examples');
+    // Modules sin findings no aparecen; Examples valida sin warnings tras GAP-MC-4
+    expect($output)->not->toContain('[examples]')
+        ->and($output)->toContain('All validations passed');
 });
 
 it('returns exit code 0 when only warnings exist (no failures)', function (): void {
@@ -57,8 +50,9 @@ it('detects missing inertia_view_directory when a module omits it', function ():
         ->and($output)->toContain('inertia');
 });
 
-it('returns exit code 1 with --strict (warnings become failures)', function (): void {
+it('returns exit code 0 with --strict when no failures exist', function (): void {
     $exitCode = Artisan::call('modules:validate-config', ['--strict' => true]);
 
-    expect($exitCode)->toBe(1);
+    // Examples ahora pasa completamente (GAP-MC-4), sin warnings que --strict pueda elevar
+    expect($exitCode)->toBe(0);
 });

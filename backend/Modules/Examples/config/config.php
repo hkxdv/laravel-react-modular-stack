@@ -8,7 +8,7 @@ return [
     'description' => 'Módulo esquelético que valida el soporte multi-usuario con guard tenant.',
     'module_slug' => 'examples',
     'inertia_view_directory' => 'examples',
-    'base_permission' => 'access-examples',
+    'base_permission' => 'examples.dashboard.access',
 
     // Configuración del ítem de navegación principal
     'nav_item' => [
@@ -24,7 +24,7 @@ return [
                 'title' => 'Panel de ejemplo',
                 'route_name_suffix' => 'index',
                 'icon' => 'LayoutDashboard',
-                'permission' => 'access-examples',
+                'permission' => 'examples.dashboard.access',
             ],
         ],
     ],
@@ -43,7 +43,7 @@ return [
             'description' => 'Item de ejemplo 1 para la demostración del proyecto.',
             'route_name_suffix' => 'index',
             'icon' => 'FilePlus2',
-            'permission' => 'access-examples',
+            'permission' => 'examples.dashboard.access',
         ],
     ],
 ];
