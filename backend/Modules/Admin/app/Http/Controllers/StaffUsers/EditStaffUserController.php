@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\Concerns\NormalizesStaffUserPayload;
-use Modules\Admin\App\Http\Requests\StaffUserRequest;
+use Modules\Admin\App\Http\Requests\UpdateStaffUserRequest;
 use Modules\Admin\App\Models\StaffUser;
+
+use function Foundry\Helpers\modelStringAttribute;
 
 /**
  * Controlador para la edición de usuarios del personal administrativo.
@@ -25,17 +27,11 @@ final class EditStaffUserController extends AbstractAdminController
      * Muestra el formulario de edición de un usuario existente.
      *
      * @param  IlluminateRequest  $request  Solicitud HTTP
-     * @param  int  $id  ID del usuario a editar
+     * @param  StaffUser  $user  Usuario a editar (inyectado por la ruta)
      * @return InertiaResponse Respuesta Inertia con el formulario de edición
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException Si el usuario no existe o no está autenticado.
      */
-    public function edit(IlluminateRequest $request, int $id): InertiaResponse
+    public function edit(IlluminateRequest $request, StaffUser $user): InertiaResponse
     {
-        $user = $this->staffUserManager->getUserById($id);
-
-        abort_unless($user instanceof StaffUser, 404, 'Usuario no encontrado');
-
         $roles = $this->staffUserManager->getAllRoles();
 
         $additionalData = [
@@ -55,36 +51,25 @@ final class EditStaffUserController extends AbstractAdminController
     /**
      * Actualiza un usuario existente.
      *
-     * @param  StaffUserRequest  $request  Solicitud validada para actualización de usuario
-     * @param  int  $id  ID del usuario a actualizar
+     * @param  UpdateStaffUserRequest  $request  Solicitud validada para actualización de usuario
+     * @param  StaffUser  $user  Usuario a actualizar (inyectado por la ruta)
      * @return RedirectResponse Redirección con mensaje de éxito
      *
      * @throws \Illuminate\Validation\ValidationException Si la validación de entrada falla.
      */
-    public function update(StaffUserRequest $request, int $id): RedirectResponse
+    public function update(UpdateStaffUserRequest $request, StaffUser $user): RedirectResponse
     {
         try {
-            $user = $this->staffUserManager->getUserById($id);
-
-            if (! ($user instanceof StaffUser)) {
-                return to_route('internal.staff.admin.users.index')
-                    ->with(
-                        'error',
-                        'Usuario no encontrado. No se pudo realizar la actualización.'
-                    );
-            }
-
             $validatedData = $this->buildUpdatePayload($request);
 
-            $this->staffUserManager->updateUser($id, $validatedData);
+            $this->staffUserManager->updateUser($user->id, $validatedData);
 
             $filteredRoles = $this->normalizeRoleInputs($request);
             if ($filteredRoles !== []) {
                 $this->staffUserManager->syncRoles($user, $filteredRoles);
             }
 
-            $nameAttr = $user->getAttribute('name');
-            $userName = is_string($nameAttr) ? $nameAttr : '';
+            $userName = modelStringAttribute($user, 'name', '');
 
             return to_route('internal.staff.admin.users.index')
                 ->with(
@@ -95,7 +80,7 @@ final class EditStaffUserController extends AbstractAdminController
             Log::error(
                 'Error al actualizar usuario: '.$exception->getMessage(),
                 [
-                    'user_id' => $id,
+                    'user_id' => $user->id,
                     'data' => $request->except([
                         'password',
                         'password_confirmation',

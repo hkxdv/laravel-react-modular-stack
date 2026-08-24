@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\Concerns\NormalizesStaffUserPayload;
-use Modules\Admin\App\Http\Requests\StaffUserRequest;
+use Modules\Admin\App\Http\Requests\CreateStaffUserRequest;
+
+use function Foundry\Helpers\modelStringAttribute;
 
 /**
  * Controlador para la creación de usuarios del personal administrativo.
@@ -19,6 +21,10 @@ use Modules\Admin\App\Http\Requests\StaffUserRequest;
 final class CreateStaffUserController extends AbstractAdminController
 {
     use NormalizesStaffUserPayload;
+
+    private const CREATE_ERROR_MESSAGE = 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.';
+
+    private const CREATE_VIEW = 'user/create';
 
     /**
      * Muestra el formulario de creación de un nuevo usuario.
@@ -39,29 +45,29 @@ final class CreateStaffUserController extends AbstractAdminController
             moduleSlug: $this->getModuleSlug(),
             additionalData: $additionalData,
             navigationService: $this->navigationBuilder,
-            view: 'user/create'
+            view: self::CREATE_VIEW
         );
     }
 
     /**
      * Almacena un nuevo usuario.
      *
-     * @param  StaffUserRequest  $request  Solicitud validada para creación de usuario
+     * @param  CreateStaffUserRequest  $request  Solicitud validada para creación de usuario
      * @return RedirectResponse|InertiaResponse Redirección o respuesta Inertia
      *
      * @throws \Illuminate\Validation\ValidationException Si la validación de entrada falla.
      */
-    public function store(StaffUserRequest $request): RedirectResponse|InertiaResponse
+    public function store(CreateStaffUserRequest $request): RedirectResponse|InertiaResponse
     {
         $isInertiaRequest = (bool) $request->header('X-Inertia');
+        $response = null;
 
         if ($isInertiaRequest) {
             try {
                 $validatedData = $this->buildCreatePayload($request);
                 $user = $this->staffUserManager->createUser($validatedData);
 
-                $nameAttr = $user->getAttribute('name');
-                $userName = is_string($nameAttr) ? $nameAttr : '';
+                $userName = modelStringAttribute($user, 'name', '');
                 session()->flash(
                     'success',
                     sprintf("Usuario '%s' creado exitosamente.", $userName)
@@ -75,12 +81,12 @@ final class CreateStaffUserController extends AbstractAdminController
                     'preventRedirect' => true,
                 ];
 
-                return $this->orchestrator->renderModuleView(
+                $response = $this->orchestrator->renderModuleView(
                     request: $request,
                     moduleSlug: $this->getModuleSlug(),
                     additionalData: $additionalData,
                     navigationService: $this->navigationBuilder,
-                    view: 'user/create'
+                    view: self::CREATE_VIEW
                 );
             } catch (Exception $exception) {
                 Log::error(
@@ -93,7 +99,7 @@ final class CreateStaffUserController extends AbstractAdminController
 
                 session()->flash(
                     'error',
-                    'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.'
+                    self::CREATE_ERROR_MESSAGE
                 );
 
                 $roles = $this->staffUserManager->getAllRoles();
@@ -101,16 +107,16 @@ final class CreateStaffUserController extends AbstractAdminController
                 $additionalData = [
                     'roles' => $roles,
                     'errors' => [
-                        'general' => 'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.',
+                        'general' => self::CREATE_ERROR_MESSAGE,
                     ],
                 ];
 
-                return $this->orchestrator->renderModuleView(
+                $response = $this->orchestrator->renderModuleView(
                     request: $request,
                     moduleSlug: $this->getModuleSlug(),
                     additionalData: $additionalData,
                     navigationService: $this->navigationBuilder,
-                    view: 'user/create'
+                    view: self::CREATE_VIEW
                 );
             }
         }
@@ -119,10 +125,9 @@ final class CreateStaffUserController extends AbstractAdminController
             $validatedData = $this->buildCreatePayload($request);
             $user = $this->staffUserManager->createUser($validatedData);
 
-            $nameAttr = $user->getAttribute('name');
-            $userName = is_string($nameAttr) ? $nameAttr : '';
+            $userName = modelStringAttribute($user, 'name', '');
 
-            return to_route('internal.staff.admin.users.index')
+            $response = to_route('internal.staff.admin.users.index')
                 ->with(
                     'success',
                     sprintf("Usuario '%s' creado exitosamente.", $userName)
@@ -136,14 +141,16 @@ final class CreateStaffUserController extends AbstractAdminController
                 ]
             );
 
-            return back()
+            $response = back()
                 ->withInput(
                     $request->except(['password', 'password_confirmation'])
                 )
                 ->with(
                     'error',
-                    'Ocurrió un error al crear el usuario. Por favor, inténtalo nuevamente.'
+                    self::CREATE_ERROR_MESSAGE
                 );
         }
+
+        return $response;
     }
 }
