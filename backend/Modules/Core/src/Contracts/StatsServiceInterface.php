@@ -28,4 +28,16 @@ interface StatsServiceInterface
         string $moduleSlug,
         ?Authenticatable $user = null
     ): array;
+
+    /**
+     * Obtiene la actividad reciente para mostrar en el panel de administración.
+     *
+     * @return array<int, array{
+     *     id: int,
+     *     user: array{name: string},
+     *     title: string,
+     *     timestamp: string
+     * }>
+     */
+    public function getRecentActivity(): array;
 }

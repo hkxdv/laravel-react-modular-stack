@@ -40,4 +40,13 @@ final class ExamplesStatsService implements StatsServiceInterface
             ),
         ];
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getRecentActivity(): array
+    {
+        // El módulo Examples no registra actividad.
+        return [];
+    }
 }
