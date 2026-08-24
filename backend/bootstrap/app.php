@@ -44,6 +44,13 @@ $application = Illuminate\Foundation\Application::configure(
     ->withExceptions($exceptionsConfigurator)
     ->create();
 
+// El monorepo almacena los archivos de entorno en <repo-root>/.envs/, no en backend/.
+// Configura el cargador de variables de entorno predeterminado de Laravel para que apunte allí;
+// así encontrará .env.testing (seleccionado mediante APP_ENV) en lugar de emitir una advertencia
+// por la ausencia de backend/.env.
+$envsPath = dirname($application->basePath()).DIRECTORY_SEPARATOR.'.envs';
+$application->useEnvironmentPath($envsPath);
+
 /** @var callable $pathsBootstrap */
 $pathsBootstrap = require __DIR__.'/modules/paths.php';
 $pathsBootstrap($application);
