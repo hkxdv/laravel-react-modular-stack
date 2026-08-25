@@ -32,7 +32,7 @@ final class EditStaffUserController extends AbstractAdminController
      */
     public function edit(IlluminateRequest $request, StaffUser $user): InertiaResponse
     {
-        $roles = $this->staffUserManager->getAllRoles();
+        $roles = $this->rolesInterface->getAllRoles();
 
         $additionalData = [
             'user' => $user,

@@ -9,7 +9,6 @@ use Illuminate\Http\Request as IlluminateRequest;
 use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Requests\RoleUpdateRequest;
-use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionRegistryAggregator;
 use Spatie\Permission\Models\Role;
 
@@ -19,7 +18,6 @@ use Spatie\Permission\Models\Role;
 final class EditRoleController extends AbstractAdminController
 {
     public function __construct(
-        private readonly RolesInterface $rolesInterface,
         private readonly PermissionRegistryAggregator $permissionRegistry,
     ) {
         //

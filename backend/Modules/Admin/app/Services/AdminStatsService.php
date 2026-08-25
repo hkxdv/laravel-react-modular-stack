@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Core\Domain\Stats\EnhancedStat;
@@ -19,9 +20,11 @@ final readonly class AdminStatsService implements StatsServiceInterface
 {
     /**
      * @param  StaffUserManagerInterface  $staffUserManager  {@inheritDoc}
+     * @param  RolesInterface  $rolesInterface  Interface para gestión de roles
      */
     public function __construct(
         private StaffUserManagerInterface $staffUserManager,
+        private RolesInterface $rolesInterface,
     ) {
         //
     }
@@ -34,7 +37,7 @@ final readonly class AdminStatsService implements StatsServiceInterface
         ?Authenticatable $user = null
     ): array {
         $totalUsers = $this->staffUserManager->getTotalUsers();
-        $totalRoles = $this->staffUserManager->getTotalRoles();
+        $totalRoles = $this->rolesInterface->getTotalRoles();
 
         return [
             new EnhancedStat(

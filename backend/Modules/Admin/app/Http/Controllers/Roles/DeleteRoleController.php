@@ -6,7 +6,6 @@ namespace Modules\Admin\App\Http\Controllers\Roles;
 
 use Illuminate\Http\RedirectResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
-use Modules\Admin\App\Interfaces\RolesInterface;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -14,15 +13,6 @@ use Spatie\Permission\Models\Role;
  */
 final class DeleteRoleController extends AbstractAdminController
 {
-    /**
-     * Inyecta las dependencias necesarias para la gestión de roles.
-     */
-    public function __construct(
-        private readonly RolesInterface $rolesInterface,
-    ) {
-        //
-    }
-
     /**
      * Elimina un rol existente.
      *

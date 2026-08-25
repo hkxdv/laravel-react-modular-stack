@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\ModuleOrchestratorInterface;
@@ -21,16 +22,18 @@ abstract class AbstractAdminController extends Controller
     protected string $moduleSlug;
 
     /**
-     * Inyecta orquestación de vistas, navegación y gestión de usuarios vía Contracts.
+     * Inyecta orquestación de vistas, navegación, gestión de usuarios y roles vía Contracts.
      *
      * @param  ModuleOrchestratorInterface  $orchestrator  {@inheritDoc}
      * @param  MenuBuilderInterface  $navigationBuilder  {@inheritDoc}
      * @param  StaffUserManagerInterface  $staffUserManager  {@inheritDoc}
+     * @param  RolesInterface  $rolesInterface  Interface para gestión de roles
      */
     public function __construct(
         protected readonly ModuleOrchestratorInterface $orchestrator,
         protected readonly MenuBuilderInterface $navigationBuilder,
-        protected readonly StaffUserManagerInterface $staffUserManager
+        protected readonly StaffUserManagerInterface $staffUserManager,
+        protected readonly RolesInterface $rolesInterface,
     ) {
         $this->moduleSlug = $this->resolveModuleSlug();
     }

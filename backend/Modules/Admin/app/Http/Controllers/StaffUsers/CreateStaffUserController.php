@@ -34,7 +34,7 @@ final class CreateStaffUserController extends AbstractAdminController
      */
     public function create(IlluminateRequest $request): InertiaResponse
     {
-        $roles = $this->staffUserManager->getAllRoles();
+        $roles = $this->rolesInterface->getAllRoles();
 
         $additionalData = [
             'roles' => $roles,
@@ -73,7 +73,7 @@ final class CreateStaffUserController extends AbstractAdminController
                     sprintf("Usuario '%s' creado exitosamente.", $userName)
                 );
 
-                $roles = $this->staffUserManager->getAllRoles();
+                $roles = $this->rolesInterface->getAllRoles();
 
                 $additionalData = [
                     'roles' => $roles,
@@ -102,7 +102,7 @@ final class CreateStaffUserController extends AbstractAdminController
                     self::CREATE_ERROR_MESSAGE
                 );
 
-                $roles = $this->staffUserManager->getAllRoles();
+                $roles = $this->rolesInterface->getAllRoles();
 
                 $additionalData = [
                     'roles' => $roles,
