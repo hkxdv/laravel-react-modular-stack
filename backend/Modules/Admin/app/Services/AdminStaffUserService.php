@@ -6,6 +6,7 @@ namespace Modules\Admin\App\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Admin\App\Domain\Filters\StaffUserFilter;
 use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
@@ -18,6 +19,19 @@ use Spatie\Permission\Models\Role;
  */
 final readonly class AdminStaffUserService implements StaffUserManagerInterface
 {
+    /**
+     * Parámetros de ordenación permitidos para esta servicio.
+     *
+     * @var list<string>
+     */
+    private const array ALLOWED_SORT_FIELDS = [
+        'id',
+        'name',
+        'email',
+        'created_at',
+        'updated_at',
+    ];
+
     public function __construct(
         private PermissionVerifierInterface $permissionVerifier,
         private RolesInterface $rolesInterface,
@@ -28,19 +42,16 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
     /**
      * {@inheritDoc}
      */
-    public function getAllUsers(
-        array $params = [],
-        int $perPage = 10
-    ): LengthAwarePaginator {
+    public function getAllUsers(StaffUserFilter $filter): LengthAwarePaginator
+    {
         $query = StaffUser::query()
             // Eliminamos 'avatar' del select porque es un atributo computado
             ->select('id', 'name', 'email', 'created_at', 'updated_at')
-            // Ya no existe la relación contactProfile
             ->with(['roles']);
 
         // Filtrado por término de búsqueda
-        if (is_string($params['search'] ?? null) && $params['search'] !== '') {
-            $searchTerm = $params['search'];
+        if ($filter->search !== null && $filter->search !== '') {
+            $searchTerm = $filter->search;
             $query->where(
                 function ($q) use ($searchTerm): void {
                     $q->where('name', 'like', sprintf('%%%s%%', $searchTerm))
@@ -50,33 +61,27 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
         }
 
         // Filtrado por rol específico
-        if (! empty($params['role'])) {
+        if ($filter->role !== null && $filter->role !== '') {
             $query->whereHas(
                 'roles',
-                function ($q) use ($params): void {
-                    $q->where('name', $params['role']);
+                function ($q) use ($filter): void {
+                    $q->where('name', $filter->role);
                 }
             );
         }
 
         // Ordenamiento
-        $sortField = is_string($params['sort_field'] ?? null)
-            ? $params['sort_field'] : 'created_at';
-        $sortDirection = is_string($params['sort_direction'] ?? null)
-            ? $params['sort_direction'] : 'desc';
+        $sortField = $filter->sortField;
+        $sortDirection = $filter->sortDirection;
 
-        // Verificar que el campo de ordenamiento es válido usando la constante de la interfaz
         if (in_array($sortField, self::ALLOWED_SORT_FIELDS, true)) {
             $query->orderBy($sortField, $sortDirection);
         } else {
             $query->orderBy('created_at', 'desc');
         }
 
-        // Obtener número de elementos por página, asegurando tipo entero
-        $perPage = isset($params['per_page']) && is_numeric($params['per_page']) ? (int) $params['per_page'] : $perPage;
-
         // Paginar los resultados
-        return $query->paginate($perPage);
+        return $query->paginate($filter->perPage);
     }
 
     /**
@@ -229,7 +234,9 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Obtiene el número total de roles definidos para el guard staff.
+     *
+     * @return int Total de roles
      */
     public function getTotalRoles(): int
     {
@@ -237,7 +244,9 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Obtiene todos los roles disponibles para el guard staff.
+     *
+     * @return Collection<int, Role> Colección de roles
      */
     public function getAllRoles(): Collection
     {
