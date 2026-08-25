@@ -24,7 +24,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `DomainUser`/`DomainUserId`/`DomainUserMapper` (dominio genérico en Core, generalizado desde StaffUser/StaffUserId/StaffUserMapper).
 - Sesiones polimórficas (`authenticatable_type` + `authenticatable_id`) reemplazando `staff_user_id` + `user_id` en tabla `sessions`.
 - `ExampleTenantUser` (modelo esquelético en Modules/Examples) con guard `tenant`, validando multi-usuario end-to-end sin tocar Core.
-- `PermissionRegistryInterface` en Core + 4 implementaciones (Core, Admin, Module02, Examples) + comando `permissions:sync-registry` que sincroniza permisos declarados.
+- `PermissionRegistryInterface` en Core + 3 implementaciones (Core, Admin, Examples) + comando `permissions:sync-registry` que sincroniza permisos declarados.
 - 22 permisos granulares `recurso.accion` (18 staff + 4 tenant) reemplazando los 3 permisos amplios (`access-module-01`, `access-module-02`, `access-admin`).
 - `StaffUserPolicy`, `RolePolicy`, `PermissionPolicy` (Laravel Policies en Admin) con autorización por permiso granular.
 - CRUD admin de roles: `RolesInterface` + `RoleService` + 4 controllers VerbEntity + `RoleCreateRequest`/`RoleUpdateRequest` + rutas con middleware granular por acción.
@@ -33,6 +33,17 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Módulo `Examples` (renombrado desde `Module01`) con rutas y auth coherentes con guard `tenant`.
 - `PermissionRegistryAggregator` (servicio inyectable en Core) eliminando service-locator `app()->tagged()` duplicado en controladores.
 - Morph map `'staff-user'` registrado en `AppServiceProvider` para estabilizar `model_type` en tablas de Spatie.
+- `ModuleConfigInterface` (Core/Contracts, 5 métodos) + `ModuleConfigRegistry` (agregador de tagged services `module-config`, mirror de `PermissionRegistryService`) — contrato Core-controlled para la configuración declarativa de módulos.
+- `ModuleConfigValidator` con 6 reglas de integridad (guard válido, `base_permission` declarado en el registry del módulo, `nav_item.route_name` no vacío, sin `$ref:` colgantes, `inertia_view_directory` existe en el frontend, `inertia_view_directory` declarado explícitamente) + comando `modules:validate-config` (flag `--strict`).
+- 7 DTOs tipados readonly en Core/Domain: `NavItem`, `NavComponentLink`, `NavComponentGroup`, `ContextualNavMap`, `BreadcrumbItem`, `BreadcrumbMap` (Domain/Menu) + `PanelItem` (Domain/Panel). Validación en constructor, atributo `#[TypeScript]`, factories `::fromConfigArray()`.
+- `spatie/laravel-typescript-transformer` (`^3.3`) + `TypeScriptTransformerServiceProvider`: genera `.d.ts` a `frontend/src/types/generated/` desde los DTOs de `Core/src/Domain` (comando `php artisan typescript:transform`). Tipos generados tracked en git; CI verifica drift.
+- Configuración declarativa: `config/config.php` de cada módulo como única fuente human-editable; las clases `*ModuleConfig` son adapters delgados (~60-77 líneas) que leen config y delegan a factories DTO. Composición por key-reference (sin strings `$ref:`); prefijo `group:` referencia un `NavComponentGroup`.
+- Page-props DTOs con `#[TypeScript]`: `ResolvedNavItem` (href + current), `ResolvedBreadcrumbItem`, `ResolvedPanelItem`, `ModulePageProps`, `GlobalPageProps`, `AuthPageProps`, `SecurityPageProps` — envuelven la salida de los builders en el boundary del composer.
+- `DomainUser` extendido con 5 campos (`emailVerifiedAt`, `userType`, `avatar`, `createdAt`, `updatedAt`) + atributo `#[TypeScript]` para generación TS.
+- `StaffUserFilter` DTO en `Admin/Domain/Filters/` con `fromRequest()` — elimina doble validación controller+service en `getAllUsers`.
+- Helper `modelStringAttribute()` en `foundry-php-utils` para extraer atributos string de modelos Eloquent sin boilerplate PHPStan max.
+- Helpers tipados adicionales en `foundry-php-utils`: `configBool`, `arrayString`, `arrayNullableString`, `arrayInt`, `arrayBool`, `stringList`, `assertString`, `assertInstanceOf`.
+- Workflow CI `typescript.yml` con drift check: regenera tipos TS + `git diff --exit-code` para detectar drift entre DTOs PHP y tipos generados.
 
 ### Changed
 
@@ -55,6 +66,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `RoleService::updateRole()` lanza `ValidationException` en intento de renombrar roles protegidos (fix no-op silencioso).
 - `StaffUserRequest` reemplaza permiso fantasma `access-admin` con permisos granulares por método.
 - `BypassEliminationTest` extendido a 8 archivos (3 Core + 5 Admin).
+- `BuildAddonMenu`, `BuildContextualMenu`, `BuildBreadcrumbs` (Application/Menu) + `ModuleOrchestratorService`, `ViewComposerService`, `AddonRegistryService` (Infrastructure) refactorizados para consumir DTOs vía `AddonRegistryInterface::getModuleConfig()` en lugar de arrays crudos con `?? []`.
+- `auth.user` serializada con shape plana (sin envoltorio `data`) para coincidir con la declaración TS.
+- Estado activo del sidebar resuelto con la prop `current` enviada por el backend (antes comparación de hrefs que nunca matcheaba).
+- `icon` guard unificado: allowlist de iconos publicada desde el frontend (antes dos resolvers divergentes — uno dinámico que crasheaba con iconos desconocidos).
+- `AuthUserPresenterInterface` usa binding contextual por controller (antes binding global que colisionaba entre Admin y Examples — comportamiento no determinista).
+- `NormalizesStaffUserPayload` usa `Hash::make()` (antes `bcrypt()` — inconsistente con seeders/factory).
+- `RoleService::updateRole()` lanza `InvalidArgumentException` cuando el payload no trae ni `name` ni `permissions` (antes no-op silencioso que reportaba éxito).
+- `StaffUsersLoginInfo` renombrado a `StaffUserLoginInfo` (singular, consistente con `StaffUser`).
+- `StaffUserRequest` split en `CreateStaffUserRequest` + `UpdateStaffUserRequest` (antes un FormRequest con ramas create/update).
+- `AdminStaffUserService::getAllRoles()` delega a `RolesInterface` (antes duplicaba query + decoración con match including dead `MOD-01`/`MOD-02` cases).
+- `AdminDashboardController` SRP: `getRecentActivity()` movido a `AdminStatsService`, `getIconForEvent()` eliminado (concern frontend).
+- Rutas de Users migradas a implicit model binding (`{staffUser}` con `Route::model`); controllers reciben `StaffUser` del router (antes `int $id` + `getUserById` manual).
+- Rutas de Admin consolidadas de 4 archivos (`web` + `users` + `roles` + `permissions`) a un solo `web.php`.
+- `StaffUserLoginInfo` migrada a relación polimórfica (`loginable_type` + `loginable_id`); `StaffUser` usa `morphMany` con orphan-cleanup listener en `deleting`.
+- `StaffUserManagerInterface` split: métodos de roles (`getAllRoles`, `getTotalRoles`) removidos (pertenecen a `RolesInterface`); `ALLOWED_SORT_FIELDS` movido al service.
+- `StaffUserManagerInterface` operaciones de lectura retornan `DomainUser` (no `StaffUser` Eloquent); `AdminStaffUserService` mapea vía `DomainUserMapper::toDomain()`.
+- `profile-layout.tsx` consume `contextualNavItems` desde props del backend (antes 5 items hardcodeados).
+- `StaffUserResource` formatea `email_verified_at` como ISO string (antes DateTime que no matcheaba tipo TS).
+- Permiso legacy `access-examples` migrado a `examples.dashboard.access` en config + seeder de Examples.
 
 ### Fixed
 
@@ -72,6 +102,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Permiso fantasma `access-admin` referenciado en 7 sitios pero no declarado en registry ni seeder → eliminado, reemplazado por granulares.
 - Service-locator `app()->tagged('permission-registry')` duplicado en 3 controladores → reemplazado por `PermissionRegistryAggregator` inyectable.
 - Código muerto en `RouteServiceProvider` (`map`/`mapWebRoutes`/`mapApiRoutes` nunca ejecutados), `routes/api.php` vacío cargado dos veces, binding `staff_user` sin uso → eliminados.
+- `AddonRegistryService` leía `nav_components.groups.user_settings_nav` pero Core definía `user_profile_nav` → `globalNavItems` siempre vacío → sidebar "Configuración" nunca renderizaba (parcheado en el frontend con 5 nav items hardcodeados) → fix de raíz + eliminación del parche frontend.
+- Ruta quiet huérfana `internal.staff.module01.index` en `LoggingMiddleware` (stale tras el rename Module01→Examples) → reemplazada por `examples`.
+- Páginas frontend huérfanas `pages/modules/module01/` (leftover del rename) → eliminadas + regeneración de `ziggy.js`.
 
 ### Removed
 
@@ -86,6 +119,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Columnas `staff_user_id` + `user_id` de tabla `sessions` reemplazadas por `authenticatable_type` + `authenticatable_id`.
 - `[key: string]: unknown` escape hatch eliminado de `StaffUser` en frontend.
 - Módulo `Module01` renombrado a `Examples`.
+- Módulo `Module02` eliminado por completo (front + back) — sin valor de ejemplo; remueve el coupling `AdminStaffUserService`↔`MOD-01/MOD-02` y el permiso legacy `access-module-02`.
+- `MenuConfigResolver` (capa de resolución de `$ref:` strings) eliminada — reemplazada por composición directa de DTOs en las clases `*ModuleConfig`.
+- `auth.can` (prop Inertia de permisos pre-computados/cacheados, nunca leída por el frontend) eliminada.
+- `toArray()` en los 7 DTOs de ModuleConfig eliminado (bridge de compatibilidad temporal durante la migración).
+- Parche frontend en `profile-layout.tsx` (5 nav items hardcodeados sobre el bug de `globalNavItems`) eliminado tras el fix de raíz.
+- `'table' => 'staff'` inerte en `config/auth.php` provider staff (inconsistente con tabla real `staff_users`) eliminado.
+- `routes/api.php` vacío de Admin (0 bytes, nunca cargado) eliminado.
+- `routes/{users,roles,permissions}.php` de Admin eliminados (consolidados en `web.php`).
+- Match con `'MOD-01'`/`'MOD-02'` en `AdminStaffUserService::getAllRoles()` (código muerto tras eliminación de Module02) eliminado.
 
 ## [0.2.0-alpha] - 2026-01-31
 

@@ -16,11 +16,13 @@ Foundry Stack es un monorepo con **Laravel 12** (backend) y **React 19** (fronte
 
 Una base modular para sistemas de gestión internos con:
 
-- **Módulo Core centralizado**: Auth, permisos cross-guard, navegación dinámica
-- **Arquitectura modular**: Separación de features usando nwidart/laravel-modules
+- **Módulo Core centralizado**: Auth, permisos cross-guard, navegación dinámica, contrato de configuración de módulos (`ModuleConfigInterface`)
+- **Arquitectura modular**: Separación de features usando nwidart/laravel-modules (Core, Admin, Examples)
+- **RBAC granular**: Permisos `recurso.accion` con `PermissionRegistryInterface` + comando de sincronización + Policies de Laravel
 - **Enfoque staff-first**: Para usuarios internos (backoffice, paneles admin)
+- **Multi-guard**: Soporte para múltiples tipos de usuario (staff, tenant) vía `AbstractDomainUser`
+- **Tipos TS generados**: `#[TypeScript]` en DTOs PHP genera `.d.ts` para el frontend, con drift check en CI
 - **Tooling moderno**: Bun, Vite 8, TypeScript, Tailwind 4
-- **Multi-entorno**: Local (SQLite), PostgreSQL, Docker
 
 **No es un producto terminado**, es un experimento arquitectónico funcional.
 
@@ -98,10 +100,9 @@ Lista completa: [COMMANDS.md](docs/COMMANDS.md).
 
 ## Problemas conocidos
 
-- Admin usa estructura legacy (pre-hexagonal).
-- Module01/Module02 son placeholder (serán reemplazados).
-- Documentación incompleta (en progreso).
-- Sin soporte multi-tenant aún (idea para v3).
+- Admin usa estructura tradicional (no hexagonal como Core), con `Domain/Filters/` para DTOs de filtrado.
+- Documentación en progreso.
+- El soporte multi-guard está implementado (guard `tenant` con `ExampleTenantUser` esquelético), pero sin un caso de uso real más allá de Examples.
 
 ## Contribuir
 

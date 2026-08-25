@@ -37,6 +37,7 @@ El flujo de instalación está pensado para dejarte en un estado “listo para `
 - Asegura la base SQLite en `database/database.sqlite`.
 - Ejecuta migraciones y seeders (incluye usuario admin por defecto: `admin@domain.com` / `AdminPass123!`) vía `bun run be migrate:fresh:seed`.
 - Genera rutas Ziggy para el frontend (`bun run be ziggy`).
+- Genera tipos TypeScript desde los DTOs de Core (`bun run be artisan typescript:transform`).
 - Limpia cachés de Laravel y ejecuta una limpieza final (`bun run be clear:all`).
 
 Al final imprime cómo arrancar el proyecto con `bun dev`.
@@ -61,6 +62,8 @@ Al final imprime cómo arrancar el proyecto con `bun dev`.
 >
 > ```bash
 > bun run be migrate:fresh:seed
+> bun run be artisan typescript:transform
+> bun run be ziggy
 > bun dev
 > ```
 >

@@ -1,7 +1,7 @@
 # Guía de Comandos Foundry Stack
 
-> **Versión:** 2.2
-> **Última Actualización:** 2026-08-23
+> **Versión:** 2.3
+> **Última Actualización:** 2026-08-24
 
 Este proyecto utiliza **Bun** como gestor de paquetes _frontend_ y ejecutor de scripts principal. La estructura se basa en **Workspaces** (`backend`, `frontend` y `packages/*`) orquestados desde la raíz.
 
@@ -57,6 +57,18 @@ Usa `.envs/.env.local`. Ideal para desarrollo rápido.
 | `make-module`             | Crea un nuevo módulo del proyecto.                                           |
 | `ziggy`                   | Genera el archivo de rutas Ziggy para el frontend.                           |
 
+### Comandos Artisan relevantes
+
+Estos comandos se ejecutan vía `bun run be artisan <comando>` (carga `.envs/.env.local`):
+
+| Comando                     | Descripción                                                                                               |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `modules:validate-config`   | Valida la configuración de todos los módulos (6 reglas de integridad). Flag `--strict` → warnings fallan. |
+| `permissions:sync-registry` | Sincroniza permisos declarados en los `PermissionRegistry` hacia la tabla `permissions`.                  |
+| `typescript:transform`      | Genera `.d.ts` en `frontend/src/types/generated/` desde los DTOs de Core (vía `#[TypeScript]`).           |
+
+> La validación de config también corre automáticamente en boot para entornos `local`/`testing`.
+
 ### Entorno Local (PostgreSQL)
 
 Usa `.envs/.env.pg.local`. Requiere un servidor PostgreSQL corriendo.
@@ -76,14 +88,15 @@ Usa `.envs/.env.pg.local`. Requiere un servidor PostgreSQL corriendo.
 Estos scripts son internos de Composer y se utilizan para tareas de mantenimiento y calidad.
 Se pueden ejecutar desde la raíz con `composer -d backend <script>`, o en el directorio `backend` con `composer run <script>`.
 
-| Script       | Descripción                                        |
-| :----------- | :------------------------------------------------- |
-| `pint`       | Ejecuta Laravel Pint para formatear código.        |
-| `pint:test`  | Verifica el formato del código con Pint (dry-run). |
-| `test`       | Ejecuta la suite de pruebas con Pest.              |
-| `test:types` | Análisis estático de tipos con PHPStan (Larastan). |
-| `rector:dry` | Verifica refactor automático con Rector (dry-run). |
-| `rector:fix` | Aplica refactor automático con Rector.             |
+| Script             | Descripción                                        |
+| :----------------- | :------------------------------------------------- |
+| `pint`             | Ejecuta Laravel Pint para formatear código.        |
+| `pint:test`        | Verifica el formato del código con Pint (dry-run). |
+| `test`             | Ejecuta la suite de pruebas con Pest.              |
+| `test:types`       | Análisis estático de tipos con PHPStan (Larastan). |
+| `typescript:check` | Verifica tipos TS del frontend (`tsc --noEmit`).   |
+| `rector:dry`       | Verifica refactor automático con Rector (dry-run). |
+| `rector:fix`       | Aplica refactor automático con Rector.             |
 
 ---
 
