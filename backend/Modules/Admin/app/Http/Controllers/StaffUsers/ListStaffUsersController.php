@@ -9,6 +9,7 @@ use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Domain\Filters\StaffUserFilter;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Models\StaffUser;
+use Modules\Core\Domain\User\DomainUser;
 
 /**
  * Controlador para la gestión de listado de usuarios del personal administrativo.
@@ -19,7 +20,7 @@ final class ListStaffUsersController extends AbstractAdminController
      * Muestra la lista de usuarios.
      *
      * @param  IlluminateRequest  $request  Solicitud HTTP
-     * @return InertiaResponse Respuesta Inertia con la lista de usuarios
+     * @return InertiaResponse Respuesta Inertia con la lista de DomainUser paginada
      */
     public function index(IlluminateRequest $request): InertiaResponse
     {

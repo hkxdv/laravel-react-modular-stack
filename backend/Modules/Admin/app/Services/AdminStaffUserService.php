@@ -11,6 +11,8 @@ use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\PermissionVerifierInterface;
+use Modules\Core\Domain\User\DomainUser;
+use Modules\Core\Infrastructure\Laravel\Mappers\DomainUserMapper;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -41,6 +43,8 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @return LengthAwarePaginator<int, DomainUser>
      */
     public function getAllUsers(StaffUserFilter $filter): LengthAwarePaginator
     {
@@ -81,7 +85,12 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
         }
 
         // Paginar los resultados
-        return $query->paginate($filter->perPage);
+        $paginator = $query->paginate($filter->perPage);
+
+        /** @var LengthAwarePaginator<int, DomainUser> $result */
+        $result = $this->mapPaginatedDomainUser($paginator);
+
+        return $result;
     }
 
     /**
@@ -92,7 +101,7 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
      * - Inicializa `password_changed_at` al momento de creación.
      * - Sincroniza roles si se proporcionan en `data['roles']`.
      */
-    public function createUser(array $data): StaffUser
+    public function createUser(array $data): DomainUser
     {
         // Determinar si se debe verificar automáticamente el email (por defecto: true)
         $shouldAutoVerify = ! isset($data['auto_verify_email'])
@@ -126,21 +135,23 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
             $this->syncRoles($user, $roles);
         }
 
-        return $user;
+        return $this->mapToDomain($user);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getUserById(int $id): ?StaffUser
+    public function getUserById(int $id): ?DomainUser
     {
-        return StaffUser::with('roles', 'permissions')->find($id);
+        $user = StaffUser::with('roles', 'permissions')->find($id);
+
+        return $user ? $this->mapToDomain($user) : null;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function updateUser(int $id, array $data): ?StaffUser
+    public function updateUser(int $id, array $data): ?DomainUser
     {
         $user = StaffUser::query()->find($id);
         if ($user) {
@@ -157,9 +168,11 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
                     'password_changed_at' => $pwdChangedAt,
                 ])->save();
             }
+
+            return $this->mapToDomain($user);
         }
 
-        return $user;
+        return null;
     }
 
     /**
@@ -251,5 +264,72 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
     public function getAllRoles(): Collection
     {
         return $this->rolesInterface->getAllRoles();
+    }
+
+    /**
+     * Convierte un modelo Eloquent StaffUser a entidad de dominio DomainUser.
+     */
+    private function mapToDomain(StaffUser $user): DomainUser
+    {
+        return DomainUserMapper::toDomain($user);
+    }
+
+    /**
+     * Convierte un paginador de StaffUser a paginador de DomainUser.
+     *
+     * @param  LengthAwarePaginator<int, StaffUser>  $paginator
+     * @return LengthAwarePaginator<int, DomainUser>
+     */
+    private function mapPaginatedDomainUser(LengthAwarePaginator $paginator): LengthAwarePaginator
+    {
+        $items = $paginator->all();
+        $mappedItems = array_map(
+            $this->mapToDomain(...),
+            $items
+        );
+
+        /** @var LengthAwarePaginator<int, DomainUser> $result */
+        $result = $this->newPaginatorWithCollection($paginator, $mappedItems);
+
+        return $result;
+    }
+
+    /**
+     * Crea un nuevo paginador con la colección mapeada.
+     *
+     * @param  LengthAwarePaginator<int, StaffUser>  $paginator
+     * @param  array<int, DomainUser>  $items
+     * @return LengthAwarePaginator<int, DomainUser>
+     */
+    private function newPaginatorWithCollection(LengthAwarePaginator $paginator, array $items): LengthAwarePaginator
+    {
+        /** @var \Illuminate\Support\Collection<int, DomainUser> $mappedCollection */
+        $mappedCollection = collect($items);
+
+        // setCollection() expects Collection<StaffUser> (TValue from the paginator).
+        // We pass Collection<DomainUser> — semantically correct (DomainUser replaces StaffUser items).
+        // Call-site variance tells PHPStan to accept the narrower type at this call.
+        /** @var LengthAwarePaginator<int, DomainUser> $result */
+        $result = $this->setCollectionWithDomainUser($paginator, $mappedCollection);
+
+        return $result;
+    }
+
+    /**
+     * Wrapper para setCollection que informa a PHPStan del tipo DomainUser.
+     *
+     * @param  LengthAwarePaginator<int, StaffUser>  $paginator
+     * @param  \Illuminate\Support\Collection<int, DomainUser>  $collection
+     * @return LengthAwarePaginator<int, DomainUser>
+     */
+    private function setCollectionWithDomainUser(
+        LengthAwarePaginator $paginator,
+        \Illuminate\Support\Collection $collection,
+    ): LengthAwarePaginator {
+        /** @var LengthAwarePaginator<int, DomainUser> $result */
+        // @phpstan-ignore argument.type (DomainUser replaces StaffUser in the collection)
+        $result = $paginator->setCollection($collection);
+
+        return $result;
     }
 }

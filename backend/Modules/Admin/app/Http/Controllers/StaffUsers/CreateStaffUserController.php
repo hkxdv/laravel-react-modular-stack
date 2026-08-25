@@ -12,8 +12,7 @@ use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\Concerns\NormalizesStaffUserPayload;
 use Modules\Admin\App\Http\Requests\CreateStaffUserRequest;
-
-use function Foundry\Helpers\modelStringAttribute;
+use Modules\Core\Domain\User\DomainUser;
 
 /**
  * Controlador para la creación de usuarios del personal administrativo.
@@ -53,7 +52,7 @@ final class CreateStaffUserController extends AbstractAdminController
      * Almacena un nuevo usuario.
      *
      * @param  CreateStaffUserRequest  $request  Solicitud validada para creación de usuario
-     * @return RedirectResponse Redirección o respuesta Inertia
+     * @return RedirectResponse Redirección o respuesta Inertia con DomainUser
      *
      * @throws \Illuminate\Validation\ValidationException Si la validación de entrada falla.
      */
@@ -67,7 +66,7 @@ final class CreateStaffUserController extends AbstractAdminController
                 $validatedData = $this->buildCreatePayload($request);
                 $user = $this->staffUserManager->createUser($validatedData);
 
-                $userName = modelStringAttribute($user, 'name', '');
+                $userName = $user->name;
                 session()->flash(
                     'success',
                     sprintf("Usuario '%s' creado exitosamente.", $userName)
@@ -125,7 +124,7 @@ final class CreateStaffUserController extends AbstractAdminController
             $validatedData = $this->buildCreatePayload($request);
             $user = $this->staffUserManager->createUser($validatedData);
 
-            $userName = modelStringAttribute($user, 'name', '');
+            $userName = $user->name;
 
             $response = to_route('internal.staff.admin.users.index')
                 ->with(
