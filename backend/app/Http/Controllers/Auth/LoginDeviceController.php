@@ -37,9 +37,8 @@ final class LoginDeviceController extends Controller
         // Comprobación de autorización crucial: se asegura de que el usuario autenticado
         // sea el propietario del registro de inicio de sesión que intenta modificar.
         // Si no lo es, la solicitud se aborta con un código de estado 403 (Prohibido).
-        // ponytail: staff_user_id check deferred to Fase 5 — StaffUsersLoginInfo stays staff-specific for now
         abort_if(
-            $user->id !== $loginInfo->staff_user_id,
+            $user->id !== $loginInfo->loginable_id,
             403,
             'No tienes permiso para realizar esta acción.'
         );

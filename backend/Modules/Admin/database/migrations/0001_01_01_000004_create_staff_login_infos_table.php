@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('staff_login_infos', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('staff_user_id')->constrained('staff_users')->onDelete('cascade');
+            $table->string('loginable_type');
+            $table->unsignedBigInteger('loginable_id');
             $table->string('ip_address')->nullable();
             $table->text('user_agent')->nullable();
             $table->string('device_type')->nullable();
@@ -27,8 +28,9 @@ return new class extends Migration
             $table->integer('login_count')->default(1);
             $table->timestamps();
 
-            $table->index(['staff_user_id', 'ip_address']);
-            $table->index(['staff_user_id', 'is_trusted']);
+            $table->index(['loginable_type', 'loginable_id'], 'staff_login_infos_loginable_index');
+            $table->index(['ip_address']);
+            $table->index(['is_trusted']);
         });
     }
 

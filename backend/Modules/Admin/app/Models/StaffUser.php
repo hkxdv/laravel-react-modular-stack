@@ -6,7 +6,8 @@ namespace Modules\Admin\App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Database\Factories\StaffUsersFactory;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Spatie\Activitylog\LogOptions;
@@ -95,11 +96,11 @@ final class StaffUser extends AbstractDomainUser implements MustVerifyEmail
     /**
      * Relación con el historial de inicio de sesión.
      *
-     * @return HasMany<StaffUserLoginInfo, $this>
+     * @return MorphMany<StaffUserLoginInfo, $this>
      */
-    public function loginInfos(): HasMany
+    public function loginInfos(): MorphMany
     {
-        return $this->hasMany(StaffUserLoginInfo::class, 'staff_user_id');
+        return $this->morphMany(StaffUserLoginInfo::class, 'loginable');
     }
 
     /**
@@ -191,3 +192,12 @@ final class StaffUser extends AbstractDomainUser implements MustVerifyEmail
         return StaffUsersFactory::new();
     }
 }
+
+// Listener para limpieza de login_infos orphan cuando se elimina un StaffUser.
+// Compensa la pérdida del FK ON DELETE CASCADE tras la migración a columnas polimórficas.
+StaffUser::deleting(function (StaffUser $user): void {
+    DB::table('staff_login_infos')
+        ->where('loginable_type', StaffUser::class)
+        ->where('loginable_id', $user->id)
+        ->delete();
+});

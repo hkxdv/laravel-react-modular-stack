@@ -7,7 +7,7 @@ namespace Modules\Admin\App\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * Modelo que almacena el historial de inicios de sesión del personal (Staff).
@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * permitir la detección de actividades sospechosas.
  *
  * @property int $id
- * @property int $staff_user_id ID del usuario de personal asociado.
+ * @property string|null $loginable_type Tipo polimórfico del modelo asociado.
+ * @property int|null $loginable_id ID polimórfico del modelo asociado.
  * @property string|null $ip_address Dirección IP desde la que se inició sesión.
  * @property string|null $user_agent Agente de usuario del navegador.
  * @property string|null $device_type Tipo de dispositivo (ej. 'desktop', 'tablet').
@@ -27,7 +28,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_trusted Indica si el dispositivo es de confianza.
  * @property \Carbon\CarbonInterface|null $last_login_at Fecha y hora del último inicio de sesión.
  * @property int $login_count Contador de inicios de sesión desde este dispositivo.
- * @property-read StaffUser $staffUser
  *
  * @use HasFactory<Factory<StaffUserLoginInfo>>
  */
@@ -55,7 +55,8 @@ final class StaffUserLoginInfo extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'staff_user_id',
+        'loginable_type',
+        'loginable_id',
         'ip_address',
         'user_agent',
         'device_type',
@@ -80,13 +81,13 @@ final class StaffUserLoginInfo extends Model
     ];
 
     /**
-     * Define la relación con el usuario de personal al que pertenece esta información.
+     * Define la relación polimórfica con el modelo dueño de este inicio de sesión.
      *
-     * @return BelongsTo<StaffUser, $this>
+     * @return MorphTo<Model, $this>
      */
-    public function staffUser(): BelongsTo
+    public function loginable(): MorphTo
     {
-        return $this->belongsTo(StaffUser::class, 'staff_user_id');
+        return $this->morphTo('loginable');
     }
 
     /**
