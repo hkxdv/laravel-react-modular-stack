@@ -44,7 +44,12 @@ final readonly class DomainUserMapper
             name: $name,
             email: $email,
             roles: $roles,
-            permissions: $permissions
+            permissions: $permissions,
+            emailVerifiedAt: is_string($model->email_verified_at ?? null) ? (string) $model->email_verified_at : null,
+            userType: is_string($model->user_type ?? null) ? (string) $model->user_type : null,
+            avatar: is_string($model->avatar ?? null) ? (string) $model->avatar : null,
+            createdAt: is_string($model->created_at ?? null) ? (string) $model->created_at : null,
+            updatedAt: is_string($model->updated_at ?? null) ? (string) $model->updated_at : null,
         );
     }
 }

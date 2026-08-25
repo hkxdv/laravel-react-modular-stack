@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Domain\User;
 
 use Modules\Core\Domain\Permission\PermissionCollection;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Entidad de dominio para usuario.
@@ -12,6 +13,7 @@ use Modules\Core\Domain\Permission\PermissionCollection;
  * Modela identidad, atributos básicos y verificación de permisos/roles
  * usando colecciones inmutables.
  */
+#[TypeScript]
 final readonly class DomainUser
 {
     /**
@@ -22,7 +24,12 @@ final readonly class DomainUser
         public string $name,
         public string $email,
         public array $roles,
-        public PermissionCollection $permissions
+        public PermissionCollection $permissions,
+        public ?string $emailVerifiedAt = null,
+        public ?string $userType = null,
+        public ?string $avatar = null,
+        public ?string $createdAt = null,
+        public ?string $updatedAt = null,
     ) {}
 
     /**
