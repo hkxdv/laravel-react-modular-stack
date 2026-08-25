@@ -136,9 +136,10 @@ final class SessionServiceProvider extends ServiceProvider
 /**
  * Manejador de sesiones de base de datos personalizado.
  *
- * Sobrescribe el manejador por defecto de Laravel para utilizar la columna `staff_user_id`
- * para usuarios autenticados con el guard de staff. Esto permite que el sistema de sesiones
- * funcione correctamente con el modelo de usuarios del personal.
+ * Sobrescribe el manejador por defecto de Laravel para utilizar columnas polimórficas
+ * (authenticatable_type + authenticatable_id) para usuarios autenticados con cualquier
+ * guard. El SessionServiceProvider configura dinámicamente el morph class según
+ * el guard activo (staff-user, tenant-user, etc.).
  */
 final class CustomDatabaseSessionHandler extends DatabaseSessionHandler
 {

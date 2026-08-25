@@ -97,8 +97,9 @@ return [
     |
     | When using the "database" session driver, this specifies the foreign
     | key column name that will be used to reference the user's table.
-    | Note: Our custom SessionServiceProvider handles storing staff_user_id
-    | dynamically based on the authenticated guard.
+    | Note: Our custom SessionServiceProvider handles storing polymorphic
+    | columns (authenticatable_type + authenticatable_id) dynamically
+    | based on the authenticated guard.
     |
     */
 
