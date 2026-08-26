@@ -205,6 +205,10 @@ export interface BreadcrumbItem {
 
 /**
  * Define la estructura de un elemento de navegación para menús y barras laterales.
+ *
+ * Nota: las propiedades base (title, href, current, permission) se redeclararon explícitamente
+ * en lugar de usar Omit<ResolvedNavItem, 'icon'> para evitar errores TS4111 con
+ * noPropertyAccessFromIndexSignature sobre tipos de declare namespace.
  */
 export interface NavItemDefinition {
   /** El texto a mostrar para el elemento de navegación. */
