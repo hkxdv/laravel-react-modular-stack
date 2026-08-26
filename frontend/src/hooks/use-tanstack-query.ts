@@ -1,3 +1,11 @@
+/**
+ * Hooks reservados para Sanctum (API REST de alto volumen).
+ *
+ * NO utilizar mientras un módulo consume props de Inertia — usar
+ * `useServerTable` o `useForm` en su lugar. Véase `hooks/README.md`
+ * para los criterios de selección.
+ */
+import type { Paginated } from '@/types';
 import {
   useMutation,
   useQuery,
@@ -58,21 +66,11 @@ export function useGenericMutation<TVariables, TData, TError = unknown, TContext
  */
 export function usePaginatedQuery<TData>(
   baseQueryKey: unknown[],
-  fetchFn: (
-    page: number,
-    pageSize: number,
-  ) => Promise<{
-    data: TData[];
-    meta: { current_page: number; last_page: number; total: number };
-  }>,
+  fetchFn: (page: number, pageSize: number) => Promise<Paginated<TData>>,
   initialPage = 1,
   initialPageSize = 10,
   options?: Omit<
-    UseQueryOptions<
-      { data: TData[]; meta: { current_page: number; last_page: number; total: number } },
-      unknown,
-      { data: TData[]; meta: { current_page: number; last_page: number; total: number } }
-    >,
+    UseQueryOptions<Paginated<TData>, unknown, Paginated<TData>>,
     'queryKey' | 'queryFn'
   >,
 ) {
