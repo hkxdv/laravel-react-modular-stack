@@ -10,6 +10,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+- Próximos cambios.
+
+## [0.3.0-alpha] - 2026-08-25
+
+> Hito del repositorio. Aún no existe un tag ni un release publicado.
+
 ### Added
 
 - Paquete `packages/foundry-php-utils`: helpers tipados `Foundry\Helpers` (config/cache normalizados, `userId`, `fileModificationTime`) conectado vía path repository.
@@ -47,6 +53,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 
+- Backend actualizado a Laravel 13.29.0 y Symfony Process 8.1.5, con PHP `^8.4 || ^8.5`.
+- Suite de pruebas migrada a Pest 5.1.3 sobre PHPUnit 13.3.1.
+- Plugins de Pest 5 integrados: PHPStan 5.2.0, Rector 5.0.4, Agent 5.0.0 y Browser 5.0.1.
+- Playwright 1.62.1 añadido en la raíz para las pruebas de navegador de Pest.
 - Servicios del backend refactorizados para usar `Foundry\Helpers` en lugar de llamadas inline a `config()`/`cache()`.
 - Toolchain frontend actualizado: Vite 8 (rolldown), ESLint 10, react-day-picker 10, TypeScript 6.
 - `manualChunks` de `vite.config.ts` convertido a forma de función para rolldown; migración de `ClassNames` del calendario a las claves de react-day-picker v10.

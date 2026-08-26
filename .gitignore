@@ -11,6 +11,9 @@
 !.envs/.env.*.example
 .atl/
 .agents/
-.opencode/
+/.opencode/*
+!/.opencode/skills/
+!/.opencode/skills/*/
+!/.opencode/skills/*/SKILL.md
 openspec/
 skills-lock.json

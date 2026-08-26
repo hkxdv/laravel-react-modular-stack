@@ -7,7 +7,7 @@ Esta guía cubre la instalación y configuración de Foundry Stack para desarrol
 ### Obligatorios
 
 - **Bun**: ([Instalar Bun](https://bun.sh))
-- **PHP**: ([Instalar PHP](https://www.php.net/downloads))
+- **PHP 8.4 o 8.5**: ([Instalar PHP](https://www.php.net/downloads))
 - **Composer**: ([Instalar Composer](https://getcomposer.org/download/))
 - **Git**: Cualquier versión reciente
 
@@ -142,6 +142,18 @@ Para evitar ejecutar Artisan “a mano” (y perder el `--env-file` correcto), u
 
 - Backend: `bun run be qa`
 - Frontend: `bun run fe lint` y `bun run fe types`
+
+### Pruebas de navegador (opcional)
+
+`pestphp/pest-plugin-browser` usa Playwright y requiere `ext-sockets`. Playwright se instala como dependencia de desarrollo en la raíz mediante `bun run i:all`; descarga sus navegadores con `bunx playwright install` cuando sea necesario.
+
+En Arch Linux, verifica la extensión de PHP antes de ejecutar una prueba de navegador:
+
+```bash
+php --ini
+php -m | grep -i '^sockets$'
+php -r 'exit(extension_loaded("sockets") ? 0 : 1);'
+```
 
 ## Problemas comunes
 

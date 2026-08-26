@@ -51,7 +51,7 @@ Usa `.envs/.env.local`. Ideal para desarrollo rápido.
 | `ql`                      | Inicia el worker de colas (`queue:listen`).                                  |
 | `migrate:fresh:seed`      | Reinicia la BD y ejecuta todos los seeders.                                  |
 | `tinker`                  | Abre la consola interactiva de Laravel (Tinker).                             |
-| `qa`                      | Ejecuta suite de calidad: Pint, Tests (Pest), PHPStan y Rector.              |
+| `qa`                      | Ejecuta `pint:test`, PHPStan, Pest 5 y `rector:dry`.                         |
 | `dump`                    | Ejecuta `composer dump-autoload`.                                            |
 | `clear:all`               | Limpia todas las cachés de Laravel y optimiza.                               |
 | `make-module`             | Crea un nuevo módulo del proyecto.                                           |
@@ -88,17 +88,25 @@ Usa `.envs/.env.pg.local`. Requiere un servidor PostgreSQL corriendo.
 Estos scripts son internos de Composer y se utilizan para tareas de mantenimiento y calidad.
 Se pueden ejecutar desde la raíz con `composer -d backend <script>`, o en el directorio `backend` con `composer run <script>`.
 
-| Script             | Descripción                                        |
-| :----------------- | :------------------------------------------------- |
-| `pint`             | Ejecuta Laravel Pint para formatear código.        |
-| `pint:test`        | Verifica el formato del código con Pint (dry-run). |
-| `test`             | Ejecuta la suite de pruebas con Pest.              |
-| `test:types`       | Análisis estático de tipos con PHPStan (Larastan). |
-| `typescript:check` | Verifica tipos TS del frontend (`tsc --noEmit`).   |
-| `rector:dry`       | Verifica refactor automático con Rector (dry-run). |
-| `rector:fix`       | Aplica refactor automático con Rector.             |
+| Script             | Descripción                                              |
+| :----------------- | :------------------------------------------------------- |
+| `pint`             | Ejecuta Laravel Pint para formatear código.              |
+| `pint:test`        | Verifica el formato del código con Pint (dry-run).       |
+| `test`             | Ejecuta la suite de pruebas con Pest 5 sobre PHPUnit 13. |
+| `test:types`       | Análisis estático de tipos con PHPStan (Larastan).       |
+| `typescript:check` | Verifica tipos TS del frontend (`tsc --noEmit`).         |
+| `rector:dry`       | Verifica refactor automático con Rector (dry-run).       |
+| `rector:fix`       | Aplica refactor automático con Rector.                   |
 
 ---
+
+### Versiones y plugins de pruebas
+
+- Pest `5.1.3` se ejecuta sobre PHPUnit `13.3.1`.
+- `pest-plugin-phpstan` `5.2.0` y `pest-plugin-rector` `5.0.4` están activos en `backend/phpstan.neon` y `backend/rector.php`.
+- El plugin Agent está disponible mediante `pestphp/pest-plugin-agent`; la skill de OpenCode se utiliza cuando las skills del proyecto están instaladas.
+- `pest-plugin-browser` `5.0.1` usa Playwright `1.62.1` y requiere `ext-sockets`.
+- Tia Engine permanece diferido: Pest exige que la raíz de Git coincida con la raíz de `backend/`, lo que no se cumple en este monorepo.
 
 ## 5. Frontend (Vite + React)
 

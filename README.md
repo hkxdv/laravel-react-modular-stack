@@ -10,7 +10,7 @@
 > [!WARNING]
 > Proyecto en desarrollo activo (alpha). Espera cambios significativos.
 
-Foundry Stack es un monorepo con **Laravel 12** (backend) y **React 19** (frontend) integrados con **Inertia.js**. Incluye un módulo **Core v2** que concentra lógica transversal (auth, permisos, navegación/menú, perfil y seguridad) y una estructura modular con `nwidart/laravel-modules`.
+Foundry Stack es un monorepo con **Laravel 13** (backend) y **React 19** (frontend) integrados con **Inertia.js**. Incluye un módulo **Core v2** que concentra lógica transversal (auth, permisos, navegación/menú, perfil y seguridad) y una estructura modular con `nwidart/laravel-modules`.
 
 ## ¿Qué es esto?
 
@@ -22,6 +22,7 @@ Una base modular para sistemas de gestión internos con:
 - **Enfoque staff-first**: Para usuarios internos (backoffice, paneles admin)
 - **Multi-guard**: Soporte para múltiples tipos de usuario (staff, tenant) vía `AbstractDomainUser`
 - **Tipos TS generados**: `#[TypeScript]` en DTOs PHP genera `.d.ts` para el frontend, con drift check en CI
+- **Pruebas y calidad**: Pest 5 sobre PHPUnit 13, PHPStan, Rector y Pint mediante `bun run be qa`
 - **Tooling moderno**: Bun, Vite 8, TypeScript, Tailwind 4
 
 **No es un producto terminado**, es un experimento arquitectónico funcional.
@@ -35,7 +36,7 @@ Si estás aprendiendo arquitectura Laravel, puede ser útil. Si necesitas algo p
 ## Requisitos
 
 - **Bun 1.3+**
-- **PHP 8.4+** & Composer
+- **PHP 8.4 o 8.5** & Composer
 - **Git**
 - _Opcional_: Docker, PostgreSQL
 

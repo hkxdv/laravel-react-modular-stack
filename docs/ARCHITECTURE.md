@@ -21,6 +21,8 @@ Foundry Stack es un baseline para sistemas internos con:
 - Entornos gestionados desde `.envs/`.
 - Scripts orquestados con Bun (workspaces).
 
+El backend usa Laravel 13.29.0 sobre PHP 8.4/8.5. La suite de pruebas usa Pest 5 sobre PHPUnit 13; la calidad completa se ejecuta con `bun run be qa`.
+
 ## Code map (dónde está qué)
 
 **Raíz**
@@ -136,7 +138,7 @@ Estas reglas importan más que detalles puntuales, porque son las que evitan que
 - Seguridad: middleware de headers (CSP, etc.), separación de rutas internas (`/internal/*`).
 - Performance: caching (permisos/navegación) y invalidación por versión.
 - DX: workspaces con Bun; comandos centralizados en `docs/COMMANDS.md`.
-- QA backend: Pint + PHPStan + Pest + Rector (script `bun run be qa`).
+- QA backend: Pint, PHPStan, Pest 5 sobre PHPUnit 13 y Rector (script `bun run be qa`).
 - QA frontend: ESLint y TypeScript (scripts `bun run fe lint` y `bun run fe types`).
 
 ## “Dónde cambio X”
