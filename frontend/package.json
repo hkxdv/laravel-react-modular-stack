@@ -11,10 +11,16 @@
     "format:write": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "types": "tsc --noEmit"
+    "types": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
@@ -28,10 +34,12 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-sonarjs": "^4.0.3",
     "eslint-plugin-unicorn": "^64.0.0",
+    "jsdom": "^30.0.1",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "typescript-eslint": "^8.60.1"
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@inertiajs/core": "^3.3.0",

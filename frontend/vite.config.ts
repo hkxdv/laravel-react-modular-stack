@@ -2,7 +2,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import path from 'node:path';
-import { defineConfig, loadEnv } from 'vite';
+import { loadEnv } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
   const envDir = path.resolve(import.meta.dirname, '../.envs');
@@ -79,14 +80,22 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      laravel({
-        input: 'src/app.tsx',
-        publicDirectory: '../backend/public',
-        refresh: true,
-      }),
+      ...(mode === 'test'
+        ? []
+        : [
+            laravel({
+              input: 'src/app.tsx',
+              publicDirectory: '../backend/public',
+              refresh: true,
+            }),
+          ]),
       react(),
       tailwindcss(),
     ],
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.ts'],
+    },
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, 'src'),
