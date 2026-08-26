@@ -15,12 +15,12 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 final readonly class ModulePageProps
 {
     /**
-     * @param  array<int, array<string, mixed>>  $panelItems
-     * @param  array<int, array<string, mixed>>  $mainNavItems
-     * @param  array<int, array<string, mixed>>  $moduleNavItems
-     * @param  array<int, array<string, mixed>>  $contextualNavItems
-     * @param  array<int, array<string, mixed>>  $globalNavItems
-     * @param  array<int, array<string, mixed>>  $breadcrumbs
+     * @param  list<ResolvedPanelItem>  $panelItems
+     * @param  list<ResolvedNavItem>  $mainNavItems
+     * @param  list<ResolvedNavItem>  $moduleNavItems
+     * @param  list<ResolvedNavItem>  $contextualNavItems
+     * @param  list<ResolvedNavItem>  $globalNavItems
+     * @param  list<ResolvedBreadcrumbItem>  $breadcrumbs
      * @param  array<int, mixed>  $stats
      * @param  array<string, mixed>  $flash
      */

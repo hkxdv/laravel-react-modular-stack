@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\cacheArray;
@@ -197,6 +198,7 @@ final readonly class AssembleMenu
 
         $contextualNavItems = [];
         if ($contextualItemsConfig !== []) {
+            /** @var list<ResolvedNavItem> $contextualNavItems */
             $contextualNavItems = $this->buildContextual->execute(
                 MenuBuilderInterface::NAV_TYPE_CONTEXTUAL,
                 $contextualItemsConfig,

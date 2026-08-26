@@ -13,6 +13,9 @@ use Modules\Core\Application\Menu\BuildBreadcrumbs;
 use Modules\Core\Application\Menu\BuildContextualMenu;
 use Modules\Core\Application\Menu\BuildGlobalMenu;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
+use Modules\Core\Domain\Menu\ResolvedPanelItem;
 
 /**
  * Servicio adaptador para construcción de navegación y breadcrumbs.
@@ -60,6 +63,7 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         string $moduleSlug,
         ?string $functionalName = null
     ): array {
+        /** @var list<ResolvedNavItem> */
         return $this->contextualBuilder->execute(
             self::NAV_TYPE_CONTEXTUAL,
             $itemsConfig,
@@ -78,6 +82,7 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         string $moduleSlug,
         ?string $functionalName = null
     ): array {
+        /** @var list<ResolvedPanelItem> */
         return $this->contextualBuilder->execute(
             self::NAV_TYPE_PANEL,
             $itemsConfig,
@@ -182,21 +187,22 @@ final readonly class MenuBuilderService implements MenuBuilderInterface
         );
 
         $durationMs = (microtime(true) - $t0) * 1000;
-        $mainCount = is_array($result['mainNavItems'] ?? null)
-            ? count($result['mainNavItems'])
-            : 0;
-        $moduleCount = is_array($result['moduleNavItems'] ?? null)
-            ? count($result['moduleNavItems'])
-            : 0;
-        $contextualCount = is_array($result['contextualNavItems'] ?? null)
-            ? count($result['contextualNavItems'])
-            : 0;
-        $globalCount = is_array($result['globalNavItems'] ?? null)
-            ? count($result['globalNavItems'])
-            : 0;
-        $breadcrumbsCount = is_array($result['breadcrumbs'] ?? null)
-            ? count($result['breadcrumbs'])
-            : 0;
+        /** @var list<ResolvedNavItem> $mainNavItems */
+        $mainNavItems = $result['mainNavItems'] ?? [];
+        /** @var list<ResolvedNavItem> $moduleNavItems */
+        $moduleNavItems = $result['moduleNavItems'] ?? [];
+        /** @var list<ResolvedNavItem|ResolvedPanelItem> $contextualNavItems */
+        $contextualNavItems = $result['contextualNavItems'] ?? [];
+        /** @var list<ResolvedNavItem> $globalNavItems */
+        $globalNavItems = $result['globalNavItems'] ?? [];
+        /** @var list<ResolvedBreadcrumbItem> $breadcrumbs */
+        $breadcrumbs = $result['breadcrumbs'] ?? [];
+
+        $mainCount = count($mainNavItems);
+        $moduleCount = count($moduleNavItems);
+        $contextualCount = count($contextualNavItems);
+        $globalCount = count($globalNavItems);
+        $breadcrumbsCount = count($breadcrumbs);
 
         Log::channel('domain_navigation')->info('nav_build_latency', [
             'module_slug' => $moduleSlug,

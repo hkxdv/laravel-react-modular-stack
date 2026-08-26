@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Domain\Menu\DTO\ContextualMenuItem;
 use Modules\Core\Domain\Menu\DTO\PanelMenuItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
+use Modules\Core\Domain\Menu\ResolvedPanelItem;
 use Modules\Core\Infrastructure\Laravel\Events\MenuPermissionDenied;
 
 /**
@@ -56,7 +58,7 @@ final readonly class BuildContextualMenu
      * Ejecuta la construcción de navegación contextual o de panel.
      *
      * @param  array<int, array<string, mixed>>  $itemsConfig
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedNavItem>|list<ResolvedPanelItem>
      */
     public function execute(
         string $navType,
@@ -94,81 +96,40 @@ final readonly class BuildContextualMenu
             $resolvedConfig
         );
 
-        // Obtener la configuración específica para el tipo de navegación
-        $config = self::NAV_TYPE_CONFIG[$navType];
+        if ($navType === MenuBuilderInterface::NAV_TYPE_CONTEXTUAL) {
+            /** @var array<int, array<string, mixed>> $resolvedConfig */
+            return $this->buildContextualNavItems(
+                $resolvedConfig,
+                $permissionChecker,
+                $moduleSlug,
+                $functionalName,
+            );
+        }
 
-        /** @var array<int, array<string, mixed>> $resolvedConfig */
-        return $this->buildItems(
+        return $this->buildPanelItems(
             $resolvedConfig,
             $permissionChecker,
             $moduleSlug,
             $functionalName,
-            $config['textKey'],
-            $config['textTemplateKey'],
-            $config['extraFields']
         );
     }
 
     /**
-     * @param  array<int, array<mixed>>  $resolvedConfig
-     * @return array<int, array<mixed>>
-     */
-    private function flattenResolvedConfig(array $resolvedConfig): array
-    {
-        $flattened = [];
-
-        foreach ($resolvedConfig as $item) {
-            if (array_is_list($item)) {
-                $allNestedArrays = true;
-                foreach ($item as $nested) {
-                    if (! is_array($nested)) {
-                        $allNestedArrays = false;
-                        break;
-                    }
-                }
-
-                if ($allNestedArrays) {
-                    foreach ($item as $nested) {
-                        $flattened[] = (array) $nested;
-                    }
-
-                    continue;
-                }
-            }
-
-            $flattened[] = $item;
-        }
-
-        return $flattened;
-    }
-
-    /**
-     * Construye los ítems individuales.
+     * Construye ítems de navegación contextual.
      *
      * @param  array<int, array<string, mixed>>  $itemsConfig
-     * @param  array<string, string>  $extraFields
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedNavItem>
      */
-    private function buildItems(
+    private function buildContextualNavItems(
         array $itemsConfig,
         callable $permissionChecker,
         string $moduleSlug,
         ?string $functionalName,
-        string $textKey,
-        string $textTemplateKey,
-        array $extraFields
     ): array {
         $builtItems = [];
 
         foreach ($itemsConfig as $config) {
-            // Validación previa según tipo de item
-            $errors = [];
-            if ($textKey === 'name') {
-                $errors = PanelMenuItem::validate($config);
-            } elseif ($textKey === 'title') {
-                $errors = ContextualMenuItem::validate($config);
-            }
-
+            $errors = ContextualMenuItem::validate($config);
             if ($errors !== []) {
                 Log::channel('domain_navigation')->warning(
                     'Configuración de item inválida',
@@ -205,15 +166,15 @@ final readonly class BuildContextualMenu
             }
 
             // Determinar el texto a mostrar
-            $text = isset($config[$textKey]) && is_string($config[$textKey])
-                ? $config[$textKey]
+            $title = isset($config['title']) && is_string($config['title'])
+                ? $config['title']
                 : null;
             if (
-                isset($config[$textTemplateKey])
-                && is_string($config[$textTemplateKey])
+                isset($config['title_template'])
+                && is_string($config['title_template'])
                 && $functionalName
             ) {
-                $text = sprintf($config[$textTemplateKey], $functionalName);
+                $title = sprintf($config['title_template'], $functionalName);
             }
 
             // Construir la ruta
@@ -228,13 +189,10 @@ final readonly class BuildContextualMenu
             $href = '#';
             if ($routeName && is_string($routeName)) {
                 $routeParams = $config['route_params'] ?? [];
-                // Normalización simple
                 $normalizedParams = [];
                 if (is_array($routeParams)) {
-                    /** @var string $k */
-                    /** @var mixed $v */
                     foreach ($routeParams as $k => $v) {
-                        $normalizedParams[$k] = $v;
+                        $normalizedParams[(string) $k] = $v;
                     }
                 }
 
@@ -259,45 +217,183 @@ final readonly class BuildContextualMenu
                 $href = $this->generateRoute($config['route'], $normalizedParams);
             }
 
-            $item = [
-                $textKey => $text,
-                'icon' => isset($config['icon']) && is_string($config['icon'])
-                    ? $config['icon'] : null,
-                'permission' => $permission,
-            ];
+            $icon = isset($config['icon']) && is_string($config['icon'])
+                ? $config['icon'] : null;
 
-            // Mapear campos extra
-            if (isset($extraFields['href'])) {
-                $item[$extraFields['href']] = $href;
+            $current = false;
+            if (is_string($routeName)) {
+                $current = Route::currentRouteName() === $routeName
+                    || str_starts_with(Route::currentRouteName() ?? '', $routeName.'.');
+            } elseif (
+                isset($config['current'])
+                && is_bool($config['current'])
+            ) {
+                $current = $config['current'];
             }
 
-            if (isset($extraFields['route_name'])) {
-                $item[$extraFields['route_name']] = $routeName;
-            }
-
-            if (isset($extraFields['description'])) {
-                $item[$extraFields['description']] = $config['description'] ?? null;
-            }
-
-            if (isset($extraFields['current'])) {
-                $current = false;
-                if (is_string($routeName)) {
-                    $current = Route::currentRouteName() === $routeName
-                        || str_starts_with(Route::currentRouteName() ?? '', $routeName.'.');
-                } elseif (
-                    isset($config['current'])
-                    && is_bool($config['current'])
-                ) {
-                    $current = $config['current'];
-                }
-
-                $item[$extraFields['current']] = $current;
-            }
-
-            $builtItems[] = $item;
+            /** @var string|array<int, string>|null $permission */
+            $builtItems[] = new ResolvedNavItem(
+                title: $title ?? '',
+                href: $href,
+                icon: $icon,
+                current: $current,
+                permission: $permission,
+            );
         }
 
+        /** @var list<ResolvedNavItem> $builtItems */
         return $builtItems;
+    }
+
+    /**
+     * Construye ítems de panel.
+     *
+     * @param  array<int, array<string, mixed>>  $itemsConfig
+     * @return list<ResolvedPanelItem>
+     */
+    private function buildPanelItems(
+        array $itemsConfig,
+        callable $permissionChecker,
+        string $moduleSlug,
+        ?string $functionalName,
+    ): array {
+        $builtItems = [];
+
+        foreach ($itemsConfig as $config) {
+            $errors = PanelMenuItem::validate($config);
+            if ($errors !== []) {
+                Log::channel('domain_navigation')->warning(
+                    'Configuración de item inválida',
+                    [
+                        'module' => $moduleSlug,
+                        'errors' => $errors,
+                        'config' => $config,
+                    ]
+                );
+
+                continue;
+            }
+
+            $permission = $config['permission'] ?? null;
+            if ($permission) {
+                $allowed = true;
+                if (is_array($permission)) {
+                    $allowed = array_any(
+                        $permission,
+                        fn ($perm): bool => is_string($perm) && $permissionChecker($perm)
+                    );
+                } elseif (is_string($permission)) {
+                    $allowed = $permissionChecker($permission);
+                }
+
+                if (! $allowed) {
+                    $this->recordNavPermissionDenial(
+                        is_string($permission) ? $permission : null,
+                        $moduleSlug
+                    );
+
+                    continue;
+                }
+            }
+
+            // Determinar el texto a mostrar
+            $name = isset($config['name']) && is_string($config['name'])
+                ? $config['name']
+                : null;
+            if (
+                isset($config['name_template'])
+                && is_string($config['name_template'])
+                && $functionalName
+            ) {
+                $name = sprintf($config['name_template'], $functionalName);
+            }
+
+            // Construir la ruta
+            $routeName = $config['route_name'] ?? null;
+            if (! $routeName) {
+                $routeNameSuffix = $config['route_name_suffix'] ?? null;
+                if ($routeNameSuffix && is_string($routeNameSuffix)) {
+                    $routeName = sprintf('internal.staff.%s.%s', $moduleSlug, $routeNameSuffix);
+                }
+            }
+
+            /** @var string|null $routeNameForHref */
+            $routeNameForHref = $routeName;
+            if ($routeName && is_string($routeName)) {
+                $routeParams = $config['route_params'] ?? [];
+                $normalizedParams = [];
+                if (is_array($routeParams)) {
+                    foreach ($routeParams as $k => $v) {
+                        $normalizedParams[(string) $k] = $v;
+                    }
+                }
+
+                $routeNameForHref = $this->generateRoute($routeName, $normalizedParams);
+            } elseif (
+                isset($config['route'])
+                && is_string($config['route']) && $config['route'] !== ''
+            ) {
+                $paramsForRoute = $config['route_params'] ?? ($config['route_parameters'] ?? []);
+                $normalizedParams = [];
+                if (is_array($paramsForRoute)) {
+                    foreach ($paramsForRoute as $k => $v) {
+                        $normalizedParams[(string) $k] = $v;
+                    }
+                }
+
+                $routeNameForHref = $this->generateRoute($config['route'], $normalizedParams);
+            }
+
+            $icon = isset($config['icon']) && is_string($config['icon'])
+                ? $config['icon'] : null;
+            $description = isset($config['description']) && is_string($config['description'])
+                ? $config['description'] : null;
+
+            /** @var string|array<int, string>|null $permission */
+            $builtItems[] = new ResolvedPanelItem(
+                name: $name ?? '',
+                icon: $icon,
+                permission: $permission,
+                route_name: is_string($routeName) ? ($routeNameForHref ?? null) : null,
+                description: $description,
+            );
+        }
+
+        /** @var list<ResolvedPanelItem> $builtItems */
+        return $builtItems;
+    }
+
+    /**
+     * @param  array<int, array<mixed>>  $resolvedConfig
+     * @return array<int, array<mixed>>
+     */
+    private function flattenResolvedConfig(array $resolvedConfig): array
+    {
+        $flattened = [];
+
+        foreach ($resolvedConfig as $item) {
+            if (array_is_list($item)) {
+                $allNestedArrays = true;
+                foreach ($item as $nested) {
+                    if (! is_array($nested)) {
+                        $allNestedArrays = false;
+                        break;
+                    }
+                }
+
+                if ($allNestedArrays) {
+                    foreach ($item as $nested) {
+                        $flattened[] = (array) $nested;
+                    }
+
+                    continue;
+                }
+            }
+
+            $flattened[] = $item;
+        }
+
+        return $flattened;
     }
 
     /**

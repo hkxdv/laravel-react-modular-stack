@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Contracts\AddonRegistryInterface;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
+use Modules\Core\Domain\Menu\ResolvedPanelItem;
 use Nwidart\Modules\Laravel\Module;
 
 /**
@@ -32,12 +34,13 @@ final readonly class BuildAddonMenu
      * Construye los ítems de navegación para la barra lateral.
      *
      * @param  array<Module>  $modules
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedNavItem>
      */
     public function buildNavItems(
         array $modules,
         callable $permissionChecker
     ): array {
+        /** @var list<ResolvedNavItem> $navItems */
         $navItems = [];
         $totalModules = count($modules);
         $deniedCount = 0;
@@ -68,21 +71,25 @@ final readonly class BuildAddonMenu
                     ? $navItem->routeNameSuffix
                     : null;
 
-                $item = [
-                    'title' => $moduleConfig->addon()->functionalName !== ''
-                        ? $moduleConfig->addon()->functionalName
-                        : $moduleName,
-                    'href' => $routeName !== null
-                        ? $this->generateRoute($routeName)
-                        : '#',
-                    'icon' => $navItem->icon !== ''
-                        ? $navItem->icon
-                        : null,
-                    'current' => $routeName !== null && $this->isCurrentRoute($routeName),
-                ];
+                $title = $moduleConfig->addon()->functionalName !== ''
+                    ? $moduleConfig->addon()->functionalName
+                    : $moduleName;
+                $href = $routeName !== null
+                    ? $this->generateRoute($routeName)
+                    : '#';
+                $icon = $navItem->icon !== ''
+                    ? $navItem->icon
+                    : null;
+                $current = $routeName !== null && $this->isCurrentRoute($routeName);
 
                 if ($navItem->showInMainNav) {
-                    $navItems[] = $item;
+                    $navItems[] = new ResolvedNavItem(
+                        title: $title,
+                        href: $href,
+                        icon: $icon,
+                        current: $current,
+                        permission: null,
+                    );
                     $includedMain++;
                 } else {
                     $includedModule++;
@@ -110,12 +117,13 @@ final readonly class BuildAddonMenu
      * Construye los ítems de navegación para la lista de módulos.
      *
      * @param  array<Module>  $modules
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedNavItem>
      */
     public function buildModuleNavItems(
         array $modules,
         callable $permissionChecker
     ): array {
+        /** @var list<ResolvedNavItem> $moduleItems */
         $moduleItems = [];
         $totalModules = count($modules);
         $deniedCount = 0;
@@ -146,18 +154,19 @@ final readonly class BuildAddonMenu
                     ? $navItem->routeNameSuffix
                     : null;
 
-                $moduleItems[] = [
-                    'title' => $moduleConfig->addon()->functionalName !== ''
+                $moduleItems[] = new ResolvedNavItem(
+                    title: $moduleConfig->addon()->functionalName !== ''
                         ? $moduleConfig->addon()->functionalName
                         : $moduleName,
-                    'href' => $routeName !== null
+                    href: $routeName !== null
                         ? $this->generateRoute($routeName)
                         : '#',
-                    'icon' => $navItem->icon !== ''
+                    icon: $navItem->icon !== ''
                         ? $navItem->icon
                         : null,
-                    'current' => $routeName !== null && $this->isCurrentRoute($routeName),
-                ];
+                    current: $routeName !== null && $this->isCurrentRoute($routeName),
+                    permission: null,
+                );
                 $includedCount++;
             } elseif (! $allowed) {
                 $this->recordNavPermissionDenial(
@@ -182,12 +191,13 @@ final readonly class BuildAddonMenu
      *
      * @param  array<Module>  $allModules
      * @param  array<Module>  $accessibleModules
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedPanelItem>
      */
     public function buildModuleCards(
         array $allModules,
         array $accessibleModules = []
     ): array {
+        /** @var list<ResolvedPanelItem> $moduleCards */
         $moduleCards = [];
         $accessibleNames = [];
         foreach ($accessibleModules as $am) {
@@ -210,25 +220,28 @@ final readonly class BuildAddonMenu
                 continue;
             }
 
+            $canAccess = isset($accessibleNames[$moduleNameLower]);
+            if (! $canAccess) {
+                continue;
+            }
+
             $routeName = $navItem->routeNameSuffix !== ''
                 ? $navItem->routeNameSuffix
                 : null;
-            $canAccess = isset($accessibleNames[$moduleNameLower]);
 
-            $moduleCards[] = [
-                'name' => $moduleConfig->addon()->functionalName !== ''
+            $moduleCards[] = new ResolvedPanelItem(
+                name: $moduleConfig->addon()->functionalName !== ''
                     ? $moduleConfig->addon()->functionalName
                     : $module->getName(),
-                'description' => $moduleConfig->addon()->description
-                    ?? '',
-                'href' => $routeName !== null
-                    ? $this->generateRoute($routeName)
-                    : '#',
-                'icon' => $navItem->icon !== ''
+                icon: $navItem->icon !== ''
                     ? $navItem->icon
                     : null,
-                'canAccess' => $canAccess,
-            ];
+                permission: null,
+                route_name: $routeName !== null
+                    ? $this->generateRoute($routeName)
+                    : null,
+                description: $moduleConfig->addon()->description ?? null,
+            );
         }
 
         return $moduleCards;

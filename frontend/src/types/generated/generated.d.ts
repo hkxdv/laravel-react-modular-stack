@@ -9,11 +9,11 @@ declare namespace Modules {
           readonly can: Record<string, boolean>;
         };
         export type GlobalPageProps = {
-          readonly breadcrumbs: Record<string, any>[];
-          readonly mainNavItems: Record<string, any>[];
-          readonly moduleNavItems: Record<string, any>[];
-          readonly contextualNavItems: Record<string, any>[];
-          readonly globalNavItems: Record<string, any>[];
+          readonly breadcrumbs: Modules.Core.Domain.Menu.ResolvedBreadcrumbItem[];
+          readonly mainNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly moduleNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly contextualNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly globalNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
           readonly passwordChangeRequired: boolean;
           readonly auth: Modules.Core.Application.View.AuthPageProps;
           readonly security: Modules.Core.Application.View.SecurityPageProps;
@@ -57,12 +57,12 @@ declare namespace Modules {
           >;
         };
         export type ModulePageProps = {
-          readonly panelItems: Record<string, any>[];
-          readonly mainNavItems: Record<string, any>[];
-          readonly moduleNavItems: Record<string, any>[];
-          readonly contextualNavItems: Record<string, any>[];
-          readonly globalNavItems: Record<string, any>[];
-          readonly breadcrumbs: Record<string, any>[];
+          readonly panelItems: Modules.Core.Domain.Menu.ResolvedPanelItem[];
+          readonly mainNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly moduleNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly contextualNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly globalNavItems: Modules.Core.Domain.Menu.ResolvedNavItem[];
+          readonly breadcrumbs: Modules.Core.Domain.Menu.ResolvedBreadcrumbItem[];
           readonly stats: any[];
           readonly pageTitle: string;
           readonly description: string | null;

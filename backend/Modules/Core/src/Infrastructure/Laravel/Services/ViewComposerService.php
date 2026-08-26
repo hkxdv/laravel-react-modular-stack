@@ -13,6 +13,9 @@ use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\NavigationComposerInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
 use Modules\Core\Domain\Menu\ModulePageProps;
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
+use Modules\Core\Domain\Menu\ResolvedPanelItem;
 
 /**
  * Servicio para componer y preparar datos para las vistas (Laravel/Inertia).
@@ -141,15 +144,15 @@ final readonly class ViewComposerService implements ViewComposerInterface
             data: $data
         );
 
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedNavItem> */
         $mainNavItems = $navRaw['mainNavItems'] ?? [];
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedNavItem> */
         $moduleNavItems = $navRaw['moduleNavItems'] ?? [];
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedNavItem> */
         $contextualNavItems = $navRaw['contextualNavItems'] ?? [];
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedNavItem> */
         $globalNavItemsRaw = $navRaw['globalNavItems'] ?? [];
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedBreadcrumbItem> */
         $breadcrumbs = $navRaw['breadcrumbs'] ?? [];
 
         // Construir ítems del panel
@@ -167,7 +170,7 @@ final readonly class ViewComposerService implements ViewComposerInterface
 
         // Si es una ruta de perfil, usar profileNavItems como globalNavItems
         $isProfileRoute = is_string($routeSuffix) && str_starts_with($routeSuffix, 'profile');
-        /** @var array<int, array<string, mixed>> */
+        /** @var list<ResolvedNavItem> $finalGlobalNavItems */
         $finalGlobalNavItems = $isProfileRoute && $profileNavItems !== null
             ? $profileNavItems
             : $globalNavItemsRaw;
@@ -217,21 +220,18 @@ final readonly class ViewComposerService implements ViewComposerInterface
         );
 
         // Construir tarjetas de módulos (disponibles y restringidos)
+        // Nota: buildModuleCards() filtra internamente los módulos inaccesibles
         $allModules = $this->moduleRegistry->getAllEnabledAddons();
         $moduleCards = $this->navigationService->buildModuleCards(
             $allModules,
             $availableModules
         );
 
-        $accessibleModulesCards = array_values(array_filter(
-            $moduleCards,
-            static fn (array $card): bool => ($card['canAccess'] ?? false) === true
-        ));
-
-        $restrictedModulesCards = array_values(array_filter(
-            $moduleCards,
-            static fn (array $card): bool => ($card['canAccess'] ?? false) === false
-        ));
+        // buildModuleCards() ya filtra, así que todos los items son accesibles
+        /** @var list<ResolvedPanelItem> $accessibleModulesCards */
+        $accessibleModulesCards = $moduleCards;
+        /** @var list<ResolvedPanelItem> $restrictedModulesCards */
+        $restrictedModulesCards = [];
 
         return [
             'pageTitle' => 'Dashboard',

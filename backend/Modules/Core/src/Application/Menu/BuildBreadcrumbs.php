@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Contracts\AddonRegistryInterface;
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
 
 use function Foundry\Helpers\cacheArray;
 use function Foundry\Helpers\cacheInt;
@@ -44,7 +46,7 @@ final readonly class BuildBreadcrumbs
      * @param  string  $routeSuffix  Sufijo de la ruta.
      * @param  array<string, mixed>  $routeParams  Parámetros de la ruta.
      * @param  array<string, mixed>  $viewData  Datos de la vista.
-     * @return array<int, array<string, mixed>> Lista de breadcrumbs.
+     * @return list<ResolvedBreadcrumbItem> Lista de breadcrumbs.
      */
     public function execute(
         string $moduleSlug,
@@ -80,20 +82,21 @@ final readonly class BuildBreadcrumbs
 
         $cached = cacheArray($cacheKey);
         if ($cached !== []) {
+            /** @var list<ResolvedBreadcrumbItem> $out */
             $out = [];
             foreach ($cached as $b) {
                 if (! is_array($b)) {
                     continue;
                 }
 
-                $out[] = [
-                    'title' => is_string($b['title'] ?? null)
+                $out[] = new ResolvedBreadcrumbItem(
+                    title: is_string($b['title'] ?? null)
                         ? $b['title']
                         : '',
-                    'href' => is_string($b['href'] ?? null)
+                    href: is_string($b['href'] ?? null)
                         ? $b['href']
                         : '#',
-                ];
+                );
             }
 
             if ($out !== []) {
@@ -128,6 +131,7 @@ final readonly class BuildBreadcrumbs
             return $fallback;
         }
 
+        /** @var list<ResolvedBreadcrumbItem> $breadcrumbs */
         $breadcrumbs = [];
 
         foreach ($breadcrumbItems as $crumb) {
@@ -153,10 +157,10 @@ final readonly class BuildBreadcrumbs
                 ? $this->generateRoute($routeName)
                 : '#';
 
-            $breadcrumbs[] = [
-                'title' => $title,
-                'href' => $href,
-            ];
+            $breadcrumbs[] = new ResolvedBreadcrumbItem(
+                title: $title,
+                href: $href,
+            );
         }
 
         Cache::put($cacheKey, $breadcrumbs, now()->addSeconds($ttlSeconds));
@@ -169,10 +173,10 @@ final readonly class BuildBreadcrumbs
     /**
      * Construye breadcrumbs a partir de la configuración contextual (fallback).
      *
-     * @param  array<int, array<string, mixed>>  $contextualItems  Ítems contextuales.
+     * @param  list<ResolvedNavItem>  $contextualItems  Ítems contextuales.
      * @param  string  $moduleSlug  Slug del módulo.
      * @param  string  $currentRoute  Ruta actual.
-     * @return array<int, array<string, mixed>> Lista de breadcrumbs.
+     * @return list<ResolvedBreadcrumbItem> Lista de breadcrumbs.
      */
     public function buildFromContextual(
         array $contextualItems,
@@ -202,33 +206,31 @@ final readonly class BuildBreadcrumbs
             return $this->execute($moduleSlug, $routeSuffix);
         }
 
-        // Construir desde contextual
+        /** @var list<ResolvedBreadcrumbItem> $breadcrumbs */
         $breadcrumbs = [];
-        if ($contextualItems !== [] && isset($contextualItems[0])) {
+        if ($contextualItems !== []) {
             $firstItem = $contextualItems[0];
-            $firstTitle = isset($firstItem['title']) && is_string($firstItem['title'])
-                ? $firstItem['title']
+            $firstTitle = $firstItem->title !== ''
+                ? $firstItem->title
                 : ucfirst($moduleSlug);
-            $firstHref = isset($firstItem['href']) && is_string($firstItem['href'])
-                ? $firstItem['href']
+            $firstHref = $firstItem->href !== ''
+                ? $firstItem->href
                 : '#';
 
-            $breadcrumbs[] = ['title' => $firstTitle, 'href' => $firstHref];
+            $breadcrumbs[] = new ResolvedBreadcrumbItem(
+                title: $firstTitle,
+                href: $firstHref,
+            );
 
             foreach ($contextualItems as $item) {
-                $item = (array) $item;
-                $isCurrent = isset($item['current']) && $item['current'] === true;
-                $itemTitle = isset($item['title']) && is_string($item['title'])
-                    ? $item['title']
-                    : '';
+                $isCurrent = $item->current === true;
+                $itemTitle = $item->title;
 
                 if ($isCurrent && ($firstTitle !== $itemTitle)) {
-                    $breadcrumbs[] = [
-                        'title' => $itemTitle,
-                        'href' => (isset($item['href']) && is_string($item['href']))
-                            ? $item['href']
-                            : '#',
-                    ];
+                    $breadcrumbs[] = new ResolvedBreadcrumbItem(
+                        title: $itemTitle,
+                        href: $item->href,
+                    );
                     break;
                 }
             }
@@ -240,7 +242,7 @@ final readonly class BuildBreadcrumbs
     /**
      * Obtiene una breadcrumb de respaldo.
      *
-     * @return array<int, array<string, mixed>> Lista con la breadcrumb de respaldo.
+     * @return list<ResolvedBreadcrumbItem> Lista con la breadcrumb de respaldo.
      */
     private function getFallbackBreadcrumb(
         ?\Modules\Core\Contracts\ModuleConfigInterface $config,
@@ -258,12 +260,15 @@ final readonly class BuildBreadcrumbs
 
         $routeName ??= sprintf('internal.staff.%s.index', $slug);
 
-        return [[
-            'title' => ($config instanceof \Modules\Core\Contracts\ModuleConfigInterface && $config->addon()->functionalName !== '')
+        /** @var list<ResolvedBreadcrumbItem> $result */
+        $result = [new ResolvedBreadcrumbItem(
+            title: ($config instanceof \Modules\Core\Contracts\ModuleConfigInterface && $config->addon()->functionalName !== '')
                 ? $config->addon()->functionalName
                 : ucfirst($slug),
-            'href' => $this->generateRoute($routeName),
-        ]];
+            href: $this->generateRoute($routeName),
+        )];
+
+        return $result;
     }
 
     /**

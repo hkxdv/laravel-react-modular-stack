@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\Core\Contracts;
 
 use App\Interfaces\AuthenticatableUser;
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
+use Modules\Core\Domain\Menu\ResolvedPanelItem;
 use Nwidart\Modules\Laravel\Module;
 
 /**
@@ -37,7 +40,7 @@ interface MenuBuilderInterface
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  string  $moduleSlug  Slug del módulo
      * @param  string|null  $functionalName  Nombre funcional del módulo
-     * @return array<int, array<string, mixed>> Ítems de navegación construidos
+     * @return list<ResolvedNavItem>|list<ResolvedPanelItem> Ítems de navegación construidos
      */
     public function buildNavigation(
         string $navType,
@@ -54,7 +57,7 @@ interface MenuBuilderInterface
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  string  $moduleSlug  Slug del módulo
      * @param  string|null  $functionalName  Nombre funcional del módulo
-     * @return array<int, array<string, mixed>> Ítems de navegación contextual
+     * @return list<ResolvedNavItem> Ítems de navegación contextual
      */
     public function buildContextualNavItems(
         array $itemsConfig,
@@ -70,7 +73,7 @@ interface MenuBuilderInterface
      * @param  callable  $permissionChecker  Función para verificar permisos
      * @param  string  $moduleSlug  Slug del módulo
      * @param  string|null  $functionalName  Nombre funcional del módulo
-     * @return array<int, array<string, mixed>> Ítems del panel
+     * @return list<ResolvedPanelItem> Ítems del panel
      */
     public function buildPanelItems(
         array $itemsConfig,
@@ -84,7 +87,7 @@ interface MenuBuilderInterface
      *
      * @param  array<Module>  $modules  Módulos disponibles
      * @param  callable  $permissionChecker  Función para verificar permisos
-     * @return array<int, array<string, mixed>> Ítems de navegación
+     * @return list<ResolvedNavItem> Ítems de navegación
      */
     public function buildNavItems(
         array $modules,
@@ -96,7 +99,7 @@ interface MenuBuilderInterface
      *
      * @param  array<Module>  $allModules  Todos los módulos habilitados
      * @param  array<Module>  $accessibleModules  Módulos a los que el usuario tiene acceso
-     * @return array<int, array<string, mixed>> Tarjetas de módulos
+     * @return list<ResolvedPanelItem> Tarjetas de módulos
      */
     public function buildModuleCards(
         array $allModules,
@@ -107,7 +110,7 @@ interface MenuBuilderInterface
      * Construye los ítems de navegación para los módulos que deben mostrarse en la sección de módulos.
      *
      * @param  array<Module>  $modules
-     * @return array<int, array<string, mixed>>
+     * @return list<ResolvedNavItem>
      */
     public function buildModuleNavItems(
         array $modules,
@@ -121,7 +124,7 @@ interface MenuBuilderInterface
      * @param  string  $routeSuffix  Sufijo de ruta para identificar el conjunto correcto de breadcrumbs
      * @param  array<string, mixed>  $routeParams  Parámetros para las rutas
      * @param  array<string, mixed>  $viewData  Datos para títulos dinámicos
-     * @return array<int, array<string, mixed>> Breadcrumbs
+     * @return list<ResolvedBreadcrumbItem> Breadcrumbs
      */
     public function buildConfiguredBreadcrumbs(
         string $moduleSlug,
@@ -135,7 +138,7 @@ interface MenuBuilderInterface
      *
      * @param  array<int, array<string, mixed>>  $itemsConfig  Configuración de los ítems
      * @param  callable  $permissionChecker  Función para verificar permisos
-     * @return array<int, array<string, mixed>> Ítems de navegación global
+     * @return list<ResolvedNavItem> Ítems de navegación global
      */
     public function buildGlobalNavItems(
         array $itemsConfig,

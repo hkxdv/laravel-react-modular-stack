@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Date;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 
 use function Foundry\Helpers\cacheArray;
@@ -59,7 +61,7 @@ final readonly class ComposeInertiaProps
     /**
      * Compone las propiedades de navegación.
      *
-     * @return array{breadcrumbs: array<int, array<string, mixed>>, mainNavItems: array<int, array<string, mixed>>, moduleNavItems: array<int, array<string, mixed>>, contextualNavItems: array<int, array<string, mixed>>, globalNavItems: array<int, array<string, mixed>>, passwordChangeRequired: bool}
+     * @return array{breadcrumbs: list<ResolvedBreadcrumbItem>, mainNavItems: list<ResolvedNavItem>, moduleNavItems: list<ResolvedNavItem>, contextualNavItems: list<ResolvedNavItem>, globalNavItems: list<ResolvedNavItem>, passwordChangeRequired: bool}
      */
     private function composeNavigationProps(?AbstractDomainUser $staffUser): array
     {

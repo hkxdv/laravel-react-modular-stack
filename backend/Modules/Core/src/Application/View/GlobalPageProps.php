@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Core\Application\View;
 
+use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
@@ -15,11 +17,11 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 final readonly class GlobalPageProps
 {
     /**
-     * @param  array<int, array<string, mixed>>  $breadcrumbs
-     * @param  array<int, array<string, mixed>>  $mainNavItems
-     * @param  array<int, array<string, mixed>>  $moduleNavItems
-     * @param  array<int, array<string, mixed>>  $contextualNavItems
-     * @param  array<int, array<string, mixed>>  $globalNavItems
+     * @param  list<ResolvedBreadcrumbItem>  $breadcrumbs
+     * @param  list<ResolvedNavItem>  $mainNavItems
+     * @param  list<ResolvedNavItem>  $moduleNavItems
+     * @param  list<ResolvedNavItem>  $contextualNavItems
+     * @param  list<ResolvedNavItem>  $globalNavItems
      * @param  array<string, mixed>  $notificationPreferences
      */
     public function __construct(

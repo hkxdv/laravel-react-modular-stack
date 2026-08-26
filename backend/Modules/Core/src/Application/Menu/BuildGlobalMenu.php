@@ -7,6 +7,7 @@ namespace Modules\Core\Application\Menu;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Modules\Core\Domain\Menu\ResolvedNavItem;
 
 /**
  * Construye navegación global (configuración) del panel.
@@ -21,15 +22,17 @@ final class BuildGlobalMenu
      *
      * @param  array<int, array<string, mixed>>  $itemsConfig  Configuración de los ítems.
      * @param  callable  $permissionChecker  Función para verificar permisos.
-     * @return array<int, array<string, mixed>> Lista de ítems de navegación global.
+     * @return list<ResolvedNavItem> Lista de ítems de navegación global.
      */
     public function execute(
         array $itemsConfig,
         callable $permissionChecker
     ): array {
+        /** @var list<ResolvedNavItem> $items */
         $items = [];
 
         foreach ($itemsConfig as $config) {
+            /** @var string|array<int, string>|null $permission */
             $permission = $config['permission'] ?? null;
 
             if ($permission && ! $permissionChecker($permission)) {
@@ -40,20 +43,12 @@ final class BuildGlobalMenu
                 continue;
             }
 
-            // Crear el ítem base
-            $item = [
-                'title' => isset($config['title']) && is_string($config['title'])
-                    ? $config['title'] : '',
-                'icon' => isset($config['icon']) && is_string($config['icon'])
-                    ? $config['icon'] : null,
-                'permission' => $permission,
-            ];
-
-            // Determinar la URL
+            // Determinar la URL y marca de ítem actual
+            $href = '#';
+            $current = false;
             if (isset($config['href'])) {
                 $href = is_string($config['href']) ? $config['href'] : '#';
-                $item['href'] = $href;
-                $item['current'] = $this->isCurrentUrl($href);
+                $current = $this->isCurrentUrl($href);
             } elseif (
                 isset($config['route_name'])
                 && is_string($config['route_name'])
@@ -67,14 +62,22 @@ final class BuildGlobalMenu
                 // Normalización simple de parámetros
                 $routeParameters = $this->normalizeRouteParameters($routeParameters);
 
-                $item['href'] = route($routeName, $routeParameters);
-                $item['current'] = $this->isCurrentRoute($routeName);
-            } else {
-                $item['href'] = '#';
-                $item['current'] = false;
+                $href = route($routeName, $routeParameters);
+                $current = $this->isCurrentRoute($routeName);
             }
 
-            $items[] = $item;
+            $title = isset($config['title']) && is_string($config['title'])
+                ? $config['title'] : '';
+            $icon = isset($config['icon']) && is_string($config['icon'])
+                ? $config['icon'] : null;
+
+            $items[] = new ResolvedNavItem(
+                title: $title,
+                href: $href,
+                icon: $icon,
+                current: $current,
+                permission: $permission,
+            );
         }
 
         return $items;
