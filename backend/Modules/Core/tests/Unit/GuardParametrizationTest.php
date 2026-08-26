@@ -4,36 +4,27 @@ declare(strict_types=1);
 
 use Modules\Core\Infrastructure\Laravel\Services\AuthService;
 
-uses(Tests\TestCase::class);
-
 // ── T2a-6: Guard parametrization tests ──
 
 it('has guards config with staff, web, and sanctum keys', function (): void {
     /** @var array<string, mixed> $guards */
     $guards = config('core.guards');
 
-    expect($guards)->toBeArray()
-        ->toHaveKeys(['staff', 'web', 'sanctum']);
+    expect($guards)->toHaveKeys(['staff', 'web', 'sanctum']);
 });
 
 it('guards config has login_route, redirect_route, and provider per guard', function (): void {
     /** @var array<string, array<string, string>> $guards */
     $guards = config('core.guards');
 
-    foreach ($guards as $config) {
-        expect($config)->toHaveKeys(['login_route', 'redirect_route', 'provider'])
-            ->and($config['login_route'])->toBeString()
-            ->and($config['redirect_route'])->toBeString()
-            ->and($config['provider'])->toBeString();
-    }
+    expect($guards)->each->toHaveKeys(['login_route', 'redirect_route', 'provider']);
 });
 
 it('has sync_excludes containing staff', function (): void {
     /** @var array<string> $syncExcludes */
     $syncExcludes = config('core.sync_excludes');
 
-    expect($syncExcludes)->toBeArray()
-        ->toContain('staff');
+    expect($syncExcludes)->toContain('staff');
 });
 
 it('authservice forguard returns different instances per guard', function (): void {
@@ -46,7 +37,9 @@ it('authservice forguard returns different instances per guard', function (): vo
 it('authservice forguard returns self', function (): void {
     $auth = AuthService::forGuard('staff');
 
-    expect($auth)->toBeInstanceOf(AuthService::class);
+    $guard = new ReflectionClass(AuthService::class)->getProperty('guard')->getValue($auth);
+
+    expect($guard)->toBe('staff');
 });
 
 it('getavailableguards reads from config for any domain user', function (): void {
@@ -59,8 +52,7 @@ it('getavailableguards reads from config for any domain user', function (): void
     /** @var array<string> $guards */
     $guards = $reflection->invoke($user);
 
-    expect($guards)->toBeArray()
-        ->toContain('web')
+    expect($guards)->toContain('web')
         ->toContain('sanctum');
 });
 

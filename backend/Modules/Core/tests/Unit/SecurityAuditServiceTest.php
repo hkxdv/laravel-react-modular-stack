@@ -8,7 +8,7 @@ use Jenssegers\Agent\Agent;
 use Modules\Core\Infrastructure\Laravel\Services\SecurityAuditService;
 use Modules\Core\Tests\Fakes\SessionStoreFake;
 
-uses(Tests\TestCase::class, SessionStoreFake::class);
+uses(SessionStoreFake::class);
 
 // ── CT-SEC-01: prepareAuthenticatedSession regenerates session ──
 

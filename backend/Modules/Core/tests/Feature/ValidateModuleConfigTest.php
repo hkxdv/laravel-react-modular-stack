@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Artisan;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigRegistry;
 
-uses(Tests\TestCase::class);
-
 beforeEach(function (): void {
     $this->registry = app()->make(ModuleConfigRegistry::class);
 });
@@ -17,9 +15,7 @@ it('registers all 3 module configs via boot hook', function (): void {
 });
 
 it('validates all modules without throwing', function (): void {
-    $exitCode = Artisan::call('modules:validate-config');
-
-    expect($exitCode)->toBeInt();
+    expect(Artisan::call('modules:validate-config'))->toBe(0);
 });
 
 it('outputs validation results for modules with findings', function (): void {

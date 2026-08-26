@@ -9,8 +9,6 @@ use Modules\Core\Infrastructure\Laravel\Services\PermissionService;
 
 use function Foundry\Helpers\cacheInt;
 
-uses(Tests\TestCase::class);
-
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
 });

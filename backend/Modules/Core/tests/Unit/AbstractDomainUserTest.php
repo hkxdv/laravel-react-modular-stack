@@ -13,8 +13,6 @@ use Modules\Core\Tests\Fakes\FakeDomainUser;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
-uses(Tests\TestCase::class);
-
 // ── REQ-01: AbstractDomainUser structure ──
 
 it('is abstract and extends authenticatable', function (): void {

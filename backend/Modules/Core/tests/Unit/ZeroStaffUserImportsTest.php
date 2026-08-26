@@ -7,6 +7,27 @@ declare(strict_types=1);
 // keep StaffUser imports for instanceof StaffUser guard (Fase 3 moves StaffUserResource).
 // SyncCrossGuardPermissions uses StaffUser::syncPermissionsBetweenGuards() static call.
 
+/** @return list<string> */
+function coreSrcPhpFiles(string $subPath = ''): array
+{
+    $dir = base_path("Modules/Core/src/{$subPath}");
+    if (! is_dir($dir)) {
+        return [];
+    }
+
+    $files = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if ($file instanceof SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
+            $files[] = $file->getPathname();
+        }
+    }
+
+    return $files;
+}
+
 it('has zero StaffUser imports in Application layer (excluding pre-existing coupling)', function (): void {
     $allowedFiles = [
         'ComposeInertiaProps.php',
@@ -14,8 +35,7 @@ it('has zero StaffUser imports in Application layer (excluding pre-existing coup
         'SyncCrossGuardPermissions.php',
     ];
 
-    /** @var list<string> $files */
-    $files = glob(base_path('Modules/Core/src/Application/**/*.php')) ?: [];
+    $files = coreSrcPhpFiles('Application');
     foreach ($files as $file) {
         $basename = basename($file);
         if (in_array($basename, $allowedFiles, true)) {
@@ -29,8 +49,7 @@ it('has zero StaffUser imports in Application layer (excluding pre-existing coup
 })->expect('REQ-A1');
 
 it('has zero StaffUser imports in Contracts layer', function (): void {
-    /** @var list<string> $files */
-    $files = glob(base_path('Modules/Core/src/Contracts/**/*.php')) ?: [];
+    $files = coreSrcPhpFiles('Contracts');
     foreach ($files as $file) {
         $content = file_get_contents($file);
         expect($content)
@@ -39,8 +58,7 @@ it('has zero StaffUser imports in Contracts layer', function (): void {
 })->expect('REQ-A2');
 
 it('has no Admin imports in Core', function (): void {
-    /** @var list<string> $files */
-    $files = glob(base_path('Modules/Core/src/**/*.php'), 8192) ?: [];
+    $files = coreSrcPhpFiles();
     foreach ($files as $file) {
         $content = file_get_contents($file);
         expect($content)

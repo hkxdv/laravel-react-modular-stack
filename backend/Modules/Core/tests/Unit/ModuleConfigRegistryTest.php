@@ -8,8 +8,6 @@ use Modules\Core\Infrastructure\Laravel\Services\CoreModuleConfig;
 use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigRegistry;
 use Modules\Examples\App\ModuleConfig\ExamplesModuleConfig;
 
-uses(Tests\TestCase::class);
-
 it('registers implementations keyed by module slug', function (): void {
     $registry = new ModuleConfigRegistry();
     $config = new CoreModuleConfig();

@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Modules\Core\Domain\Menu\NavComponentLink;
 
-uses(Tests\TestCase::class);
-
 it('creates a NavComponentLink with valid data', function (): void {
     $link = new NavComponentLink(
         key: 'users_list',

@@ -18,7 +18,7 @@ use Illuminate\Session\Store;
 /** @phpstan-ignore trait.unused */
 trait SessionStoreFake
 {
-    private function createFakeSession(Request $request): Store
+    protected function createFakeSession(Request $request): Store
     {
         $handler = new ArraySessionHandler('test');
         $store = new Store('test', $handler, 'session_id');

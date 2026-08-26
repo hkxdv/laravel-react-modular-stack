@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Modules\Core\Domain\Menu\BreadcrumbItem;
 
-uses(Tests\TestCase::class);
-
 it('creates a BreadcrumbItem with valid data', function (): void {
     $crumb = new BreadcrumbItem(
         title: 'Admin',

@@ -9,7 +9,7 @@ use Modules\Core\Tests\Fakes\FakeAddonRegistry;
 use Modules\Core\Tests\Fakes\FakeMenuBuilder;
 use Modules\Core\Tests\Fakes\SessionStoreFake;
 
-uses(Tests\TestCase::class, SessionStoreFake::class);
+uses(SessionStoreFake::class);
 
 beforeEach(function (): void {
     // Force array cache store so cache operations work in tests
@@ -112,12 +112,6 @@ it('returns result with all required navigation keys as arrays', function (): vo
         user: null,
     );
 
-    // ModulePageProps readonly object - verify public properties
-    expect($result->mainNavItems)->toBeArray();
-    expect($result->moduleNavItems)->toBeArray();
-    expect($result->contextualNavItems)->toBeArray();
-    expect($result->globalNavItems)->toBeArray();
-    expect($result->breadcrumbs)->toBeArray();
-    expect($result->panelItems)->toBeArray();
-    expect($result->pageTitle)->toBeString();
+    expect($result->pageTitle)->toBe('Test Module')
+        ->and($result->description)->toBe('A test module');
 });

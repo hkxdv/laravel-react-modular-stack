@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Modules\Core\Domain\Menu\NavComponentGroup;
 use Modules\Core\Domain\Menu\NavComponentLink;
 
-uses(Tests\TestCase::class);
-
 it('creates a NavComponentGroup with valid data', function (): void {
     $link1 = new NavComponentLink(
         key: 'users_list',

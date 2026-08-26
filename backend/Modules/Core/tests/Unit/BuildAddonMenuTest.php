@@ -7,8 +7,6 @@ use Modules\Core\Application\Menu\BuildAddonMenu;
 use Modules\Core\Tests\Fakes\FakeAddonRegistry;
 use Modules\Core\Tests\Fakes\FakePermissionChecker;
 
-uses(Tests\TestCase::class);
-
 // ── CT-MENU-02: log payload has correct module counts ──
 
 it('logs nav_items_build with correct total_modules, included_main, and denied counts', function (): void {

@@ -12,5 +12,5 @@ declare(strict_types=1);
 |
 */
 
-pest()->extend(Tests\TestCase::class)
+uses(Tests\TestCase::class)
     ->in('Feature', 'Unit');

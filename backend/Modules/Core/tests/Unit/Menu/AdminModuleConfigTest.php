@@ -3,23 +3,18 @@
 declare(strict_types=1);
 
 use Modules\Admin\App\ModuleConfig\AdminModuleConfig;
-use Modules\Core\Domain\Menu\BreadcrumbMap;
-use Modules\Core\Domain\Menu\ContextualNavMap;
 use Modules\Core\Domain\Menu\NavComponentGroup;
 use Modules\Core\Domain\Menu\NavComponentLink;
-use Modules\Core\Domain\Panel\PanelItem;
-
-uses(Tests\TestCase::class);
 
 it('contextualNav returns ContextualNavMap with correct structure from config', function (): void {
     $adapter = new AdminModuleConfig();
     $result = $adapter->contextualNav();
 
-    expect($result)->toBeInstanceOf(ContextualNavMap::class)
-        ->and($result->items)->not->toBeEmpty();
+    expect($result->items)->not->toBeEmpty();
 
     // default route uses group:user_management
     expect($result->items)->toHaveKey('default');
+
     $defaultItems = $result->items['default'];
     expect($defaultItems)->not->toBeEmpty();
 
@@ -43,11 +38,11 @@ it('breadcrumbs returns BreadcrumbMap with correct structure from config', funct
     $adapter = new AdminModuleConfig();
     $result = $adapter->breadcrumbs();
 
-    expect($result)->toBeInstanceOf(BreadcrumbMap::class)
-        ->and($result->items)->not->toBeEmpty();
+    expect($result->items)->not->toBeEmpty();
 
     // users.index has admin_root + users_list
     expect($result->items)->toHaveKey('users.index');
+
     $crumbs = $result->items['users.index'];
     expect($crumbs)->toHaveCount(2)
         ->and($crumbs[0]->title)->toBe('Módulo de Administración')
@@ -63,13 +58,11 @@ it('panelItems returns list of PanelItem from config', function (): void {
     $adapter = new AdminModuleConfig();
     $result = $adapter->panelItems();
 
-    expect($result)->toBeArray()
-        ->and($result)->not->toBeEmpty()
+    expect($result)->not->toBeEmpty()
         ->and($result)->toHaveCount(3);
 
     $first = $result[0];
-    expect($first)->toBeInstanceOf(PanelItem::class)
-        ->and($first->name)->toBe('Lista de Usuarios')
+    expect($first->name)->toBe('Lista de Usuarios')
         ->and($first->description)->toBe('Añadir, editar o eliminar cuentas de usuario.')
         ->and($first->routeNameSuffix)->toBe('users.index')
         ->and($first->icon)->toBe('Users')

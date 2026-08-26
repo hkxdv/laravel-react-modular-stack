@@ -7,8 +7,6 @@ use Modules\Core\Domain\Menu\ContextualNavMap;
 use Modules\Core\Domain\Menu\NavComponentGroup;
 use Modules\Core\Domain\Menu\NavComponentLink;
 
-uses(Tests\TestCase::class);
-
 it('creates a ContextualNavMap with items', function (): void {
     $link = new NavComponentLink(
         key: 'dashboard',

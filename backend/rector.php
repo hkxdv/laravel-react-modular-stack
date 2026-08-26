@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Pest\Rector\Set\PestSetList;
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use RectorLaravel\Rector\Class_\AddHasFactoryToModelsRector;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
@@ -22,6 +22,9 @@ return RectorConfig::configure()
         LaravelSetList::LARAVEL_FACTORIES,
         LaravelSetList::LARAVEL_IF_HELPERS,
         LaravelSetList::LARAVEL_LEGACY_FACTORIES_TO_CLASSES,
+        LaravelSetList::LARAVEL_TESTING,
+        LaravelSetList::LARAVEL_TYPE_DECLARATIONS,
+        PestSetList::CODING_STYLE,
     ])
     ->withComposerBased(laravel: true)
     ->withCache(
@@ -40,7 +43,6 @@ return RectorConfig::configure()
         __DIR__.'/routes',
     ])
     ->withSkip([
-        AddOverrideAttributeToOverriddenMethodsRector::class,
         RectorLaravel\Rector\ArrayDimFetch\EnvVariableToEnvHelperRector::class => [
             __DIR__.'/bootstrap/app.php',
         ],
@@ -51,6 +53,10 @@ return RectorConfig::configure()
         AddHasFactoryToModelsRector::class => [
             __DIR__.'/Modules/Core/src/Infrastructure/Eloquent/Models/AbstractDomainUser.php',
         ],
+        Pest\Rector\Rules\Pest2ToPest3\UsesToExtendRector::class,
+    ])
+    ->withConfiguredRule(Pest\Rector\Rules\ChainExpectCallsRector::class, [
+        'merge_different_variables' => false,
     ])
     ->withPreparedSets(
         deadCode: true,

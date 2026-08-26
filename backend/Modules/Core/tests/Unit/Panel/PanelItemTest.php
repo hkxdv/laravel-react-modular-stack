@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Modules\Core\Domain\Panel\PanelItem;
 
-uses(Tests\TestCase::class);
-
 it('creates a PanelItem with valid data', function (): void {
     $panel = new PanelItem(
         name: 'Users',
@@ -81,8 +79,8 @@ it('fromConfigArray creates PanelItem with minimal data', function (): void {
         ],
     ]);
 
-    expect($panels[0]->description)->toBe('')
-        ->and($panels[0]->icon)->toBe('')
+    expect($panels[0]->description)->toBeEmpty()
+        ->and($panels[0]->icon)->toBeEmpty()
         ->and($panels[0]->permission)->toBeNull();
 });
 

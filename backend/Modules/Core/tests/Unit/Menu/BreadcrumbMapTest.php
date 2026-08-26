@@ -6,8 +6,6 @@ use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Modules\Core\Domain\Menu\BreadcrumbItem;
 use Modules\Core\Domain\Menu\BreadcrumbMap;
 
-uses(Tests\TestCase::class);
-
 it('creates a BreadcrumbMap with items', function (): void {
     $crumb = new BreadcrumbItem(
         title: 'Admin',

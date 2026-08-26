@@ -8,8 +8,6 @@ use Modules\Core\Application\Menu\BuildContextualMenu;
 use Modules\Core\Infrastructure\Laravel\Events\MenuPermissionDenied;
 use Modules\Core\Tests\Fakes\FakePermissionChecker;
 
-uses(Tests\TestCase::class);
-
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
 });
@@ -40,7 +38,7 @@ it('increments denial counter and dispatches MenuPermissionDenied when permissio
     expect(Cache::get('metrics:navigation:denied:total'))->toBe(1);
 
     // Event was dispatched
-    Event::assertDispatched(MenuPermissionDenied::class, fn (MenuPermissionDenied $event): bool => $event->permission === 'admin.settings'
+    Event::assertDispatched(fn (MenuPermissionDenied $event): bool => $event->permission === 'admin.settings'
         && $event->moduleSlug === 'core'
         && $event->context === 'contextual_nav');
 });

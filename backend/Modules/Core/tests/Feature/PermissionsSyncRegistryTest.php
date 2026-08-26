@@ -7,8 +7,6 @@ use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use Modules\Examples\App\PermissionRegistry\ExamplesPermissionRegistry;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class);
-
 beforeEach(function (): void {
     // Reset permissions cache
     app()->make(Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();

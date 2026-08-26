@@ -8,8 +8,6 @@ use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigRegistry;
 
 use function Foundry\Helpers\cacheInt;
 
-uses(Tests\TestCase::class);
-
 beforeEach(function (): void {
     config(['cache.default' => 'array']);
 });

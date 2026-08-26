@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Modules\Core\Domain\Addon\InvalidAddonConfig;
 use Modules\Core\Domain\Menu\NavItem;
 
-uses(Tests\TestCase::class);
-
 it('creates a NavItem with valid data', function (): void {
     $nav = new NavItem(
         title: 'Admin',

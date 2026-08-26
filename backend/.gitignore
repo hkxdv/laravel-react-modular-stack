@@ -7,3 +7,4 @@
 /.phpunit.cache
 .phpactor.json
 .phpunit.result.cache
+tests/Browser/Screenshots

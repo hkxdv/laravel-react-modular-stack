@@ -21,6 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @use HasFactory<FakeDomainUserFactory>
  */
+#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'users')]
 final class FakeDomainUser extends AbstractDomainUser
 {
     use CanBeImpersonated;
@@ -33,8 +34,6 @@ final class FakeDomainUser extends AbstractDomainUser
     use HasRoles;
     use LogsActivity;
     use Notifiable;
-
-    protected $table = 'users';
 
     public function getAuthGuard(): string
     {
