@@ -12,18 +12,10 @@ use Spatie\Permission\PermissionRegistrar;
 /**
  * Sincroniza permisos granulares desde los registros de cada módulo.
  */
+#[\Illuminate\Console\Attributes\Description('Crea/actualiza permisos granulares desde los PermissionRegistry de cada módulo')]
+#[\Illuminate\Console\Attributes\Signature('permissions:sync-registry')]
 final class PermissionsSyncRegistry extends Command
 {
-    /**
-     * {@inheritDoc}
-     */
-    protected $signature = 'permissions:sync-registry';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected $description = 'Crea/actualiza permisos granulares desde los PermissionRegistry de cada módulo';
-
     /**
      * {@inheritDoc}
      */

@@ -8,22 +8,10 @@ use Exception;
 use Illuminate\Console\Command;
 use Modules\Core\Application\Permissions\SyncCrossGuardPermissions;
 
+#[\Illuminate\Console\Attributes\Description('Sincroniza roles y permisos entre los guards configurados')]
+#[\Illuminate\Console\Attributes\Signature('permissions:sync-guards')]
 final class SyncGuardPermissionsCommand extends Command
 {
-    /**
-     * El nombre y la firma del comando de consola.
-     *
-     * @var string
-     */
-    protected $signature = 'permissions:sync-guards';
-
-    /**
-     * La descripción del comando de consola.
-     *
-     * @var string
-     */
-    protected $description = 'Sincroniza roles y permisos entre los guards configurados';
-
     /**
      * Ejecuta el comando de consola.
      */

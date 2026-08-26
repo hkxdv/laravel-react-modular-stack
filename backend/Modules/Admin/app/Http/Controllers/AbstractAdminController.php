@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
@@ -14,6 +15,9 @@ use Modules\Core\Contracts\ModuleOrchestratorInterface;
  * Controlador base para controladores del Módulo Admin.
  * Centraliza dependencias vía Contracts y delega la orquestación de vistas.
  */
+#[Middleware('auth:staff')]
+#[Middleware('verified')]
+#[Middleware('throttle:60,1')]
 abstract class AbstractAdminController extends Controller
 {
     /**

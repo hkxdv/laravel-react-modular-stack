@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
@@ -26,41 +29,23 @@ use Spatie\Activitylog\LogOptions;
  *
  * @use HasFactory<StaffUsersFactory>
  */
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'email_verified_at',
+])]
+#[Hidden([
+    'password',
+    'remember_token',
+    'two_factor_secret',
+    'two_factor_recovery_codes',
+])]
+#[Table(name: 'staff_users')]
 final class StaffUser extends AbstractDomainUser implements MustVerifyEmail
 {
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
-
-    /**
-     * El nombre de la tabla asociada con el modelo.
-     *
-     * @var string
-     */
-    protected $table = 'staff_users';
-
-    /**
-     * Los atributos que son asignables en masa.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'email_verified_at',
-    ];
-
-    /**
-     * Los atributos que deberían estar ocultos para las serializaciones.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-    ];
 
     /**
      * Los atributos que deben ser convertidos.

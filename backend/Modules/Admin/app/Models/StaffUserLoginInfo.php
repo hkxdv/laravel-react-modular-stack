@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +33,20 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  *
  * @use HasFactory<Factory<StaffUserLoginInfo>>
  */
+#[Fillable([
+    'loginable_type',
+    'loginable_id',
+    'ip_address',
+    'user_agent',
+    'device_type',
+    'browser',
+    'platform',
+    'is_mobile',
+    'is_trusted',
+    'last_login_at',
+    'login_count',
+])]
+#[Table(name: 'staff_login_infos')]
 final class StaffUserLoginInfo extends Model
 {
     /** @use HasFactory<Factory<StaffUserLoginInfo>> */
@@ -41,32 +57,6 @@ final class StaffUserLoginInfo extends Model
      * Se usa para tolerar variaciones menores en las versiones de los navegadores.
      */
     private const int USER_AGENT_SIMILARITY_THRESHOLD = 80;
-
-    /**
-     * El nombre de la tabla asociada con el modelo.
-     *
-     * @var string
-     */
-    protected $table = 'staff_login_infos';
-
-    /**
-     * Los atributos que son asignables en masa.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'loginable_type',
-        'loginable_id',
-        'ip_address',
-        'user_agent',
-        'device_type',
-        'browser',
-        'platform',
-        'is_mobile',
-        'is_trusted',
-        'last_login_at',
-        'login_count',
-    ];
 
     /**
      * Los atributos que deberían ser convertidos a tipos nativos.

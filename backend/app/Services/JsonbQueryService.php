@@ -48,12 +48,15 @@ final class JsonbQueryService
             // PostgreSQL permite consultas más avanzadas con el operador @>
             $jsonPath = $this->buildJsonPath($column, $path);
 
+            /** @var literal-string $sql */
+            $sql = sprintf(
+                '%s %s ?',
+                $jsonPath,
+                $operator
+            );
+
             return $query->whereRaw(
-                sprintf(
-                    '%s %s ?',
-                    $jsonPath,
-                    $operator
-                ),
+                $sql,
                 [$this->formatJsonValue($value)]
             );
         }
@@ -90,12 +93,15 @@ final class JsonbQueryService
     ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Usamos el operador JSONB específico de PostgreSQL (más eficiente)
+            /** @var literal-string $sql */
+            $sql = sprintf(
+                '%s->>? %s ?',
+                $jsonColumn,
+                $operator
+            );
+
             return $query->whereRaw(
-                sprintf(
-                    '%s->>? %s ?',
-                    $jsonColumn,
-                    $operator
-                ),
+                $sql,
                 [$property, $value]
             );
         }
@@ -109,13 +115,16 @@ final class JsonbQueryService
         }
 
         // Para otros operadores, usamos whereRaw
+        /** @var literal-string $sql */
+        $sql = sprintf(
+            "JSON_EXTRACT(%s, '\$.%s') %s ?",
+            $jsonColumn,
+            $property,
+            $operator
+        );
+
         return $query->whereRaw(
-            sprintf(
-                "JSON_EXTRACT(%s, '\$.%s') %s ?",
-                $jsonColumn,
-                $property,
-                $operator
-            ),
+            $sql,
             [$value]
         );
     }
@@ -168,20 +177,26 @@ final class JsonbQueryService
     ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Búsqueda difusa en PostgreSQL con ILIKE para ignorar mayúsculas/minúsculas
+            /** @var literal-string $sql */
+            $sql = sprintf('%s->>? ILIKE ?', $jsonColumn);
+
             return $query->whereRaw(
-                $jsonColumn.'->>? ILIKE ?',
+                $sql,
                 [$property, sprintf('%%%s%%', $searchTerm)]
             );
         }
 
         // Para otros motores, esto es más complejo y menos eficiente
         // Aquí usamos una aproximación, aunque no es óptima para grandes conjuntos de datos
+        /** @var literal-string $sql */
+        $sql = sprintf(
+            "JSON_EXTRACT(%s, '\$.%s') LIKE ?",
+            $jsonColumn,
+            $property
+        );
+
         return $query->whereRaw(
-            sprintf(
-                "JSON_EXTRACT(%s, '\$.%s') LIKE ?",
-                $jsonColumn,
-                $property
-            ),
+            $sql,
             [sprintf('%%%s%%', $searchTerm)]
         );
     }
@@ -213,23 +228,29 @@ final class JsonbQueryService
                 $bindings[] = sprintf('%%%s%%', $searchTerm);
             }
 
+            /** @var literal-string $sql */
+            $sql = sprintf('(%s)', implode(' OR ', $conditions));
+
             return $query->whereRaw(
-                '('.implode(' OR ', $conditions).')',
+                $sql,
                 $bindings
             );
         }
 
         // Para otros motores, hacemos una aproximación
         return $query->where(function (
-            EloquentBuilder|Builder $q
+            \Illuminate\Contracts\Database\Query\Builder $q
         ) use ($jsonColumn, $properties, $searchTerm): void {
             foreach ($properties as $property) {
+                /** @var literal-string $sql */
+                $sql = sprintf(
+                    "JSON_EXTRACT(%s, '\$.%s') LIKE ?",
+                    $jsonColumn,
+                    $property
+                );
+
                 $q->orWhereRaw(
-                    sprintf(
-                        "JSON_EXTRACT(%s, '\$.%s') LIKE ?",
-                        $jsonColumn,
-                        $property
-                    ),
+                    $sql,
                     [sprintf('%%%s%%', $searchTerm)]
                 );
             }
@@ -256,33 +277,38 @@ final class JsonbQueryService
         if ($this->isPostgres()) {
             $operator = $exists ? 'IS NOT NULL' : 'IS NULL';
 
+            /** @var literal-string $sql */
+            $sql = sprintf(
+                '%s->?::text %s',
+                $jsonColumn,
+                $operator
+            );
+
             return $query->whereRaw(
-                sprintf(
-                    '%s->?::text %s',
-                    $jsonColumn,
-                    $operator
-                ),
+                $sql,
                 [$property]
             );
         }
 
         if ($exists) {
-            return $query->whereRaw(
-                sprintf(
-                    "JSON_EXTRACT(%s, '\$.%s') IS NOT NULL",
-                    $jsonColumn,
-                    $property
-                )
-            );
-        }
-
-        return $query->whereRaw(
-            sprintf(
-                "JSON_EXTRACT(%s, '\$.%s') IS NULL",
+            /** @var literal-string $sql */
+            $sql = sprintf(
+                "JSON_EXTRACT(%s, '\$.%s') IS NOT NULL",
                 $jsonColumn,
                 $property
-            )
+            );
+
+            return $query->whereRaw($sql);
+        }
+
+        /** @var literal-string $sql */
+        $sql = sprintf(
+            "JSON_EXTRACT(%s, '\$.%s') IS NULL",
+            $jsonColumn,
+            $property
         );
+
+        return $query->whereRaw($sql);
     }
 
     /**
@@ -305,25 +331,29 @@ final class JsonbQueryService
     ): Builder|EloquentBuilder {
         if ($this->isPostgres()) {
             // Para PostgreSQL, convertimos el valor a texto para un ordenamiento más consistente
+            /** @var literal-string $sql */
+            $sql = sprintf(
+                '%s->>? %s',
+                $jsonColumn,
+                $direction
+            );
+
             return $query->orderByRaw(
-                sprintf(
-                    '%s->>? %s',
-                    $jsonColumn,
-                    $direction
-                ),
+                $sql,
                 [$property]
             );
         }
 
         // Para otros motores
-        return $query->orderByRaw(
-            sprintf(
-                "JSON_EXTRACT(%s, '\$.%s') %s",
-                $jsonColumn,
-                $property,
-                $direction
-            )
+        /** @var literal-string $sql */
+        $sql = sprintf(
+            "JSON_EXTRACT(%s, '\$.%s') %s",
+            $jsonColumn,
+            $property,
+            $direction
         );
+
+        return $query->orderByRaw($sql);
     }
 
     /**

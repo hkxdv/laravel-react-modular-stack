@@ -79,7 +79,12 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
         $sortDirection = $filter->sortDirection;
 
         if (in_array($sortField, self::ALLOWED_SORT_FIELDS, true)) {
-            $query->orderBy($sortField, $sortDirection);
+            // ponytail: narrow arbitrary string to 'asc'|'desc' literal so L13 orderBy() signature is satisfied
+            $direction = match (mb_strtolower($sortDirection)) {
+                'asc' => 'asc',
+                default => 'desc',
+            };
+            $query->orderBy($sortField, $direction);
         } else {
             $query->orderBy('created_at', 'desc');
         }

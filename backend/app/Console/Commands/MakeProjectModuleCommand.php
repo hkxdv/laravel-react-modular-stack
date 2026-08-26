@@ -10,22 +10,10 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Modules\Core\Contracts\AddonRegistryInterface;
 
+#[\Illuminate\Console\Attributes\Description('Crea un módulo con la estructura y estándares del proyecto')]
+#[\Illuminate\Console\Attributes\Signature('make:project-module {name : Nombre del módulo}')]
 final class MakeProjectModuleCommand extends Command
 {
-    /**
-     * El nombre y la firma de la consola del comando.
-     *
-     * @var string
-     */
-    protected $signature = 'make:project-module {name : Nombre del módulo}';
-
-    /**
-     * La descripción de la consola del comando.
-     *
-     * @var string
-     */
-    protected $description = 'Crea un módulo con la estructura y estándares del proyecto';
-
     /**
      * Ejecuta el comando de consola.
      */

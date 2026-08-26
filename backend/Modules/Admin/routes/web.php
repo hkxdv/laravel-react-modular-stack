@@ -26,9 +26,6 @@ use Modules\Admin\App\Http\Controllers\StaffUsers\ListStaffUsersController;
 */
 
 Route::middleware([
-    'auth:staff',
-    'verified',
-    'throttle:60,1',
     'permission:rbac.view,staff',
 ])->prefix('internal/staff/admin')->name('internal.staff.admin.')->group(
     function (): void {

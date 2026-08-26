@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Examples\App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
+use Modules\Examples\Database\Factories\ExampleTenantUserFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -15,29 +18,21 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Modelo esqueleto que demuestra la abstracción de AbstractDomainUser
  * funcionando con el guard 'tenant' y columnas polimórficas de sesión.
  */
+#[Fillable([
+    'name',
+    'email',
+    'password',
+])]
+#[Hidden([
+    'password',
+    'remember_token',
+])]
 final class ExampleTenantUser extends AbstractDomainUser
 {
     /** @use HasFactory<\Modules\Examples\Database\Factories\ExampleTenantUserFactory> */
     use HasFactory;
 
     use LogsActivity;
-
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
 
     public function getAuthGuard(): string
     {
@@ -54,9 +49,9 @@ final class ExampleTenantUser extends AbstractDomainUser
         return LogOptions::defaults();
     }
 
-    protected static function newFactory(): \Modules\Examples\Database\Factories\ExampleTenantUserFactory
+    protected static function newFactory(): ExampleTenantUserFactory
     {
-        return \Modules\Examples\Database\Factories\ExampleTenantUserFactory::new();
+        return ExampleTenantUserFactory::new();
     }
 
     protected function casts(): array

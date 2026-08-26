@@ -229,4 +229,17 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | This option controls how session data is serialized before being stored.
+    | Laravel 13 defaults to 'json'; pinning to 'php' ensures existing sessions
+    | remain valid after the upgrade.
+    |
+    */
+
+    'serialization' => 'php',
+
 ];

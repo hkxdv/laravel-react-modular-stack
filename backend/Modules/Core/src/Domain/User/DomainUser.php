@@ -65,6 +65,6 @@ final readonly class DomainUser
      */
     public function hasAnyRole(array $roles): bool
     {
-        return array_any($roles, fn ($role): bool => in_array($role, $this->roles, true));
+        return array_any($roles, fn (string $role): bool => in_array($role, $this->roles, true));
     }
 }

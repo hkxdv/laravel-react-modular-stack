@@ -10,12 +10,10 @@ use Modules\Core\Infrastructure\Laravel\Services\ModuleConfigValidator;
 /**
  * Valida las configuraciones de todos los módulos registrados.
  */
+#[\Illuminate\Console\Attributes\Description('Valida las configuraciones de módulos contra las reglas de integridad')]
+#[\Illuminate\Console\Attributes\Signature('modules:validate-config {--strict : Promueve warnings a failures}')]
 final class ValidateModuleConfig extends Command
 {
-    protected $signature = 'modules:validate-config {--strict : Promueve warnings a failures}';
-
-    protected $description = 'Valida las configuraciones de módulos contra las reglas de integridad';
-
     public function __construct(
         private readonly ModuleConfigValidator $validator,
     ) {

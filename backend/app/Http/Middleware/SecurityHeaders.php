@@ -103,7 +103,7 @@ final class SecurityHeaders
 
         return array_any(
             $downloadTypes,
-            fn ($type): bool => mb_stripos((string) $contentType, (string) $type) !== false
+            fn (string $type): bool => mb_stripos((string) $contentType, (string) $type) !== false
         );
     }
 

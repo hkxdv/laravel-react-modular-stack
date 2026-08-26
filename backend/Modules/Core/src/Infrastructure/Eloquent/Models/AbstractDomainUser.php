@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Infrastructure\Eloquent\Models;
 
 use App\Interfaces\AuthenticatableUser;
+use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
@@ -31,6 +32,9 @@ use function Foundry\Helpers\userId;
  * @property list<string> $fillable
  * @property string $table
  */
+#[Appends([
+    'avatar',
+])]
 abstract class AbstractDomainUser extends Authenticatable implements AuthenticatableUser
 {
     use CanBeImpersonated;
@@ -39,15 +43,6 @@ abstract class AbstractDomainUser extends Authenticatable implements Authenticat
     use HasRoles;
     use LogsActivity;
     use Notifiable;
-
-    /**
-     * Atributos agregados al array/JSON automáticamente.
-     *
-     * @var list<string>
-     */
-    protected $appends = [
-        'avatar',
-    ];
 
     /**
      * Obtiene el "guard" de autenticación asociado con este tipo de usuario.
