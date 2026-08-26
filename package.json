@@ -1,7 +1,7 @@
 {
   "name": "foundry-stack",
   "description": "A modular Laravel + React baseline for internal management systems.",
-  "version": "0.2.0-alpha",
+  "version": "0.3.0-alpha",
   "private": true,
   "author": "Gerardo Sanchez <gschz.git@gmail.com>",
   "license": "MIT",
@@ -32,6 +32,9 @@
     "mailpit:logs": "bun run dk logs -f mailpit",
     "// POSTGRESQL (LOCAL)": "-----------------------------------------------",
     "pg:dev": "bun run --parallel 'bun run be pg:dev' 'bun run be pg:ql' 'bun run fe dev' 'bun run mailpit'"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   },
   "repository": {
     "type": "git",
