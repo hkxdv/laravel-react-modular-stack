@@ -115,20 +115,6 @@ declare namespace Modules {
           readonly permission: string | null;
         };
       }
-      namespace User {
-        export type DomainUser = {
-          readonly id: undefined;
-          readonly name: string;
-          readonly email: string;
-          readonly roles: string[];
-          readonly permissions: undefined;
-          readonly emailVerifiedAt: string | null;
-          readonly userType: string | null;
-          readonly avatar: string | null;
-          readonly createdAt: string | null;
-          readonly updatedAt: string | null;
-        };
-      }
     }
   }
 }
