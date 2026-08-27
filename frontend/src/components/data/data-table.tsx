@@ -1,5 +1,5 @@
 import { TanStackDataTable } from '@/components/tanstack/tanstack-data-table';
-import type { PaginatedResponse } from '@/types';
+import type { Paginated } from '@/types';
 import type { ColumnDef, SortingState } from '@tanstack/react-table';
 
 /**
@@ -17,7 +17,7 @@ import type { ColumnDef, SortingState } from '@tanstack/react-table';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  data: PaginatedResponse<TData> | undefined;
+  data: Paginated<TData> | undefined;
   onPageChange: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   onSortingChange?: (sorting: SortingState) => void;
@@ -50,11 +50,11 @@ export function DataTable<TData, TValue>({
 }: Readonly<DataTableProps<TData, TValue>>) {
   const pagination = data
     ? {
-        pageIndex: data.current_page - 1,
-        pageSize: data.per_page,
-        pageCount: data.last_page,
+        pageIndex: data.meta.current_page - 1,
+        pageSize: data.meta.per_page,
+        pageCount: data.meta.last_page,
         onPaginationChange: (pageIndex: number, pageSize: number) => {
-          if (pageSize && pageSize !== data.per_page) {
+          if (pageSize && pageSize !== data.meta.per_page) {
             onPageSizeChange?.(pageSize);
           }
           onPageChange(pageIndex + 1);
@@ -92,7 +92,7 @@ export function DataTable<TData, TValue>({
             }
           : {})}
         {...(onSortingChange ? { onSortingChange } : {})}
-        {...(data?.total === undefined ? {} : { totalItems: data.total })}
+        {...(data?.meta.total === undefined ? {} : { totalItems: data.meta.total })}
         {...(showNativeSortIcon === undefined ? {} : { showNativeSortIcon })}
         {...(verticalDividers === undefined ? {} : { verticalDividers })}
       />

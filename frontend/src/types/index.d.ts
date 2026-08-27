@@ -108,8 +108,8 @@ export interface Role {
   id: number;
   /** El nombre del rol. */
   name: string;
-  /** Permite propiedades adicionales para flexibilidad. */
-  [key: string]: unknown;
+  /** Descripción opcional del rol. */
+  description?: string;
 }
 
 /**
@@ -285,38 +285,4 @@ export interface ProcessedNavItem extends Omit<NavItemDefinition, 'icon' | 'chil
   icon: LucideIcon | null;
   /** Sub-elementos anidados ya procesados. */
   children?: ProcessedNavItem[];
-}
-
-/**
- * Representa la estructura cruda de una respuesta paginada de la API de Laravel.
- * Esta es la forma en que los datos llegan del backend antes de cualquier transformación.
- * @template T El tipo de los elementos en los datos paginados.
- */
-export interface PaginatedResponse<T> {
-  /** El array de elementos para la página actual. */
-  data: T[];
-  /** El número de la página actual. */
-  current_page: number;
-  /** La URL completa de la primera página. */
-  first_page_url: string;
-  /** El índice del primer elemento en la página. */
-  from: number;
-  /** El número de la última página. */
-  last_page: number;
-  /** La URL completa de la última página. */
-  last_page_url: string;
-  /** Un array de objetos de enlace para la paginación. */
-  links: PaginationLink[];
-  /** La URL de la página siguiente, o null si no hay. */
-  next_page_url: string | null;
-  /** La ruta base para las URLs de paginación. */
-  path: string;
-  /** El número de elementos por página. */
-  per_page: number;
-  /** La URL de la página anterior, o null si no hay. */
-  prev_page_url: string | null;
-  /** El índice del último elemento en la página. */
-  to: number;
-  /** El número total de elementos en todas las páginas. */
-  total: number;
 }

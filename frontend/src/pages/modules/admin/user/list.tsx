@@ -12,7 +12,7 @@ import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AppLayout from '@/layouts/app-layout';
 import { ModuleDashboardLayout } from '@/layouts/module-dashboard-layout';
 import { UserActionsCell } from '@/pages/modules/admin/components/user/user-actions-cell';
-import type { Paginated, PaginatedLinks, PaginatedMeta, StaffUser } from '@/types';
+import type { StaffUser } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { type ColumnDef, type SortingState } from '@tanstack/react-table';
@@ -20,102 +20,6 @@ import { CreditCard, Info, Mail, PlusCircle, User } from 'lucide-react';
 import { useMemo } from 'react';
 import { route } from 'ziggy-js';
 import type { UserListPageProps } from '../interfaces';
-
-/**
- * Interfaz para la respuesta paginada estándar de Laravel.
- * Laravel envía las propiedades de paginación directamente en la raíz del objeto.
- */
-interface LaravelPaginatedResponse<T> {
-  current_page: number;
-  data: T[];
-  first_page_url: string;
-  from: number | null;
-  last_page: number;
-  last_page_url: string;
-  links: {
-    url: string | null;
-    label: string;
-    active: boolean;
-    page?: number | null;
-  }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number | null;
-  total: number;
-}
-
-/**
- * Crea un objeto Paginated vacío con valores por defecto seguros.
- */
-const makeDefaultPaginated = <T,>(): Paginated<T> => {
-  const meta: PaginatedMeta = {
-    current_page: 1,
-    from: 0,
-    last_page: 1,
-    links: [],
-    path: '',
-    per_page: 10,
-    to: 0,
-    total: 0,
-  };
-  const links: PaginatedLinks = { first: '', last: '', prev: null, next: null };
-  return { data: [], meta, links };
-};
-
-/**
- * Normaliza la respuesta paginada de Laravel al formato esperado por el frontend.
- * Transforma la estructura plana de Laravel a la estructura anidada con meta y links.
- */
-const normalizePaginated = <T,>(
-  input: Paginated<T> | LaravelPaginatedResponse<T> | undefined,
-): Paginated<T> => {
-  // Si no hay input, retornar valores por defecto
-  if (!input) {
-    return makeDefaultPaginated<T>();
-  }
-
-  // Si ya tiene la estructura correcta (meta anidado), retornar tal cual
-  if ('meta' in input) {
-    return input;
-  }
-
-  // Si es la respuesta estándar de Laravel (propiedades planas), transformarla
-  const laravelResponse = input;
-  if ('current_page' in laravelResponse && Array.isArray(laravelResponse.data)) {
-    const meta: PaginatedMeta = {
-      current_page: laravelResponse.current_page,
-      from: laravelResponse.from ?? 0,
-      last_page: laravelResponse.last_page,
-      links: laravelResponse.links.map((link) => ({
-        url: link.url,
-        label: link.label,
-        active: link.active,
-      })),
-      path: laravelResponse.path,
-      per_page: laravelResponse.per_page,
-      to: laravelResponse.to ?? 0,
-      total: laravelResponse.total,
-    };
-
-    const links: PaginatedLinks = {
-      first: laravelResponse.first_page_url,
-      last: laravelResponse.last_page_url,
-      prev: laravelResponse.prev_page_url,
-      next: laravelResponse.next_page_url,
-    };
-
-    return {
-      data: laravelResponse.data,
-      meta,
-      links,
-    };
-  }
-
-  // Si no coincide con ninguna estructura conocida, retornar valores por defecto
-  return makeDefaultPaginated<T>();
-};
 
 /**
  * Normaliza el objeto filters para asegurar que siempre sea un objeto válido.
@@ -183,14 +87,13 @@ export default function UserListPage({
       : undefined,
   );
 
-  // Normalizar datos paginados y filtros para evitar errores de tipos
-  const normalizedUsers = normalizePaginated<StaffUser>(initialUsers);
+  // Filtros normalizados para evitar errores de tipos
   const filters = normalizeFilters(rawFilters);
 
-  const currentPage: number = normalizedUsers.meta.current_page;
-  const perPage: number = normalizedUsers.meta.per_page;
-  const lastPage: number = normalizedUsers.meta.last_page;
-  const totalUsers: number = normalizedUsers.meta.total;
+  const currentPage: number = initialUsers.meta.current_page;
+  const perPage: number = initialUsers.meta.per_page;
+  const lastPage: number = initialUsers.meta.last_page;
+  const totalUsers: number = initialUsers.meta.total;
 
   const initialSorting: SortingState = [
     {
@@ -410,7 +313,7 @@ export default function UserListPage({
           >
             <TanStackDataTable<StaffUser, unknown>
               columns={columns}
-              data={normalizedUsers.data}
+              data={initialUsers.data}
               searchable={false}
               paginated={true}
               serverPagination={{
