@@ -11,8 +11,6 @@ use Modules\Admin\App\Interfaces\RolesInterface;
 use Modules\Admin\App\Interfaces\StaffUserManagerInterface;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\PermissionVerifierInterface;
-use Modules\Core\Domain\User\DomainUser;
-use Modules\Core\Infrastructure\Laravel\Mappers\DomainUserMapper;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -101,7 +99,7 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
      * - Inicializa `password_changed_at` al momento de creación.
      * - Sincroniza roles si se proporcionan en `data['roles']`.
      */
-    public function createUser(array $data): DomainUser
+    public function createUser(array $data): StaffUser
     {
         // Determinar si se debe verificar automáticamente el email (por defecto: true)
         $shouldAutoVerify = ! isset($data['auto_verify_email'])
@@ -135,23 +133,21 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
             $this->syncRoles($user, $roles);
         }
 
-        return $this->mapToDomain($user);
+        return $user;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getUserById(int $id): ?DomainUser
+    public function getUserById(int $id): ?StaffUser
     {
-        $user = StaffUser::with('roles', 'permissions')->find($id);
-
-        return $user ? $this->mapToDomain($user) : null;
+        return StaffUser::with('roles', 'permissions')->find($id);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function updateUser(int $id, array $data): ?DomainUser
+    public function updateUser(int $id, array $data): ?StaffUser
     {
         $user = StaffUser::query()->find($id);
         if ($user) {
@@ -169,7 +165,7 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
                 ])->save();
             }
 
-            return $this->mapToDomain($user);
+            return $user;
         }
 
         return null;
@@ -264,13 +260,5 @@ final readonly class AdminStaffUserService implements StaffUserManagerInterface
     public function getAllRoles(): Collection
     {
         return $this->rolesInterface->getAllRoles();
-    }
-
-    /**
-     * Convierte un modelo Eloquent StaffUser a entidad de dominio DomainUser.
-     */
-    private function mapToDomain(StaffUser $user): DomainUser
-    {
-        return DomainUserMapper::toDomain($user);
     }
 }

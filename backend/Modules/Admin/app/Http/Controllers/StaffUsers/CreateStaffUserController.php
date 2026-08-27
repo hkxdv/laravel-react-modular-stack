@@ -12,7 +12,6 @@ use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
 use Modules\Admin\App\Http\Controllers\StaffUsers\Concerns\NormalizesStaffUserPayload;
 use Modules\Admin\App\Http\Requests\CreateStaffUserRequest;
-use Modules\Core\Domain\User\DomainUser;
 
 /**
  * Controlador para la creación de usuarios del personal administrativo.
@@ -52,7 +51,7 @@ final class CreateStaffUserController extends AbstractAdminController
      * Almacena un nuevo usuario.
      *
      * @param  CreateStaffUserRequest  $request  Solicitud validada para creación de usuario
-     * @return RedirectResponse Redirección o respuesta Inertia con DomainUser
+     * @return RedirectResponse Redirección o respuesta Inertia
      *
      * @throws \Illuminate\Validation\ValidationException Si la validación de entrada falla.
      */

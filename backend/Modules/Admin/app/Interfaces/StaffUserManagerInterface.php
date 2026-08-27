@@ -7,7 +7,6 @@ namespace Modules\Admin\App\Interfaces;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Admin\App\Domain\Filters\StaffUserFilter;
 use Modules\Admin\App\Models\StaffUser;
-use Modules\Core\Domain\User\DomainUser;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -28,26 +27,26 @@ interface StaffUserManagerInterface
      * Crea un nuevo usuario con los datos proporcionados.
      *
      * @param  array<string, mixed>  $data  Datos del nuevo usuario (name, email, password, etc.)
-     * @return DomainUser Usuario de dominio creado
+     * @return StaffUser Usuario staff creado
      */
-    public function createUser(array $data): DomainUser;
+    public function createUser(array $data): StaffUser;
 
     /**
      * Obtiene un usuario por su ID.
      *
      * @param  int  $id  ID del usuario
-     * @return DomainUser|null Usuario de dominio encontrado o null
+     * @return StaffUser|null Usuario staff encontrado o null
      */
-    public function getUserById(int $id): ?DomainUser;
+    public function getUserById(int $id): ?StaffUser;
 
     /**
      * Actualiza un usuario existente.
      *
      * @param  int  $id  ID del usuario
      * @param  array<string, mixed>  $data  Datos actualizados (name, email, etc.)
-     * @return DomainUser|null Usuario de dominio actualizado o null
+     * @return StaffUser|null Usuario staff actualizado o null
      */
-    public function updateUser(int $id, array $data): ?DomainUser;
+    public function updateUser(int $id, array $data): ?StaffUser;
 
     /**
      * Elimina un usuario por su ID.
