@@ -1,19 +1,7 @@
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import type { StaffUser, UserRole } from '@/types';
 import { router, useForm } from '@inertiajs/react';
-
-/**
- * Datos del formulario de usuario
- */
-export interface UserFormData {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-  roles: string[]; // Array de nombres de roles
-  auto_verify_email: boolean; // Opción para verificar automáticamente el email
-  [key: string]: string | string[] | boolean;
-}
+import type { UserFormData } from '../interfaces';
 
 /**
  * Errores del formulario de usuario
@@ -27,14 +15,14 @@ export interface UserFormErrors {
 }
 
 // Tipo para el valor que puede recibir setData
-type FormDataValue = string | string[];
+type FormDataValue = string | string[] | boolean;
 
 /**
  * Interfaz para el objeto de formulario retornado por useForm
  */
 export interface UserForm {
   data: UserFormData;
-  setData: (key: keyof UserFormData | string, value: FormDataValue) => void;
+  setData: (key: keyof UserFormData, value: FormDataValue) => void;
   errors: UserFormErrors;
   processing: boolean;
   post: (url: string, options?: { preserveScroll?: boolean; onSuccess?: () => void }) => void;

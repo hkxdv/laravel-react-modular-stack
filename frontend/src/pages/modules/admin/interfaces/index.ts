@@ -100,8 +100,14 @@ export interface UserFormData {
   name: string;
   /** Dirección de correo electrónico del usuario. */
   email: string;
-  /** Array de roles asignados al usuario. */
-  roles?: UserRole[];
+  /** Contraseña del usuario (requerida en creación, opcional en edición). */
+  password: string;
+  /** Confirmación de contraseña. */
+  password_confirmation: string;
+  /** Array de nombres de roles asignados al usuario. */
+  roles: string[];
+  /** Opción para verificar automáticamente el email del usuario. */
+  auto_verify_email: boolean;
 }
 
 /**

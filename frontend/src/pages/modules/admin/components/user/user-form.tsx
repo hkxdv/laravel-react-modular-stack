@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { UserRole } from '@/types';
 import { AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
-import type { UserFormData } from '../../hooks/use-user-form';
+import type { UserFormData } from '../../interfaces';
 
 interface UserFormProps {
   form: {
@@ -149,15 +149,15 @@ const UserForm: React.FC<UserFormProps> = ({
                   form.setData('name', e.target.value);
                 }}
                 placeholder="Introduce el nombre completo"
-                aria-invalid={!!form.errors['name']}
+                aria-invalid={!!form.errors.name}
                 className={`bg-muted/40 border-input border-b-accent-foreground/50 h-11 border px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${
-                  form.errors['name'] ? 'border-red-500 ring-1 ring-red-500' : ''
+                  form.errors.name ? 'border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
-              {form.errors['name'] && (
+              {form.errors.name && (
                 <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4" />
-                  <span>{form.errors['name']}</span>
+                  <span>{form.errors.name}</span>
                 </div>
               )}
             </div>
@@ -174,15 +174,15 @@ const UserForm: React.FC<UserFormProps> = ({
                   form.setData('email', e.target.value);
                 }}
                 placeholder="Introduce el correo electrónico"
-                aria-invalid={!!form.errors['email']}
+                aria-invalid={!!form.errors.email}
                 className={`bg-muted/40 border-input border-b-accent-foreground/50 h-11 border px-4 focus-visible:ring-1 focus-visible:ring-offset-0 ${
-                  form.errors['email'] ? 'border-red-500 ring-1 ring-red-500' : ''
+                  form.errors.email ? 'border-red-500 ring-1 ring-red-500' : ''
                 }`}
               />
-              {form.errors['email'] && (
+              {form.errors.email && (
                 <div className="mt-1 flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4" />
-                  <span>{form.errors['email']}</span>
+                  <span>{form.errors.email}</span>
                 </div>
               )}
             </div>
@@ -231,7 +231,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 onChange={(newPassword) => {
                   form.setData('password', newPassword);
                 }}
-                error={form.errors['password'] ?? ''}
+                error={form.errors.password ?? ''}
                 required
                 showStrengthIndicator
                 showStrengthDetails={showPasswordDetails}
@@ -245,7 +245,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 onChange={(newPassword) => {
                   form.setData('password_confirmation', newPassword);
                 }}
-                error={form.errors['password_confirmation'] ?? ''}
+                error={form.errors.password_confirmation ?? ''}
                 required
                 showStrengthIndicator={false}
                 showGenerateButton={false}
@@ -333,8 +333,8 @@ const UserForm: React.FC<UserFormProps> = ({
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-xs">
                         <p>
-                          {typeof role['description'] === 'string'
-                            ? role['description']
+                          {typeof role.description === 'string'
+                            ? role.description
                             : `Rol de ${role.name}`}
                           {PRIVILEGED_ROLES.has(role.name) &&
                             ' (Este rol tiene privilegios especiales y no puede ser asignado manualmente)'}
@@ -348,10 +348,10 @@ const UserForm: React.FC<UserFormProps> = ({
                 );
               })}
             </div>
-            {form.errors['roles'] && (
+            {form.errors.roles && (
               <div className="mt-2 flex items-center gap-1 text-sm text-red-500">
                 <AlertCircle className="h-4 w-4" />
-                <span>{form.errors['roles']}</span>
+                <span>{form.errors.roles}</span>
               </div>
             )}
           </div>
