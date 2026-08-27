@@ -8,8 +8,8 @@ use Illuminate\Http\Request as IlluminateRequest;
 use Inertia\Response as InertiaResponse;
 use Modules\Admin\App\Domain\Filters\StaffUserFilter;
 use Modules\Admin\App\Http\Controllers\AbstractAdminController;
+use Modules\Admin\App\Http\Resources\StaffUserResource;
 use Modules\Admin\App\Models\StaffUser;
-use Modules\Core\Domain\User\DomainUser;
 
 /**
  * Controlador para la gestión de listado de usuarios del personal administrativo.
@@ -20,7 +20,7 @@ final class ListStaffUsersController extends AbstractAdminController
      * Muestra la lista de usuarios.
      *
      * @param  IlluminateRequest  $request  Solicitud HTTP
-     * @return InertiaResponse Respuesta Inertia con la lista de DomainUser paginada
+     * @return InertiaResponse Respuesta Inertia con la lista de StaffUser paginada
      */
     public function index(IlluminateRequest $request): InertiaResponse
     {
@@ -29,7 +29,7 @@ final class ListStaffUsersController extends AbstractAdminController
         $filter = StaffUserFilter::fromRequest($request);
 
         $additionalData = [
-            'users' => $this->staffUserManager->getAllUsers($filter),
+            'users' => StaffUserResource::collection($this->staffUserManager->getAllUsers($filter)),
             'roles' => $this->rolesInterface->getAllRoles(),
             'filters' => $request->only([
                 'search',

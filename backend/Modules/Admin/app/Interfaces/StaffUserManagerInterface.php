@@ -20,7 +20,7 @@ interface StaffUserManagerInterface
      * Obtiene una lista paginada de todos los usuarios con sus roles.
      *
      * @param  StaffUserFilter  $filter  Filtros y parámetros de ordenación
-     * @return LengthAwarePaginator<int, DomainUser> Lista paginada de usuarios de dominio
+     * @return LengthAwarePaginator<int, StaffUser> Lista paginada de usuarios staff
      */
     public function getAllUsers(StaffUserFilter $filter): LengthAwarePaginator;
 
