@@ -89,11 +89,11 @@ it('presenter returns tenant user type for ExampleTenantUser', function () {
     $presenter = new TenantUserPresenter();
     $result = $presenter->present($user);
 
-    expect($result)->toBeArray()
-        ->and($result['id'])->toBe($user->id)
-        ->and($result['name'])->toBe('Maria Garcia')
-        ->and($result['email'])->toBe('maria@tenant.com')
-        ->and($result['user_type'])->toBe('tenant');
+    expect($result)->toBeObject()
+        ->and($result->id)->toBe($user->id)
+        ->and($result->name)->toBe('Maria Garcia')
+        ->and($result->email)->toBe('maria@tenant.com')
+        ->and($result->user_type)->toBe('tenant');
 });
 
 it('presenter does not depend on Admin module', function () {

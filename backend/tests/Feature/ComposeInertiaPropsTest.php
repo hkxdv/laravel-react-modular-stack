@@ -28,7 +28,7 @@ it('staff guard produces auth props with staff user_type', function (): void {
     $props = $composer->execute($request);
 
     expect($props->auth->staff)->not->toBeNull()
-        ->and($props->auth->staff['user_type'])->toBe('staff');
+        ->and($props->auth->staff->user_type)->toBe('staff');
 });
 
 it('tenant guard produces auth props with tenant user_type', function (): void {
@@ -44,7 +44,7 @@ it('tenant guard produces auth props with tenant user_type', function (): void {
     $props = $composer->execute($request);
 
     expect($props->auth->staff)->not->toBeNull()
-        ->and($props->auth->staff['user_type'])->toBe('tenant');
+        ->and($props->auth->staff->user_type)->toBe('tenant');
 });
 
 it('no user produces guest auth props with null user', function (): void {

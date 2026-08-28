@@ -121,8 +121,17 @@ final readonly class ComposeInertiaProps
         Request $request,
         ?AuthUserPresenterInterface $presenter,
     ): AuthPageProps {
-        $transformedUser = $user instanceof AbstractDomainUser && $presenter instanceof AuthUserPresenterInterface
+        /** @var \Modules\Core\Domain\User\DTO\StaffUserDto|\Modules\Core\Domain\User\DTO\TenantUserDto|array<never, never>|null $presented */
+        $presented = $user instanceof AbstractDomainUser && $presenter instanceof AuthUserPresenterInterface
           ? $presenter->present($user) : null;
+
+        // Presenter returns [] for unsupported user types; treat as null
+        if (is_array($presented) && $presented === []) {
+            $presented = null;
+        }
+
+        /** @var \Modules\Core\Domain\User\DTO\StaffUserDto|\Modules\Core\Domain\User\DTO\TenantUserDto|null */
+        $transformedUser = $presented;
 
         $isImpersonating = $user && $request->session()->has('impersonated_by');
 

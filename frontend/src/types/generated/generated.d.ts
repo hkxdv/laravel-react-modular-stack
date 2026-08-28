@@ -3,8 +3,14 @@ declare namespace Modules {
     namespace Application {
       namespace View {
         export type AuthPageProps = {
-          readonly user: Record<string, any> | null;
-          readonly staff: Record<string, any> | null;
+          readonly user:
+            | Modules.Core.Domain.User.DTO.StaffUserDto
+            | Modules.Core.Domain.User.DTO.TenantUserDto
+            | null;
+          readonly staff:
+            | Modules.Core.Domain.User.DTO.StaffUserDto
+            | Modules.Core.Domain.User.DTO.TenantUserDto
+            | null;
           readonly impersonate: boolean;
           readonly can: Record<string, boolean>;
         };
@@ -114,6 +120,41 @@ declare namespace Modules {
           readonly icon: string;
           readonly permission: string | null;
         };
+      }
+      namespace User {
+        namespace DTO {
+          export type RoleDto = {
+            readonly id: number;
+            readonly name: string;
+            readonly description: string | null;
+          };
+          export type StaffUserDto = {
+            readonly id: number;
+            readonly name: string;
+            readonly email: string;
+            readonly email_verified_at: string | null;
+            readonly user_type: string;
+            readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
+            readonly permissions: string[];
+            readonly avatar: string | null;
+          };
+          export type TenantUserDto = {
+            readonly id: number;
+            readonly name: string;
+            readonly email: string;
+            readonly user_type: string;
+            readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
+            readonly permissions: string[];
+            readonly avatar: string | null;
+            readonly email_verified_at: string | null;
+          };
+          export type UserDto = {
+            readonly id: number;
+            readonly name: string;
+            readonly email: string;
+            readonly user_type: string;
+          };
+        }
       }
     }
   }
