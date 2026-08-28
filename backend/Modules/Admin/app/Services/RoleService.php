@@ -77,7 +77,13 @@ final readonly class RoleService implements RolesInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Actualiza un rol existente con los datos proporcionados.
+     *
+     * @param  int  $id  ID del rol
+     * @param  array{name?: string, permissions?: array<int, string>}  $data  Datos actualizados (parcial)
+     * @return Role Rol actualizado
+     *
+     * @throws InvalidArgumentException Si no se proporciona al menos un campo (name o permissions)
      */
     public function updateRole(int $id, array $data): Role
     {
