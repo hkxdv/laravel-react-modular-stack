@@ -1,5 +1,5 @@
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
-import type { StaffUser, UserRole } from '@/types';
+import type { Role, StaffUser } from '@/types';
 import { router, useForm } from '@inertiajs/react';
 import type { UserFormData } from '../interfaces';
 
@@ -87,7 +87,7 @@ const deleteUser = (user: StaffUser) => {
  */
 export const useUserForm = (
   initialUser?: StaffUser,
-  availableRoles?: UserRole[],
+  availableRoles?: Role[],
   authUserId?: number,
 ) => {
   // Inicializar el formulario con useForm de Inertia.js

@@ -8,7 +8,6 @@ import type {
   Role,
   StaffUser,
   User,
-  UserRole,
 } from '@/types';
 import { type PageProps } from '@inertiajs/core';
 
@@ -64,7 +63,7 @@ export interface UserListPageProps extends BaseNavProps {
  */
 export interface UserEditPageProps extends BaseNavProps {
   user: StaffUser;
-  roles: UserRole[];
+  roles: Role[];
   auth: { user: User };
   _errors?: Record<string, string>;
   flash?: {
@@ -79,7 +78,7 @@ export interface UserEditPageProps extends BaseNavProps {
  * Props para la página de creación de usuario.
  */
 export interface UserCreatePageProps extends BaseNavProps {
-  roles: UserRole[];
+  roles: Role[];
   auth: { user: User };
   _errors?: Record<string, string>;
   flash?: {
@@ -120,11 +119,7 @@ export interface UserIdentifier {
 }
 
 // Reexportar tipos globales útiles relacionados
-export type {
-  Role as AdminRole,
-  UserListItem as AdminUserListItem,
-  UserRole as AdminUserRole,
-} from '@/types';
+export type { Role as AdminRole, UserListItem as AdminUserListItem } from '@/types';
 
 /**
  * Un permiso individual del registro.

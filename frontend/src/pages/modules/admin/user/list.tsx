@@ -175,7 +175,7 @@ export default function UserListPage({
         header: ({ column }) => <DataTableColumnHeader column={column} title="Roles" />,
         cell: ({ row }) => {
           const roles = row.original.roles;
-          if (!roles || roles.length === 0) {
+          if (roles.length === 0) {
             return <span className="text-muted-foreground">Sin roles</span>;
           }
 

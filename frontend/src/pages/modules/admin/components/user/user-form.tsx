@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PasswordField from '@/components/ui/password-field';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { UserRole } from '@/types';
+import type { Role } from '@/types';
 import { AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import type { UserFormData } from '../../interfaces';
@@ -18,7 +18,7 @@ interface UserFormProps {
   };
   onSubmit: (data: UserFormData) => void;
   submitButtonText: string;
-  availableRoles: UserRole[];
+  availableRoles: Role[];
   onDelete?: () => void;
   isEditing?: boolean;
   authUserId?: number;

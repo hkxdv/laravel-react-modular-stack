@@ -100,59 +100,15 @@ export interface PaginatedLinks {
  */
 export type BaseUser = BaseEntity;
 
-/**
- * Representa un rol de usuario en el sistema.
- */
-export interface Role {
-  /** El ID único del rol. */
-  id: number;
-  /** El nombre del rol. */
-  name: string;
-  /** Descripción opcional del rol. */
-  description?: string;
-}
-
-/**
- * Representa a un usuario del personal interno (administradores, etc.).
- */
-export interface StaffUser extends BaseUser {
-  /** El nombre completo del usuario del personal. */
-  name: string;
-  /** El correo electrónico del usuario. */
-  email: string;
-  /** La URL del avatar del usuario. */
-  avatar?: string;
-  /** La fecha y hora en que se verificó el correo electrónico. */
-  email_verified_at: string | null;
-  /** Lista de permisos directos del usuario. */
-  permissions?: string[];
-  /** Lista de roles asignados al usuario. */
-  roles?: Role[];
-  /** El tipo de usuario, fijo a 'staff'. */
-  user_type: 'staff';
-}
-
-/**
- * Representa un usuario tenant (ejemplo esquelético para validación multi-usuario).
- */
-export interface TenantUser extends BaseUser {
-  /** El nombre completo del usuario tenant. */
-  name: string;
-  /** El correo electrónico del usuario. */
-  email: string;
-  /** La URL del avatar del usuario. */
-  avatar?: string;
-  /** El tipo de usuario, fijo a 'tenant'. */
-  user_type: 'tenant';
-}
+// Generated DTO types from backend (typescript:transformer — source of truth)
+// Reference via Modules namespace from generated.d.ts
+export type Role = Modules.Core.Domain.User.DTO.RoleDto;
+export type StaffUser = Modules.Core.Domain.User.DTO.StaffUserDto;
+export type TenantUser = Modules.Core.Domain.User.DTO.TenantUserDto;
+export type UserDto = Modules.Core.Domain.User.DTO.UserDto;
 
 /** Unión discriminada por `user_type` para todos los tipos de usuario soportados. */
 export type User = StaffUser | TenantUser;
-
-/**
- * Alias para el tipo `Role` para mayor claridad semántica.
- */
-export type UserRole = Role;
 
 /**
  * Representa un objeto de usuario simplificado, ideal para listas y diálogos.
@@ -166,7 +122,7 @@ export interface UserListItem {
   /** El correo electrónico del usuario. */
   email: string;
   /** Los roles asignados al usuario. */
-  roles?: UserRole[];
+  roles?: Role[];
 }
 
 /**

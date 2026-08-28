@@ -24,7 +24,7 @@ export function UserInfo({
   const displayName: string | undefined = userData.name;
   const displayEmail: string | undefined =
     typeof userData.email === 'string' && userData.email.trim() !== '' ? userData.email : undefined;
-  const avatarSrc: string | undefined = userData.avatar;
+  const avatarSrc: string | null | undefined = userData.avatar;
   const initials = getInitials(displayName);
 
   return (

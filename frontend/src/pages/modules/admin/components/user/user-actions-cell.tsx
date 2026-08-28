@@ -21,11 +21,11 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
   const isCurrentUser = user.id === authUserId;
 
   // Verificar si el usuario tiene rol de DEV o ADMIN
-  const hasPrivilegedRole = user.roles?.some((role) =>
+  const hasPrivilegedRole = user.roles.some((role) =>
     ['DEV', 'ADMIN'].includes(role.name.toUpperCase()),
   );
 
-  const isDevUser = user.roles?.some((role) => role.name.toUpperCase() === 'DEV');
+  const isDevUser = user.roles.some((role) => role.name.toUpperCase() === 'DEV');
 
   const handleEdit = useCallback(() => {
     // Si es un usuario DEV, mostrar advertencia y redirigir después de unos segundos
@@ -104,7 +104,7 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
               icon: <Trash className="h-4 w-4" />,
               variant: 'destructive',
               onClick: openDeleteDialog,
-              disabled: !!(isCurrentUser || hasPrivilegedRole),
+              disabled: isCurrentUser || hasPrivilegedRole,
             },
           ]}
         />

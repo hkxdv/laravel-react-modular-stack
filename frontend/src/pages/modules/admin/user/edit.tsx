@@ -2,7 +2,7 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AppLayout from '@/layouts/app-layout';
-import type { StaffUser, UserRole } from '@/types';
+import type { Role, StaffUser } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import { Head, usePage } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -76,7 +76,7 @@ export default function UserEditPage({
 
 interface UserEditManagerProps {
   user: StaffUser;
-  roles: UserRole[];
+  roles: Role[];
   authUserId: number;
 }
 

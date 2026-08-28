@@ -56,7 +56,7 @@ export const userHasPermission = (
   }
 
   // 5. Comprobar el/los permiso(s) específico(s).
-  const userPermissions = userData.permissions ?? [];
+  const userPermissions = userData.permissions;
   if (Array.isArray(permission)) {
     // Si se requiere que se cumplan TODOS los permisos de la lista.
     if (requireAll) {
