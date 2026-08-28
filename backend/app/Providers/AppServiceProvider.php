@@ -6,11 +6,13 @@ namespace App\Providers;
 
 use App\Interfaces\ApiResponseFormatterInterface;
 use App\Services\ApiResponseService;
+use App\Services\AuthUserPresenterResolver;
 use App\Services\JsonbQueryService;
 use App\Services\RouteFilterService;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\App\Models\StaffUser;
+use Modules\Core\Contracts\Auth\AuthUserPresenterResolverInterface;
 use Modules\Examples\App\Models\ExampleTenantUser;
 
 /**
@@ -44,6 +46,13 @@ final class AppServiceProvider extends ServiceProvider
         );
         $this->app->singleton(JsonbQueryService::class);
         $this->app->singleton(RouteFilterService::class);
+
+        // Resolución de presenter de usuario según guard, implementada en el
+        // shell app/ (puente entre módulos que Core no debe conocer).
+        $this->app->singleton(
+            AuthUserPresenterResolverInterface::class,
+            AuthUserPresenterResolver::class
+        );
     }
 
     /**
