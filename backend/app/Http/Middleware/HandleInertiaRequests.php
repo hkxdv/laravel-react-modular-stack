@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Facades\RouteFilter;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Core\Application\View\ComposeInertiaProps;
@@ -47,7 +46,6 @@ final class HandleInertiaRequests extends Middleware
     {
         $baseProps = [
             'name' => config('app.name', 'Foundry Stack'),
-            'ziggy' => fn () => RouteFilter::getFilteredZiggy($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

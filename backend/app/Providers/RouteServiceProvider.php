@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\App\Models\StaffUser;
-use Tighten\Ziggy\Ziggy;
 
 /**
  * Proveedor de servicios para la configuración de rutas.
@@ -27,7 +26,6 @@ final class RouteServiceProvider extends ServiceProvider
         Route::model('staffUser', StaffUser::class);
 
         $this->configureRateLimiting();
-        $this->configureZiggyRouteGroups();
 
         $this->routes(function (): void {
             Route::middleware('api')
@@ -36,8 +34,6 @@ final class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
-
-        $this->registerZiggyRoutes();
     }
 
     /**
@@ -63,68 +59,5 @@ final class RouteServiceProvider extends ServiceProvider
             'sanctum',
             fn (Request $request) => Limit::perMinute(10)->by($request->ip())
         );
-    }
-
-    /**
-     * Define los grupos de rutas para Ziggy
-     * Esto permite que podamos filtrar qué rutas se envían al frontend
-     * basándonos en los grupos definidos en Ziggy.
-     */
-    private function configureZiggyRouteGroups(): void
-    {
-        // Rutas públicas (accesibles para visitantes no autenticados)
-        config(['ziggy.groups.public' => [
-            'welcome',
-            'register.redirect',
-            'login',
-            'login.store',
-            'password.*',
-            'sanctum.csrf-cookie',
-        ]]);
-
-        // Rutas para el panel interno de personal
-        config(['ziggy.groups.staff' => [
-            'internal.*',
-            'logout',
-            'verification.*',
-            'password.confirm',
-            'password.confirm.store',
-            'sanctum.csrf-cookie',
-            'storage.local',
-        ]]);
-    }
-
-    /**
-     * Registra la ruta para que Ziggy genere las rutas del lado del cliente.
-     */
-    private function registerZiggyRoutes(): void
-    {
-        Route::get('/api/routes', function (Request $request) {
-            $groupsRaw = $request->input('groups');
-            $groupsInput = is_string($groupsRaw) ? $groupsRaw : '';
-
-            /** @var array<int, string> $requestedGroups */
-            $requestedGroups = $groupsInput === ''
-                ? []
-                : array_filter(
-                    array_map(
-                        mb_trim(...),
-                        explode(',', $groupsInput)
-                    ),
-                    static fn (string $g): bool => $g !== ''
-                );
-
-            // Asegura que el grupo 'public' siempre esté disponible
-            $groupsToFilter = array_unique(
-                array_merge(
-                    ['public'],
-                    $requestedGroups
-                )
-            );
-
-            return resolve(Ziggy::class)
-                ->filter($groupsToFilter)
-                ->toArray();
-        })->middleware('web');
     }
 }
