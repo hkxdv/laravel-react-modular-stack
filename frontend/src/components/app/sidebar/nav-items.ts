@@ -1,4 +1,5 @@
 import { type NavItemDefinition, type User } from '@/types';
+import { dashboard } from '@/routes/internal/staff';
 
 /**
  * Define la estructura de navegación principal de la barra lateral (sidebar).
@@ -24,7 +25,7 @@ export const getMainNavItemsDefinition = (_user: User | null): NavItemDefinition
   return [
     {
       title: 'Inicio',
-      href: route('internal.staff.dashboard'),
+      href: dashboard.url(),
       icon: 'Home',
       permission: undefined as unknown as string | string[],
     },

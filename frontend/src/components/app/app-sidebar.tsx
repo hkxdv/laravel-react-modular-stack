@@ -1,6 +1,7 @@
 import { NavFooter } from '@/components/app/nav/nav-footer';
 import { NavMain } from '@/components/app/nav/nav-main';
 import { NavUser } from '@/components/app/nav/nav-user';
+import { dashboard as staffDashboard } from '@/routes/internal/staff';
 import {
   Sidebar,
   SidebarContent,
@@ -104,7 +105,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href={route('internal.staff.dashboard')}>
+              <Link href={staffDashboard()}>
                 <AppLogo />
               </Link>
             </SidebarMenuButton>

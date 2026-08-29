@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { resolveRoute } from '@/lib/routing';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Users, type LucideIcon } from 'lucide-react'; // Users como fallback si no hay panelItems
 import React from 'react';
@@ -58,7 +59,7 @@ const AdminFeatureNavigationCards: React.FC<AdminFeatureNavigationCardsProps> = 
       {panelItems.map((item) => {
         const IconComponent = getIconComponent(item.icon) ?? ArrowRight;
         return (
-          <Link href={route(item.route_name)} key={item.name} className="group block">
+          <Link href={resolveRoute(item.route_name)} key={item.name} className="group block">
             <Card className="h-full overflow-hidden transition-all duration-200 ease-in-out hover:border-blue-500 hover:shadow-lg dark:hover:border-blue-400">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-semibold text-gray-800 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">

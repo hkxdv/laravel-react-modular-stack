@@ -1,3 +1,4 @@
+import { destroy, store, update } from '@/routes/internal/staff/admin/roles';
 import { router, useForm } from '@inertiajs/react';
 
 /**
@@ -22,7 +23,7 @@ export interface RoleFormErrors {
  */
 const deleteRole = (roleId: number, roleName: string): void => {
   if (confirm(`¿Estás seguro de que deseas eliminar el rol "${roleName}"?`)) {
-    router.delete(route('internal.staff.admin.roles.destroy', { role: roleId }));
+    router.delete(destroy(roleId).url);
   }
 };
 
@@ -45,8 +46,8 @@ export const useRoleForm = (initialRoleId?: number, initialPermissions?: string[
     const isEditing = !!initialRoleId;
     const method = isEditing ? 'put' : 'post';
     const url = isEditing
-      ? route('internal.staff.admin.roles.update', { role: initialRoleId })
-      : route('internal.staff.admin.roles.store');
+      ? update(initialRoleId).url
+      : store().url;
 
     router[method](url, data, {
       onSuccess: () => {

@@ -1,4 +1,5 @@
 import { type NavItemDefinition, type ProcessedNavItem, type User } from '@/types';
+import { resolveRoute } from '@/lib/routing';
 import { getLucideIcon } from '@/utils/lucide-icons';
 
 import { userHasPermission } from './permission-checker';
@@ -14,7 +15,7 @@ import { userHasPermission } from './permission-checker';
  *    requisitos de permisos complejos (ver `NavItemDefinition`).
  * 2. **Mapeo de Datos**: Convierte propiedades de la definición a valores listos para renderizar:
  *    - `icon` (string) se transforma en un componente de ícono (`LucideIcon`).
- *    - `href` (nombre de ruta) se transforma en una URL real usando `route()`.
+ *    - `href` (nombre de ruta) se transforma en una URL real usando `resolveRoute()`.
  *
  * @param items - El array de `NavItemDefinition` a procesar.
  * @param user - El objeto de usuario actual para la verificación de permisos.
@@ -49,7 +50,7 @@ export const processNavItems = (
       let finalHref = '#';
       if (item.href) {
         finalHref =
-          item.href.startsWith('http') || item.href === '#' ? item.href : route(item.href);
+          item.href.startsWith('http') || item.href === '#' ? item.href : resolveRoute(item.href);
       }
 
       processedItems.push({

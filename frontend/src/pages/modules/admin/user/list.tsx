@@ -11,6 +11,7 @@ import { useServerTable } from '@/hooks/use-server-table';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AppLayout from '@/layouts/app-layout';
 import { ModuleDashboardLayout } from '@/layouts/module-dashboard-layout';
+import { create } from '@/routes/internal/staff/admin/users';
 import { UserActionsCell } from '@/pages/modules/admin/components/user/user-actions-cell';
 import type { StaffUser } from '@/types';
 import { extractUserData } from '@/utils/user-data';
@@ -18,7 +19,6 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { type ColumnDef, type SortingState } from '@tanstack/react-table';
 import { CreditCard, Info, Mail, PlusCircle, User } from 'lucide-react';
 import { useMemo } from 'react';
-import { route } from 'ziggy-js';
 import type { UserListPageProps } from '../interfaces';
 
 /**
@@ -271,7 +271,7 @@ export default function UserListPage({
         userName={userData?.name ?? ''}
         showGreeting={false}
         actions={
-          <Link href={route('internal.staff.admin.users.create')}>
+          <Link href={create()}>
             <Button variant="default" className="gap-1.5">
               <PlusCircle className="h-4 w-4" />
               Nuevo Usuario

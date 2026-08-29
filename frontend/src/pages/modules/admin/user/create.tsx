@@ -1,13 +1,13 @@
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { index, store } from '@/routes/internal/staff/admin/users';
 import AppLayout from '@/layouts/app-layout';
 import type { Role } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import { Head, router, usePage } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { route } from 'ziggy-js';
 import UserForm from '../components/user/user-form';
 import CredentialShareDialog from '../dialogs/user/user-credential-share-dialog';
 import { useUserForm } from '../hooks/use-user-form';
@@ -141,7 +141,7 @@ const UserCreateManager: React.FC<UserCreateManagerProps> = ({ roles, authUserId
     } as const;
 
     // Enviar el formulario directamente usando router de Inertia
-    const url = route('internal.staff.admin.users.store');
+    const url = store().url;
 
     // Usar post directamente desde el router de Inertia, con opciones para evitar la redirección automática
     router.post(url, formData as unknown as FormData, {
@@ -222,7 +222,7 @@ const UserCreateManager: React.FC<UserCreateManagerProps> = ({ roles, authUserId
 
   const handleFinishAndRedirect = () => {
     setIsShareDialogOpen(false);
-    const url = route('internal.staff.admin.users.index');
+    const url = index().url;
     globalThis.location.href = url;
   };
 

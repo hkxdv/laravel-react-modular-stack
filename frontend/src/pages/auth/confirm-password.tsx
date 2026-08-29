@@ -1,3 +1,4 @@
+import { store as confirmPasswordStore } from '@/routes/password/confirm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,7 @@ export default function ConfirmPassword() {
   const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
 
-    form.post(route('password.confirm'), {
+    form.post(confirmPasswordStore().url, {
       onFinish: () => {
         form.reset();
       },

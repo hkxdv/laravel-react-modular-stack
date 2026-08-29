@@ -1,6 +1,7 @@
 import { ConfirmationDialog } from '@/components/dialogs/confirmation-dialog';
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
+import { destroy as profileDestroy } from '@/routes/internal/staff/profile';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -9,7 +10,7 @@ export default function DeleteUser() {
   const { delete: destroy, processing } = useForm({});
 
   const handleDeleteConfirm = () => {
-    destroy(route('internal.staff.profile.destroy'), {
+    destroy(profileDestroy().url, {
       preserveScroll: true,
       onSuccess: () => {
         setIsConfirmingDelete(false);

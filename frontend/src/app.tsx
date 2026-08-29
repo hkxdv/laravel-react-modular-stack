@@ -12,7 +12,6 @@ import { getCSRFToken } from './lib/csrf';
 import { setupAxios } from './lib/http';
 import { createTitle, resolvePage } from './lib/inertia';
 import { ThemeProvider } from './providers/theme-provider';
-import './ziggy';
 
 // Crea una instancia del cliente de React Query.
 const queryClient = new QueryClient();

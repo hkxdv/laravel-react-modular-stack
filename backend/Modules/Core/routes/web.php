@@ -26,7 +26,7 @@ Route::prefix('internal/staff')
          * Redirige la ruta base '/internal/staff' a la página de perfil.
          * GET /internal/staff -> /internal/staff/profile
          */
-        Route::redirect('/', 'profile')->name('index.redirect');
+        Route::redirect('/', 'profile')->name('root.redirect');
 
         // --- Gestión del Perfil ---
         Route::controller(ProfileController::class)->group(function (): void {
@@ -55,13 +55,13 @@ Route::prefix('internal/staff')
             Route::post('security/sessions/revoke', 'revokeOtherSessions')
                 ->middleware('throttle:6,1')->name('security.sessions.revoke');
             Route::post('security/2fa/setup', 'setupTwoFactor')
-                ->middleware('throttle:6,1')->name('security.2fa.setup');
+                ->middleware('throttle:6,1')->name('security.two-factor.setup');
             Route::post('security/2fa/confirm', 'confirmTwoFactor')
-                ->middleware('throttle:6,1')->name('security.2fa.confirm');
+                ->middleware('throttle:6,1')->name('security.two-factor.confirm');
             Route::delete('security/2fa', 'disableTwoFactor')
-                ->middleware('throttle:6,1')->name('security.2fa.disable');
+                ->middleware('throttle:6,1')->name('security.two-factor.disable');
             Route::post('security/2fa/recovery-codes', 'regenerateRecoveryCodes')
-                ->middleware('throttle:6,1')->name('security.2fa.recovery-codes');
+                ->middleware('throttle:6,1')->name('security.two-factor.recovery-codes');
         });
 
         // --- Preferencias de Notificaciones ---

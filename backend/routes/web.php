@@ -48,4 +48,3 @@ Route::get(
 */
 require_once sprintf('%s/internal.php', __DIR__);
 require_once sprintf('%s/protect-assets.php', __DIR__);
-require_once sprintf('%s/ziggy-debug.php', __DIR__);

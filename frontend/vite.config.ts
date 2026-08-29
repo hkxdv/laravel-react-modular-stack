@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
+import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import path from 'node:path';
@@ -87,6 +88,11 @@ export default defineConfig(({ mode }) => {
               input: 'src/app.tsx',
               publicDirectory: '../backend/public',
               refresh: true,
+            }),
+            wayfinder({
+              formVariants: true,
+              path: 'src',
+              command: 'php ../backend/artisan wayfinder:generate',
             }),
           ]),
       react(),

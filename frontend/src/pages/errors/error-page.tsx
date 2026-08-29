@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button';
+import { dashboard as staffDashboard } from '@/routes/internal/staff';
+import { welcome } from '@/routes';
 import { type PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -130,9 +132,9 @@ export default function ErrorPage() {
   // Determinar la ruta de inicio según autenticación
   const getHomeRoute = () => {
     if (props.auth.user) {
-      return route('internal.staff.dashboard');
+      return staffDashboard().url;
     }
-    return route('welcome');
+    return welcome.url();
   };
 
   return (

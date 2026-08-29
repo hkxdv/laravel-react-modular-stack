@@ -4,6 +4,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { login } from '@/routes';
+import { request as passwordRequest } from '@/routes/password';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { AlertCircle, LoaderCircle } from 'lucide-react';
@@ -168,7 +170,7 @@ export default function Login({
       return;
     }
     shownErrors.current.clear();
-    form.post(route('login'), {
+    form.post(login().url, {
       onFinish: () => {
         form.reset('password');
       },
@@ -248,7 +250,7 @@ export default function Login({
               <Label htmlFor="password">Contraseña</Label>
               {canResetPassword && (
                 <TextLink
-                  href={route('password.request')}
+                  href={passwordRequest().url}
                   className="hover:text-primary ml-auto text-sm"
                 >
                   ¿Olvidaste tu contraseña?

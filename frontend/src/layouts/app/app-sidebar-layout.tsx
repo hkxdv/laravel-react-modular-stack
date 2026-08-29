@@ -5,6 +5,7 @@ import { AppSidebarHeader } from '@/components/app/app-sidebar-header';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem, type NavItemDefinition, type User } from '@/types';
+import { edit as staffPasswordEdit } from '@/routes/internal/staff/password';
 import { Link, usePage } from '@inertiajs/react';
 import { ShieldAlert } from 'lucide-react';
 import { type ReactNode } from 'react';
@@ -52,7 +53,7 @@ export default function AppSidebarLayout({
                 Actualízala para mantener el acceso sin restricciones.
               </p>
               <Button asChild variant="destructive" size="sm" className="mt-2">
-                <Link href={route('internal.staff.password.edit')}>Actualizar contraseña</Link>
+                <Link href={staffPasswordEdit()}>Actualizar contraseña</Link>
               </Button>
             </AlertDescription>
           </Alert>

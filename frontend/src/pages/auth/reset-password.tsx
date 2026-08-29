@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { store as passwordStore } from '@/routes/password';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -39,7 +40,7 @@ export default function ResetPassword({ token, email }: Readonly<ResetPasswordPr
 
   const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
-    form.post(route('password.store'), {
+    form.post(passwordStore().url, {
       onFinish: () => {
         form.reset('password', 'password_confirmation');
       },

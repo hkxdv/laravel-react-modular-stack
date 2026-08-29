@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { email as passwordEmail } from '@/routes/password';
+import { login } from '@/routes';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -33,7 +35,7 @@ export default function ForgotPassword({ status }: Readonly<{ status?: string }>
   const submit: SubmitEventHandler = (e) => {
     e.preventDefault();
 
-    post(route('password.email'));
+    post(passwordEmail().url);
   };
 
   return (
@@ -93,7 +95,7 @@ export default function ForgotPassword({ status }: Readonly<{ status?: string }>
 
         <div className="text-muted-foreground space-x-1 text-center text-sm">
           <span>O, vuelve a</span>
-          <TextLink href={route('login')}>Iniciar sesión</TextLink>
+          <TextLink href={login().url}>Iniciar sesión</TextLink>
         </div>
       </div>
     </AuthLayout>

@@ -1,4 +1,5 @@
 import { AppLogoIcon } from '@/components/app/app-logo';
+import { welcome } from '@/routes';
 import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
@@ -17,7 +18,7 @@ export default function AuthLayout({
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-8">
           <div className="flex flex-col items-center gap-4">
-            <Link href={route('welcome')} className="flex flex-col items-center gap-2 font-medium">
+            <Link href={welcome.url()} className="flex flex-col items-center gap-2 font-medium">
               <div className="flex items-center justify-center rounded-md">
                 <AppLogoIcon className="size-16" />
               </div>

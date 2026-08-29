@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PasswordField from '@/components/ui/password-field';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { update } from '@/routes/internal/staff/password';
 import AppLayout from '@/layouts/app-layout';
 import ProfileLayout from '@/layouts/profile-layout';
 import type { BreadcrumbItem, NavItemDefinition } from '@/types';
@@ -76,7 +77,7 @@ export default function PasswordPage() {
       return;
     }
 
-    form.put(route('internal.staff.password.update'), {
+    form.put(update().url, {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();

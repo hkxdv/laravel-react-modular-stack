@@ -1,8 +1,8 @@
 import RowActionsMenu from '@/components/data/row-actions-menu';
+import { destroy, edit } from '@/routes/internal/staff/admin/roles';
 import { router } from '@inertiajs/react';
 import { Pencil, Trash } from 'lucide-react';
 import { useCallback } from 'react';
-import { route } from 'ziggy-js';
 
 interface RoleActionsCellProps {
   role: {
@@ -17,12 +17,12 @@ export function RoleActionsCell({ role }: Readonly<RoleActionsCellProps>) {
   const isProtected = PROTECTED_ROLES.has(role.name.toUpperCase());
 
   const handleEdit = useCallback(() => {
-    router.get(route('internal.staff.admin.roles.edit', role.id));
+    router.get(edit(role.id).url);
   }, [role.id]);
 
   const handleDelete = useCallback(() => {
     if (confirm(`¿Estás seguro de que deseas eliminar el rol "${role.name}"?`)) {
-      router.delete(route('internal.staff.admin.roles.destroy', role.id), {
+      router.delete(destroy(role.id).url, {
         preserveScroll: true,
       });
     }

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { update as notificationsUpdate } from '@/routes/internal/staff/notifications';
 import AppLayout from '@/layouts/app-layout';
 import ProfileLayout from '@/layouts/profile-layout';
 import type { BreadcrumbItem, NavItemDefinition } from '@/types';
@@ -44,7 +45,7 @@ export default function NotificationsPage() {
   }, [flash, showSuccess, showError]);
 
   const save = () => {
-    form.patch(route('internal.staff.notifications.update'), {
+    form.patch(notificationsUpdate().url, {
       preserveScroll: true,
     });
   };

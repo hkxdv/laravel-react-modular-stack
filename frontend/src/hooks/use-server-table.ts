@@ -4,6 +4,7 @@
  * Expone estado y handlers para integrarse con TanStack Table, centralizando navegación y parámetros.
  */
 import { useDebounce } from '@/hooks/use-debounce';
+import { resolveRoute } from '@/lib/routing';
 import { type RequestPayload, router } from '@inertiajs/core';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -139,7 +140,10 @@ export function useServerTable({
     () => JSON.parse(routeParamsStr) as Record<string, unknown>,
     [routeParamsStr],
   );
-  const routeUrl = useMemo(() => route(routeName, routeParamsMemo), [routeName, routeParamsMemo]);
+  const routeUrl = useMemo(
+    () => resolveRoute(routeName, routeParamsMemo),
+    [routeName, routeParamsMemo],
+  );
 
   // Sincronizar ordenamiento cuando cambia la entrada inicial (solo una vez)
   useEffect(() => {

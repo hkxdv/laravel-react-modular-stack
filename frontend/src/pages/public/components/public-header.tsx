@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
+import { login, welcome } from '@/routes';
 import { cn } from '@/utils/cn';
 import { Link } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { route } from 'ziggy-js';
 
 /**
  * Encabezado público genérico de demostración.
@@ -45,7 +45,7 @@ export function PublicHeader() {
           )}
         >
           <Link
-            href={route('welcome', undefined, false)}
+            href={welcome.url()}
             className="flex items-center gap-2 pl-4"
             aria-label="Inicio"
           >
@@ -57,7 +57,7 @@ export function PublicHeader() {
 
           <div className="flex items-center gap-3">
             {/* Botón de acceso (demo): navega a la página de login */}
-            <Link href={route('login', undefined, false)}>
+            <Link href={login().url}>
               <Button size="sm" className="px-4">
                 Acceder
               </Button>

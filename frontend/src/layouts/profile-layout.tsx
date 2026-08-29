@@ -1,6 +1,10 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { edit as notificationsEdit } from '@/routes/internal/staff/notifications';
+import { edit as profilePasswordEdit } from '@/routes/internal/staff/password';
+import { edit as profileEdit } from '@/routes/internal/staff/profile';
+import { edit as securityEdit } from '@/routes/internal/staff/security';
 import { cn } from '@/utils/cn';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState, type PropsWithChildren } from 'react';
@@ -20,11 +24,10 @@ interface ProfileLayoutProps {
 
 // ponytail: hardcoded fallback — remove after backend wiring verified
 const defaultNavItems: ProfileNavItem[] = [
-  { title: 'Perfil', href: route('internal.staff.profile.edit') },
-  { title: 'Contraseña', href: route('internal.staff.password.edit') },
-  { title: 'Apariencia', href: route('internal.staff.appearance') },
-  { title: 'Seguridad', href: route('internal.staff.security.edit') },
-  { title: 'Notificaciones', href: route('internal.staff.notifications.edit') },
+  { title: 'Perfil', href: profileEdit().url },
+  { title: 'Contraseña', href: profilePasswordEdit().url },
+  { title: 'Seguridad', href: securityEdit().url },
+  { title: 'Notificaciones', href: notificationsEdit().url },
 ];
 
 export default function ProfileLayout({

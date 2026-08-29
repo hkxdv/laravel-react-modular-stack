@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { resolveRoute } from '@/lib/routing';
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
-import { route } from 'ziggy-js';
 import { type ModuleNavCardsProps } from './interfaces';
 
 /**
@@ -27,7 +27,7 @@ export function ModuleNavCards({ items, getIconComponent }: Readonly<ModuleNavCa
           href = item.route;
         } else if ('route_name' in item && item.route_name) {
           // Es un RouteNameModuleNavItem
-          href = route(item.route_name);
+          href = resolveRoute(item.route_name);
         } else {
           // Fallback por si algo sale mal
           console.warn('ModuleNavItem sin ruta válida:', item);

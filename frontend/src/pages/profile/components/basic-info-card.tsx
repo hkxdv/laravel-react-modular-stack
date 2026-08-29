@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { update as profileUpdate } from '@/routes/internal/staff/profile';
+import { send as verificationSend } from '@/routes/verification';
 import { Link, useForm } from '@inertiajs/react';
 import type { BasicInfoCardProps, BasicInfoForm } from '../types';
 
@@ -25,7 +27,7 @@ export function BasicInfoCard({
 
   const submit = (e: React.SubmitEvent) => {
     e.preventDefault();
-    form.patch(route('internal.staff.profile.update'), {
+    form.patch(profileUpdate().url, {
       preserveScroll: true,
       onSuccess: () => {
         showSuccess('Perfil actualizado correctamente.');
@@ -99,7 +101,7 @@ export function BasicInfoCard({
               <p>
                 Tu correo electrónico no está verificado.{' '}
                 <Link
-                  href={route('verification.send')}
+                  href={verificationSend().url}
                   method="post"
                   as="button"
                   className="font-medium underline hover:text-blue-600"

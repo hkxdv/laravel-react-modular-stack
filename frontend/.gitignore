@@ -1,4 +1,7 @@
 dist/
 node_modules/
 src/ziggy.js
+src/actions/
+src/routes/
+src/wayfinder/
 

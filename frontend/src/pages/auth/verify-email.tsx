@@ -1,6 +1,8 @@
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import { login } from '@/routes';
+import { send } from '@/routes/verification';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -12,7 +14,7 @@ export default function VerifyEmail({ status }: Readonly<{ status?: string }>) {
 
   const submit = (e?: React.SubmitEvent) => {
     if (e) e.preventDefault();
-    post(route('verification.send'));
+    post(send().url);
   };
 
   // Notificar sólo cuando cambie el estado
@@ -66,7 +68,7 @@ export default function VerifyEmail({ status }: Readonly<{ status?: string }>) {
         <div className="text-muted-foreground text-center text-sm">
           <span>¿Ya verificaste tu cuenta?</span>
           <span className="mx-1">•</span>
-          <TextLink href={route('login')}>Inicia sesión</TextLink>
+          <TextLink href={login().url}>Inicia sesión</TextLink>
         </div>
       </div>
     </AuthLayout>

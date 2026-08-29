@@ -1,6 +1,7 @@
 import RowActionsMenu from '@/components/data/row-actions-menu';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import UserDeleteDialog from '@/pages/modules/admin/dialogs/user/user-delete-dialog';
+import { destroy, edit, index as usersIndex } from '@/routes/internal/staff/admin/users';
 import type { StaffUser } from '@/types';
 import { router } from '@inertiajs/react';
 import type { Row } from '@tanstack/react-table';
@@ -31,7 +32,7 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
     // Si es un usuario DEV, mostrar advertencia y redirigir después de unos segundos
     if (isDevUser) {
       router.get(
-        route('internal.staff.admin.users.edit', user.id),
+        edit(user.id).url,
         {},
         {
           onSuccess: () => {
@@ -42,13 +43,13 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
 
             // Redirigir después de 5 segundos
             setTimeout(() => {
-              router.get(route('internal.staff.admin.users.index'));
+              router.get(usersIndex().url);
             }, 5000);
           },
         },
       );
     } else {
-      router.get(route('internal.staff.admin.users.edit', user.id));
+      router.get(edit(user.id).url);
     }
   }, [user.id, isDevUser, showWarning]);
 
@@ -58,7 +59,7 @@ export function UserActionsCell({ row, authUserId }: Readonly<UserActionsCellPro
 
   const handleDelete = useCallback(() => {
     setIsDeleting(true);
-    router.delete(route('internal.staff.admin.users.destroy', user.id), {
+    router.delete(destroy(user.id).url, {
       preserveScroll: true,
       onSuccess: () => {
         showSuccess('Usuario eliminado con éxito.');

@@ -6,6 +6,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { edit as profileEdit } from '@/routes/internal/staff/profile';
+import { logout } from '@/routes';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
@@ -15,7 +17,7 @@ interface UserMenuContentProps {
 }
 
 // Determinar la ruta de logout (solo staff); no depende de estado local.
-const getLogoutRoute = (): string => route('logout');
+const getLogoutRoute = (): string => logout.url();
 
 // Mostrar opciones de configuración siempre para staff; función fuera del componente.
 const shouldShowSettings = (): boolean => true;
@@ -43,7 +45,7 @@ export function UserMenuContent({ user }: Readonly<UserMenuContentProps>) {
             <DropdownMenuItem asChild>
               <Link
                 className="block w-full"
-                href={route('internal.staff.profile.edit')}
+                href={profileEdit()}
                 as="button"
                 prefetch
                 onClick={cleanup}

@@ -1,5 +1,12 @@
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
+import {
+  confirm as twoFactorConfirm,
+  disable as twoFactorDisable,
+  recoveryCodes,
+  setup as twoFactorSetup,
+} from '@/routes/internal/staff/security/two-factor';
+import { revoke as sessionsRevoke } from '@/routes/internal/staff/security/sessions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,39 +62,19 @@ interface SecurityPageProps extends PageProps {
 }
 
 const startTwoFactorSetup = () => {
-  router.post(
-    route('internal.staff.security.2fa.setup'),
-    {},
-    {
-      preserveScroll: true,
-    },
-  );
+  router.post(twoFactorSetup().url, {}, { preserveScroll: true });
 };
 
 const disableTwoFactor = () => {
-  router.delete(route('internal.staff.security.2fa.disable'), {
-    preserveScroll: true,
-  });
+  router.delete(twoFactorDisable().url, { preserveScroll: true });
 };
 
 const regenerateRecoveryCodes = () => {
-  router.post(
-    route('internal.staff.security.2fa.recovery-codes'),
-    {},
-    {
-      preserveScroll: true,
-    },
-  );
+  router.post(recoveryCodes().url, {}, { preserveScroll: true });
 };
 
 const revokeOtherSessions = () => {
-  router.post(
-    route('internal.staff.security.sessions.revoke'),
-    {},
-    {
-      preserveScroll: true,
-    },
-  );
+  router.post(sessionsRevoke().url, {}, { preserveScroll: true });
 };
 
 export default function SecurityPage() {
@@ -110,7 +97,7 @@ export default function SecurityPage() {
   }, [flash, showSuccess, showError]);
 
   const confirmTwoFactorSetup = () => {
-    confirmForm.post(route('internal.staff.security.2fa.confirm'), {
+    confirmForm.post(twoFactorConfirm().url, {
       preserveScroll: true,
       onSuccess: () => {
         confirmForm.reset();

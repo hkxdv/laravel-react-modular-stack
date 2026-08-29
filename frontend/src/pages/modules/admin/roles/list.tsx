@@ -8,13 +8,13 @@ import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import AppLayout from '@/layouts/app-layout';
 import { ModuleDashboardLayout } from '@/layouts/module-dashboard-layout';
+import { create } from '@/routes/internal/staff/admin/roles';
 import { RoleActionsCell } from '@/pages/modules/admin/components/role/role-actions-cell';
 import { extractUserData } from '@/utils/user-data';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Info, KeyRound, PlusCircle, Shield } from 'lucide-react';
 import { useMemo } from 'react';
-import { route } from 'ziggy-js';
 import type { RoleListPageProps } from '../interfaces';
 
 interface RoleListItem {
@@ -122,7 +122,7 @@ export default function RoleListPage({
         userName={userData?.name ?? ''}
         showGreeting={false}
         actions={
-          <Link href={route('internal.staff.admin.roles.create')}>
+          <Link href={create()}>
             <Button variant="default" className="gap-1.5">
               <PlusCircle className="h-4 w-4" />
               Nuevo Rol
