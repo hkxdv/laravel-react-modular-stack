@@ -12,6 +12,7 @@ use Modules\Core\Application\AccountSecurity\DisableTwoFactorAuth;
 use Modules\Core\Application\AccountSecurity\RegenerateTwoFactorRecoveryCodes;
 use Modules\Core\Application\AccountSecurity\RevokeOtherSessions;
 use Modules\Core\Application\AccountSecurity\SetupTwoFactorAuth;
+use Modules\Core\Application\AccountSecurity\VerifyLoginChallenge;
 use Modules\Core\Application\NotificationPreferences\UpdateNotificationPreferences;
 use Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface;
 use Modules\Core\Contracts\AccountSecurity\DisableTwoFactorAuthInterface;
@@ -20,6 +21,7 @@ use Modules\Core\Contracts\AccountSecurity\RegenerateTwoFactorRecoveryCodesInter
 use Modules\Core\Contracts\AccountSecurity\RevokeOtherSessionsInterface;
 use Modules\Core\Contracts\AccountSecurity\SecurityAuditInterface;
 use Modules\Core\Contracts\AccountSecurity\SetupTwoFactorAuthInterface;
+use Modules\Core\Contracts\AccountSecurity\VerifyLoginChallengeInterface;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\AuditTrailInterface;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
@@ -103,6 +105,7 @@ final class CoreServiceProvider extends ServiceProvider
             DisableTwoFactorAuthInterface::class => DisableTwoFactorAuth::class,
             RegenerateTwoFactorRecoveryCodesInterface::class => RegenerateTwoFactorRecoveryCodes::class,
             RevokeOtherSessionsInterface::class => RevokeOtherSessions::class,
+            VerifyLoginChallengeInterface::class => VerifyLoginChallenge::class,
             UpdateNotificationPreferencesInterface::class => UpdateNotificationPreferences::class,
         ];
 

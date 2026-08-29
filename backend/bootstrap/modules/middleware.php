@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\TwoFactorAuthentication;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ return function (Middleware $middleware): void {
         'permission' => CheckPermission::class,
         'abilities' => CheckAbilities::class,
         'ability' => CheckForAnyAbility::class,
+        '2fa' => TwoFactorAuthentication::class,
     ]);
 
     // Redirección para usuarios NO autenticados (cuando falla auth:*)

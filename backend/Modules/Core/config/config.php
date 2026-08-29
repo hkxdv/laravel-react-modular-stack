@@ -15,16 +15,19 @@ return [
             'login_route' => 'login',
             'redirect_route' => 'login',
             'provider' => 'staff',
+            'two_factor_required' => env('STAFF_2FA_REQUIRED', false),
         ],
         'tenant' => [
             'login_route' => 'tenant.login',
             'redirect_route' => 'tenant.login',
             'provider' => 'tenant',
+            'two_factor_required' => false,
         ],
         'web' => [
             'login_route' => 'login',
             'redirect_route' => 'welcome',
             'provider' => 'web',
+            'two_factor_required' => false,
         ],
         'sanctum' => [
             'login_route' => 'login',

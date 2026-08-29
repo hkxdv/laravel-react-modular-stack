@@ -31,6 +31,7 @@ Route::prefix('internal')->name('internal.')->group(function (): void {
     Route::middleware([
         'auth:staff',
         'verified',
+        '2fa',
         'throttle:60,1',
     ])->prefix('staff')->name('staff.')->group(function (): void {
         /**

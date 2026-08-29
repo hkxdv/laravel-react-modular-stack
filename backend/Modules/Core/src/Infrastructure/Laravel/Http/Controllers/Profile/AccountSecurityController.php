@@ -47,8 +47,8 @@ final class AccountSecurityController extends AbstractProfileController
         $twoFactorConfirmedAt = $user->getAttribute('two_factor_confirmed_at');
 
         $twoFactorRequired = (bool) config(
-            'security.two_factor.staff.required',
-            false
+            'core.guards.staff.two_factor_required',
+            env('STAFF_2FA_REQUIRED', false)
         );
         $twoFactorPending = is_string($twoFactorSecretEncrypted)
             && $twoFactorSecretEncrypted !== ''

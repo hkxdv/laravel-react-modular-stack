@@ -75,6 +75,11 @@ final class LoginController extends Controller
         // Si falla, lanzará una ValidationException automáticamente.
         $request->authenticate();
 
+        // 1b. Si el usuario tiene 2FA confirmado, pendir el challenge antes de la sesión.
+        if ($request->needsTwoFactorChallenge()) {
+            return Inertia::location(route('security.two-factor-challenge'));
+        }
+
         // 2. Preparar la sesión autenticada.
         // El servicio de seguridad regenera el token de sesión para prevenir ataques de session fixation.
         $this->securityService->prepareAuthenticatedSession($request);

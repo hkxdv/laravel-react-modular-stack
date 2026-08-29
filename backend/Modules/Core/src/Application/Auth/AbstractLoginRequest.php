@@ -6,6 +6,8 @@ namespace Modules\Core\Application\Auth;
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -21,8 +23,10 @@ use Modules\Core\Contracts\AccountSecurity\LoginAttemptInterface;
  */
 abstract class AbstractLoginRequest extends FormRequest
 {
+    public const string TWO_FACTOR_PENDING_SESSION_KEY = 'two_factor_login_pending';
+
     /**
-     * Determina el guard de autenticación.
+     * Determina si el guard de autenticación.
      */
     abstract protected function guard(): string;
 
@@ -47,7 +51,7 @@ abstract class AbstractLoginRequest extends FormRequest
     /**
      * Obtiene las reglas de validación que se aplican a la solicitud.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     final public function rules(): array
     {
@@ -111,6 +115,12 @@ abstract class AbstractLoginRequest extends FormRequest
 
         if ($user && ! $this->isUserActive($user)) {
             $this->handleFailedLogin($loginAttemptService, $identifier, $ip, 'account_inactive');
+        }
+
+        if ($user instanceof Authenticatable && $this->hasConfirmedTwoFactor($user)) {
+            $this->stageTwoFactorChallenge($user);
+
+            return;
         }
 
         if (
@@ -198,6 +208,14 @@ abstract class AbstractLoginRequest extends FormRequest
     }
 
     /**
+     * Indica si el login pendió un challenge de 2FA (usuario confirmado).
+     */
+    final public function needsTwoFactorChallenge(): bool
+    {
+        return session()->has(self::TWO_FACTOR_PENDING_SESSION_KEY);
+    }
+
+    /**
      * Obtiene la URL a la que se debe redirigir después de un inicio de sesión exitoso.
      */
     protected function getRedirectUrl(): string
@@ -207,6 +225,36 @@ abstract class AbstractLoginRequest extends FormRequest
         return is_string($intended)
           ? $intended
           : route($this->redirectRoute());
+    }
+
+    /**
+     * Determina si el usuario ya confirmó 2FA (tiene columna two_factor_confirmed_at).
+     */
+    private function hasConfirmedTwoFactor(Authenticatable $user): bool
+    {
+        if (! $user instanceof Model) {
+            return false;
+        }
+
+        $confirmedAt = $user->getAttributes()['two_factor_confirmed_at'] ?? null;
+
+        return $confirmedAt !== null;
+    }
+
+    /**
+     * Prepara el challenge: almacena el usuario pendiente en sesión y evita
+     * establecer la sesión autenticada todavía.
+     */
+    private function stageTwoFactorChallenge(Authenticatable $user): void
+    {
+        session()->put(self::TWO_FACTOR_PENDING_SESSION_KEY, $user->getAuthIdentifier());
+
+        Log::info('Login pendiente de 2FA', [
+            'user_id' => $user->getAuthIdentifier(),
+            'guard' => $this->guard(),
+            'login_type' => $this->loginType(),
+            'ip' => $this->ip(),
+        ]);
     }
 
     /**
@@ -226,9 +274,9 @@ abstract class AbstractLoginRequest extends FormRequest
             return null;
         }
 
-        /** @var class-string<\Illuminate\Database\Eloquent\Model&Authenticatable> $modelClass */
+        /** @var class-string<Model&Authenticatable> $modelClass */
         $modelClass = $model;
-        /** @var \Illuminate\Database\Eloquent\Model|null $found */
+        /** @var Model|null $found */
         $found = $modelClass::query()->where('email', $credentials['email'])->first();
 
         return $found instanceof Authenticatable ? $found : null;
