@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -48,3 +49,9 @@ Route::get(
 */
 require_once sprintf('%s/internal.php', __DIR__);
 require_once sprintf('%s/protect-assets.php', __DIR__);
+
+// Descubrimiento estándar de endpoints de passkeys.
+Route::get('.well-known/passkey-endpoints', fn(): JsonResponse => response()->json([
+    'enroll' => route('internal.staff.security.edit'),
+    'manage' => route('internal.staff.security.edit'),
+]))->name('well-known.passkeys');

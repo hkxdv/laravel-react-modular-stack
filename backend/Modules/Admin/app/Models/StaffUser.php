@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
 use Modules\Admin\Database\Factories\StaffUsersFactory;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Spatie\Activitylog\LogOptions;
@@ -42,10 +44,11 @@ use Spatie\Activitylog\LogOptions;
     'two_factor_recovery_codes',
 ])]
 #[Table(name: 'staff_users')]
-final class StaffUser extends AbstractDomainUser implements MustVerifyEmail
+final class StaffUser extends AbstractDomainUser implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
+    use PasskeyAuthenticatable;
 
     /**
      * Los atributos que deben ser convertidos.
