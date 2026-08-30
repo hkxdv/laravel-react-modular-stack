@@ -10,7 +10,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-- Próximos cambios.
+### Added
+
+- Wayfinder (`laravel/wayfinder` + `@laravel/vite-plugin-wayfinder`): rutas y acciones tipadas generadas desde el backend hacia `frontend/src/{actions,routes,wayfinder}` (gitignored); resolver dinámico `src/lib/routing.ts` para nombres de ruta provenientes del backend (nav, breadcrumbs, server tables); `formVariants` habilitado.
+- Challenge de 2FA durante el login: 2FA TOTP propio de Core completado (staging en `AbstractLoginRequest`, use-case `VerifyLoginChallenge` con TOTP o recovery code de un solo uso, página `auth/two-factor-challenge`, middleware `2fa` con policy por guard `core.guards.{guard}.two_factor_required`, default `false`).
+- Passkeys (WebAuthn) para el guard `staff` vía `laravel/passkeys` standalone: `StaffUser` implementa `PasskeyUser`, hook `authorizeLoginUsing` con checks de seguridad (cuenta activa + blocklist/attempts por IP) antes de establecer sesión, endpoint `.well-known/passkey-endpoints`, login "Iniciar sesión con passkey" y gestión en seguridad (registro/lista/eliminación).
+- Fuentes vía `laravel-vite-plugin/fonts` (`bunny('Instrument Sans', [400,500,600])`) reemplazando las fuentes locales de `backend/public/fonts`; los `@font-face` se inyectan en build.
+
+### Changed
+
+- `inertiajs/inertia-laravel` a `^3.0`.
+- Nombres de rutas 2FA renombrados: `security.2fa.*` → `security.two-factor.*` (URLs intactas; evita bug del generador con segmentos numéricos).
+- `internal.staff.index.redirect` → `internal.staff.root.redirect` (evita self-import en generador).
+
+### Removed
+
+- Ziggy por completo: `ziggy-js` (frontend), `tightenco/ziggy` (backend), `src/ziggy.js`, `global.d.ts` (declaración `route`), `backend/routes/ziggy-debug.php`, componente `ziggy-debug`, `RouteFilterService` + facade, config `ziggy.groups`, prop `'ziggy'` compartida, `config/ziggy.php`, `config/routes.php`, endpoint `/api/routes`.
+- `backend/public/fonts` (fuentes ahora vía plugin de Vite).
+- 57 call sites `route('...')` reemplazados por imports tipados de Wayfinder.
 
 ## [0.3.0-alpha] - 2026-08-25
 
