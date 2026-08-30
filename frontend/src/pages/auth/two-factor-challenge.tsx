@@ -64,7 +64,6 @@ export default function TwoFactorChallenge() {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000000"
-              autoFocus
               value={form.data.code}
               onChange={(e) => {
                 form.setData('code', e.target.value);

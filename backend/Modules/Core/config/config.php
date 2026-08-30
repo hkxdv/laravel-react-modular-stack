@@ -15,7 +15,7 @@ return [
             'login_route' => 'login',
             'redirect_route' => 'login',
             'provider' => 'staff',
-            'two_factor_required' => env('STAFF_2FA_REQUIRED', false),
+            'two_factor_required' => env('STAFF_2FA_REQUIRED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig (config de módulo; env legítimo en config)
         ],
         'tenant' => [
             'login_route' => 'tenant.login',

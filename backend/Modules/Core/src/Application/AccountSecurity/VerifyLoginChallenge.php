@@ -87,7 +87,9 @@ final readonly class VerifyLoginChallenge implements VerifyLoginChallengeInterfa
         }
 
         $user->forceFill([
-            'two_factor_recovery_codes' => Crypt::encryptString(json_encode($remaining)),
+            'two_factor_recovery_codes' => Crypt::encryptString(
+                json_encode($remaining, JSON_THROW_ON_ERROR)
+            ),
         ])->save();
 
         Log::channel('domain_audit')->info('Recovery code canjeado (2FA login)', [

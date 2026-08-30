@@ -29,7 +29,7 @@ final readonly class LoginChallengeController
         //
     }
 
-    public function show(): Response
+    public function show(): \Inertia\Response
     {
         return Inertia::render('auth/two-factor-challenge');
     }
@@ -44,6 +44,7 @@ final readonly class LoginChallengeController
             ]);
         }
 
+        /** @var array{code: string} $validated */
         $validated = request()->validate([
             'code' => ['required', 'string', 'max:255'],
         ]);

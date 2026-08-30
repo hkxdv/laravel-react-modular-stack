@@ -21,11 +21,7 @@ uses(RefreshDatabase::class);
  */
 function skipIfNoLoginRoute(): void
 {
-    if (! Route::has('login')) {
-        throw new \PHPUnit\Framework\SkippedTestSuiteError(
-            'GAP-4: rutas de módulos no disponibles en re-boot de suite'
-        );
-    }
+    throw_unless(Route::has('login'), \PHPUnit\Framework\SkippedTestSuiteError::class, 'GAP-4: rutas de módulos no disponibles en re-boot de suite');
 }
 
 /**
@@ -39,11 +35,13 @@ function totpForSecret(string $base32Secret): string
     foreach (mb_str_split(mb_rtrim(mb_strtoupper($base32Secret), '=')) as $char) {
         $binary .= mb_str_pad(decbin($map[$char]), 5, '0', STR_PAD_LEFT);
     }
+
     $secret = '';
     foreach (mb_str_split($binary, 8) as $chunk) {
         if (mb_strlen($chunk) < 8) {
             break;
         }
+
         $secret .= chr((int) bindec($chunk));
     }
 
@@ -98,11 +96,12 @@ it('flujo completo: login con 2FA -> challenge -> TOTP válido -> autentica', fu
 });
 
 it('challenge rechaza un TOTP inválido (verifier directo)', function (): void {
-    $verifier = app(TwoFactorCodeVerifier::class);
+    $verifier = resolve(TwoFactorCodeVerifier::class);
 
     // Secreto base32 conocido: JBSWY3DPEHPK3PXP
     $secret = 'JBSWY3DPEHPK3PXP';
     expect($verifier->verify($secret, '000000'))->toBeFalse()
+        // Regenerar justo antes de verificar (evita flakiness de ventana 30s)
         ->and($verifier->verify($secret, totpForSecret($secret)))->toBeTrue();
 });
 
@@ -116,7 +115,7 @@ it('recovery code se canjea una sola vez (use-case VerifyLoginChallenge)', funct
     ]);
 
     /** @var VerifyLoginChallengeInterface $challenge */
-    $challenge = app(VerifyLoginChallengeInterface::class);
+    $challenge = resolve(VerifyLoginChallengeInterface::class);
 
     // Primer uso: ok y autentica en guard staff.
     $ok = $challenge->handle($user, 'ABCDEF1234');
@@ -141,7 +140,7 @@ it('middleware 2fa: policy true redirige a security.edit sin 2FA confirmado', fu
     \Illuminate\Support\Facades\Auth::guard('staff')->setUser($user);
 
     $request = \Illuminate\Http\Request::create('/internal/staff/dashboard');
-    $response = app(\App\Http\Middleware\TwoFactorAuthentication::class)
+    $response = resolve(\App\Http\Middleware\TwoFactorAuthentication::class)
         ->handle($request, fn (): Response => new Response('ok'));
 
     expect($response->getStatusCode())->toBe(302)
@@ -158,7 +157,7 @@ it('middleware 2fa: policy false no bloquea', function (): void {
     \Illuminate\Support\Facades\Auth::guard('staff')->setUser($user);
 
     $request = \Illuminate\Http\Request::create('/internal/staff/dashboard');
-    $response = app(\App\Http\Middleware\TwoFactorAuthentication::class)
+    $response = resolve(\App\Http\Middleware\TwoFactorAuthentication::class)
         ->handle($request, fn (): Response => new Response('ok'));
 
     expect($response->getContent())->toBe('ok');

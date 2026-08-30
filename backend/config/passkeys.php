@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -13,7 +15,9 @@ return [
     |
     */
 
-    'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
+    'relying_party_id' => is_string($appUrl = config('app.url'))
+        ? (parse_url($appUrl, PHP_URL_HOST) ?: 'localhost')
+        : 'localhost',
 
     /*
     |--------------------------------------------------------------------------

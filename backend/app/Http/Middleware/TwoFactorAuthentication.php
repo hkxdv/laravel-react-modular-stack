@@ -32,7 +32,7 @@ final class TwoFactorAuthentication
         $user = Auth::guard($guard)->user();
 
         if ($user !== null && ($user->getAttributes()['two_factor_confirmed_at'] ?? null) === null) {
-            return redirect()->route('internal.staff.security.edit');
+            return to_route('internal.staff.security.edit');
         }
 
         return $next($request);
@@ -41,7 +41,9 @@ final class TwoFactorAuthentication
     private function currentGuard(Request $request): string
     {
         // La consola interna usa el guard staff; el alias se usa en ese grupo.
-        return (string) $request->attributes->get('_guard', 'staff');
+        $guard = $request->attributes->get('_guard', 'staff');
+
+        return is_string($guard) ? $guard : 'staff';
     }
 
     private function guardRequiresTwoFactor(string $guard): bool
