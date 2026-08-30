@@ -1,7 +1,8 @@
-import tailwindcss from '@tailwindcss/vite';
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
+import { bunny } from 'laravel-vite-plugin/fonts';
 import path from 'node:path';
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
@@ -88,6 +89,11 @@ export default defineConfig(({ mode }) => {
               input: 'src/app.tsx',
               publicDirectory: '../backend/public',
               refresh: true,
+              fonts: [
+                bunny('Instrument Sans', {
+                  weights: [400, 500, 600],
+                }),
+              ],
             }),
             wayfinder({
               formVariants: true,
@@ -105,7 +111,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, 'src'),
-        '/fonts': path.resolve(import.meta.dirname, '../backend/public/fonts'),
       },
       extensions: ['.tsx', '.ts', '.js', '.json'],
     },
