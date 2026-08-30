@@ -156,9 +156,9 @@ export const installProject = async (options: InstallerOptions) => {
     // 5. Verificar SQLite
     cleanupSqliteArtifacts(projectDir);
 
-    // 6. Rutas Ziggy
-    spinner.start(chalk.gray('Generando rutas Ziggy...'));
-    runCommand('bun run be ziggy', 'Generación de rutas', projectDir);
+    // 6. Rutas (Wayfinder)
+    spinner.start(chalk.gray('Generando rutas (Wayfinder)...'));
+    runCommand('bun run be wayfinder', 'Generación de rutas', projectDir);
     spinner.succeed(chalk.gray('Rutas generadas'));
 
     // 7. Optimización final

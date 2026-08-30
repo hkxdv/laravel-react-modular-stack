@@ -1,5 +1,5 @@
-import { type NavItemDefinition, type User } from '@/types';
 import { dashboard } from '@/routes/internal/staff';
+import { type NavItemDefinition, type User } from '@/types';
 
 /**
  * Define la estructura de navegación principal de la barra lateral (sidebar).
@@ -9,7 +9,7 @@ import { dashboard } from '@/routes/internal/staff';
  * Cada objeto puede representar un enlace, un encabezado de sección o un grupo de enlaces.
  *
  * - `title`: El texto visible del elemento.
- * - `href`: El nombre de la ruta (manejado por Ziggy) a la que navegar. Requerido para enlaces.
+ * - `href`: El nombre de la ruta (manejado por Wayfinder/resolveRoute) a la que navegar. Requerido para enlaces.
  * - `icon`: El nombre de un ícono de `lucide-react`.
  * - `permission`: Permiso(s) necesarios para ver este elemento. La lógica en `process-nav-items.ts` lo utiliza para filtrar el menú.
  *   - `undefined`: Visible para todos.

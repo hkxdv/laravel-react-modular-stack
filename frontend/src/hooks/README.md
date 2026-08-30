@@ -8,11 +8,11 @@ Centralizar el criterio de cuándo usar hooks de estado de servidor de TanStack 
 
 ## Cuándo usar cada hook
 
-| Hook             | Cuándo usar                                                     | Cuándo NO usar                                  | Canal de datos           |
-| ---------------- | --------------------------------------------------------------- | ----------------------------------------------- | ------------------------ |
-| `useForm`        | Formularios simples de creación o edición                       | Listas paginadas, consultas de solo lectura     | Props de Inertia         |
-| `useServerTable` | Tablas con paginación, ordenamiento y búsqueda en servidor      | Forms, mutaciones, consultas que no sean tablas | Props de Inertia + Ziggy |
-| TanStack Query   | Solo para Sanctum (API REST de alto volumen, externo a Inertia) | Módulos que reciben props de Inertia            | Fetch directo a Sanctum  |
+| Hook             | Cuándo usar                                                     | Cuándo NO usar                                  | Canal de datos               |
+| ---------------- | --------------------------------------------------------------- | ----------------------------------------------- | ---------------------------- |
+| `useForm`        | Formularios simples de creación o edición                       | Listas paginadas, consultas de solo lectura     | Props de Inertia             |
+| `useServerTable` | Tablas con paginación, ordenamiento y búsqueda en servidor      | Forms, mutaciones, consultas que no sean tablas | Props de Inertia + Wayfinder |
+| TanStack Query   | Solo para Sanctum (API REST de alto volumen, externo a Inertia) | Módulos que reciben props de Inertia            | Fetch directo a Sanctum      |
 
 ## Por qué los hooks de TanStack Query están reservados
 

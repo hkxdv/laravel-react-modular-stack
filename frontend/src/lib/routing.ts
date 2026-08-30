@@ -32,7 +32,7 @@ const registry: Record<string, unknown> = {
 
 /**
  * Resolves a backend route name (e.g. `internal.staff.admin.users.index`)
- * to its URL string. Throws loudly on unknown names — same contract Ziggy had.
+ * to its URL string. Throws loudly on unknown names — same contract the previous resolver had.
  */
 export function resolveRoute(name: string, args?: unknown): string {
   let node: unknown = registry;

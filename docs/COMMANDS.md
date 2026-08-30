@@ -43,19 +43,19 @@ El backend maneja automáticamente la carga de variables de entorno (por defecto
 
 Usa `.envs/.env.local`. Ideal para desarrollo rápido.
 
-| Script (`bun run be ...`) | Descripción                                                                  |
-| :------------------------ | :--------------------------------------------------------------------------- |
-| `i`                       | Instala dependencias de PHP vía Composer.                                    |
-| `artisan`                 | Ejecuta comandos de Artisan. Ej: `bun run be artisan list`.                  |
-| `dev`                     | Genera rutas Ziggy e inicia el servidor de desarrollo (`php artisan serve`). |
-| `ql`                      | Inicia el worker de colas (`queue:listen`).                                  |
-| `migrate:fresh:seed`      | Reinicia la BD y ejecuta todos los seeders.                                  |
-| `tinker`                  | Abre la consola interactiva de Laravel (Tinker).                             |
-| `qa`                      | Ejecuta `pint:test`, PHPStan, Pest 5 y `rector:dry`.                         |
-| `dump`                    | Ejecuta `composer dump-autoload`.                                            |
-| `clear:all`               | Limpia todas las cachés de Laravel y optimiza.                               |
-| `make-module`             | Crea un nuevo módulo del proyecto.                                           |
-| `ziggy`                   | Genera el archivo de rutas Ziggy para el frontend.                           |
+| Script (`bun run be ...`) | Descripción                                                                                                             |
+| :------------------------ | :---------------------------------------------------------------------------------------------------------------------- |
+| `i`                       | Instala dependencias de PHP vía Composer.                                                                               |
+| `artisan`                 | Ejecuta comandos de Artisan. Ej: `bun run be artisan list`.                                                             |
+| `dev`                     | Inicia el servidor de desarrollo (`php artisan serve`; Wayfinder se genera en el build de Vite). (`php artisan serve`). |
+| `ql`                      | Inicia el worker de colas (`queue:listen`).                                                                             |
+| `migrate:fresh:seed`      | Reinicia la BD y ejecuta todos los seeders.                                                                             |
+| `tinker`                  | Abre la consola interactiva de Laravel (Tinker).                                                                        |
+| `qa`                      | Ejecuta `pint:test`, PHPStan, Pest 5 y `rector:dry`.                                                                    |
+| `dump`                    | Ejecuta `composer dump-autoload`.                                                                                       |
+| `clear:all`               | Limpia todas las cachés de Laravel y optimiza.                                                                          |
+| `make-module`             | Crea un nuevo módulo del proyecto.                                                                                      |
+| `wayfinder`               | Genera rutas/acciones tipadas para el frontend (`php artisan wayfinder:generate --path=../frontend/src`).               |
 
 ### Comandos Artisan relevantes
 

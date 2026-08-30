@@ -46,8 +46,8 @@ jobs:
         working-directory: backend
         run: composer install --no-interaction --prefer-dist
 
-      - name: Generate Ziggy routes
-        run: php backend/artisan ziggy:generate ../frontend/src/ziggy.js
+      - name: Generate Wayfinder routes
+        run: php backend/artisan wayfinder:generate --path=../frontend/src
 
       - name: Run TypeScript check
         working-directory: frontend

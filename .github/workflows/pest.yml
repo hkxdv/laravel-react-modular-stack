@@ -45,11 +45,6 @@ jobs:
         working-directory: frontend
         run: bun install --no-progress
 
-      - name: Generate Ziggy routes
-        run: php backend/artisan ziggy:generate ../frontend/src/ziggy.js
-
-      - name: Verify Ziggy generation
-        run: ls -la frontend/src/ziggy.js || echo "Ziggy file not found!"
 
       - name: Build frontend assets
         working-directory: frontend

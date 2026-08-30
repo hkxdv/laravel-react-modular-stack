@@ -107,8 +107,10 @@ export default [
     ignores: [
       'node_modules/',
       'dist/',
-      'src/ziggy.js',
       'src/types/generated/',
+      'src/actions/**',
+      'src/wayfinder/**',
+      'src/routes/**',
       '*.config.js',
       '*.config.cjs',
     ],

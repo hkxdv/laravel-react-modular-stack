@@ -10,9 +10,9 @@ import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export interface UseServerTableOptions {
-  /** Nombre de la ruta Ziggy, por ejemplo: 'internal.admin.users.index' */
+  /** Nombre de la ruta (Wayfinder), por ejemplo: 'internal.admin.users.index' */
   routeName: string;
-  /** Parámetros de ruta requeridos por Ziggy (segmentos), si aplica */
+  /** Parámetros de ruta requeridos por Wayfinder (segmentos), si aplica */
   routeParams?: Record<string, unknown>;
   /** Índice 0-based de página inicial proveniente del servidor */
   initialPageIndex: number;
