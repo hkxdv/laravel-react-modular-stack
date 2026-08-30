@@ -48,7 +48,7 @@ final class AccountSecurityController extends AbstractProfileController
 
         $twoFactorRequired = (bool) config(
             'core.guards.staff.two_factor_required',
-            env('STAFF_2FA_REQUIRED', false)
+            false
         );
         $twoFactorPending = is_string($twoFactorSecretEncrypted)
             && $twoFactorSecretEncrypted !== ''
@@ -98,6 +98,16 @@ final class AccountSecurityController extends AbstractProfileController
         $twoFactorSetup = $request->session()->get('twoFactorSetup');
         $recoveryCodes = $request->session()->get('recoveryCodes');
 
+        $passkeys = $user->passkeys()
+            ->latest()
+            ->get(['id', 'name', 'created_at'])
+            ->map(static fn ($pk): array => [
+                'id' => $pk->id,
+                'name' => $pk->name,
+                'created_at' => $pk->created_at?->toISOString(),
+            ])
+            ->all();
+
         return Inertia::render('profile/security', [
             'contextualNavItems' => $this->getProfileNavigationItems(),
             'breadcrumbs' => $breadcrumbs,
@@ -109,6 +119,7 @@ final class AccountSecurityController extends AbstractProfileController
                     ? $currentSessionId : null,
                 'sessionsCount' => $sessionsCount,
                 'devices' => $devices,
+                'passkeys' => $passkeys,
             ],
             'twoFactorSetup' => is_array($twoFactorSetup)
                 ? $twoFactorSetup : null,

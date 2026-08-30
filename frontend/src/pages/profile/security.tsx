@@ -1,12 +1,6 @@
 import HeadingSmall from '@/components/heading-small';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import {
-  confirm as twoFactorConfirm,
-  disable as twoFactorDisable,
-  recoveryCodes,
-  setup as twoFactorSetup,
-} from '@/routes/internal/staff/security/two-factor';
-import { revoke as sessionsRevoke } from '@/routes/internal/staff/security/sessions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,11 +16,25 @@ import {
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import AppLayout from '@/layouts/app-layout';
 import ProfileLayout from '@/layouts/profile-layout';
+import { revoke as sessionsRevoke } from '@/routes/internal/staff/security/sessions';
+import {
+  destroy as passkeyDestroy,
+  index as passkeyRegisterOptions,
+  store as passkeyRegisterStore,
+} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
+import { usePasskeyRegister } from '@laravel/passkeys/react';
+import {
+  recoveryCodes,
+  confirm as twoFactorConfirm,
+  disable as twoFactorDisable,
+  setup as twoFactorSetup,
+} from '@/routes/internal/staff/security/two-factor';
 import type { BreadcrumbItem, NavItemDefinition } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { LoaderCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface DeviceInfo {
   id: number;
@@ -46,6 +54,12 @@ interface TwoFactorSetupPayload {
   recovery_codes: string[];
 }
 
+interface PasskeyInfo {
+  id: number;
+  name: string;
+  created_at: string | null;
+}
+
 interface SecurityPageProps extends PageProps {
   breadcrumbs?: BreadcrumbItem[];
   contextualNavItems?: NavItemDefinition[];
@@ -56,6 +70,7 @@ interface SecurityPageProps extends PageProps {
     currentSessionId: string | null;
     sessionsCount: number;
     devices: DeviceInfo[];
+    passkeys: PasskeyInfo[];
   };
   twoFactorSetup?: TwoFactorSetupPayload | null;
   recoveryCodes?: string[] | null;
@@ -236,6 +251,19 @@ export default function SecurityPage() {
 
           <Card className="w-full max-w-5xl">
             <CardHeader>
+              <CardTitle>Passkeys</CardTitle>
+              <CardDescription>
+                Inicia sesión sin contraseña usando tu dispositivo (Face ID, Touch ID, llave
+                de seguridad).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <PasskeyManager passkeys={security.passkeys} />
+            </CardContent>
+          </Card>
+
+          <Card className="w-full max-w-5xl">
+            <CardHeader>
               <CardTitle>Sesiones activas</CardTitle>
               <CardDescription>
                 Total detectadas: <span className="font-medium">{security.sessionsCount}</span>
@@ -289,5 +317,79 @@ export default function SecurityPage() {
         </div>
       </ProfileLayout>
     </AppLayout>
+  );
+}
+
+/**
+ * Gestión de passkeys: registrar una nueva (WebAuthn) y listar/eliminar las
+ * existentes. Tras registrar o eliminar, recarga la página para refrescar la
+ * lista (las passkeys llegan del backend en security.edit).
+ */
+function PasskeyManager({ passkeys }: Readonly<{ passkeys: PasskeyInfo[] }>) {
+  const [name, setName] = useState('Mi dispositivo');
+  const { register, isLoading, error } = usePasskeyRegister({
+    routes: {
+      options: passkeyRegisterOptions().url,
+      submit: passkeyRegisterStore().url,
+    },
+    onSuccess: () => {
+      router.reload({ only: ['security'] });
+    },
+  });
+
+  const remove = (passkey: PasskeyInfo) => {
+    if (confirm(`¿Eliminar la passkey "${passkey.name}"?`)) {
+      router.delete(passkeyDestroy({ id: passkey.id }).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+          router.reload({ only: ['security'] });
+        },
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="grid flex-1 gap-1">
+          <Label htmlFor="passkey-name">Nombre del dispositivo</Label>
+          <Input
+            id="passkey-name"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+            }}
+            placeholder="Mi dispositivo"
+            disabled={isLoading}
+          />
+        </div>
+        <Button type="button" onClick={() => register(name.trim() || 'Mi dispositivo')} disabled={isLoading}>
+          {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading ? 'Registrando…' : 'Registrar passkey'}
+        </Button>
+      </div>
+
+      {error && <InputError message={error} />}
+
+      {passkeys.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No tienes passkeys registradas.</p>
+      ) : (
+        <ul className="divide-y">
+          {passkeys.map((pk) => (
+            <li key={pk.id} className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-sm font-medium">{pk.name}</div>
+                {pk.created_at && (
+                  <div className="text-muted-foreground text-xs">Registrada el {pk.created_at}</div>
+                )}
+              </div>
+              <Button type="button" variant="destructive" size="sm" onClick={() => remove(pk)}>
+                Eliminar
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
