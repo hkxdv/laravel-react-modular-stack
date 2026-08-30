@@ -32,9 +32,17 @@ const registry: Record<string, unknown> = {
 
 /**
  * Resolves a backend route name (e.g. `internal.staff.admin.users.index`)
- * to its URL string. Throws loudly on unknown names — same contract the previous resolver had.
+ * to its URL string.
+ *
+ * Already-resolved URLs (absolute or root-relative) pass through unchanged;
+ * only dotted route names are looked up in the generated registry. Throws
+ * loudly on unknown names — same contract the previous resolver had.
  */
 export function resolveRoute(name: string, args?: unknown): string {
+  if (name.startsWith('/') || name.startsWith('http://') || name.startsWith('https://')) {
+    return name;
+  }
+
   let node: unknown = registry;
 
   for (const segment of name.split('.')) {
