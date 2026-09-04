@@ -8,6 +8,9 @@ use App\Services\AuthUserPresenterResolver;
 use Illuminate\Http\Request;
 use Modules\Admin\Database\Factories\StaffUsersFactory;
 use Modules\Examples\Database\Factories\ExampleTenantUserFactory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 it('returns staff presenter when staff user is authenticated', function (): void {
     $resolver = app(AuthUserPresenterResolver::class);

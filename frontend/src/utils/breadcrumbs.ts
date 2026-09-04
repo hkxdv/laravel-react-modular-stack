@@ -1,5 +1,5 @@
-import type { BreadcrumbItem } from '@/types';
 import { resolveRoute } from '@/lib/routing';
+import type { BreadcrumbItem } from '@/types';
 
 /**
  * Crea un arreglo de breadcrumbs estándar para páginas de índice de módulos.

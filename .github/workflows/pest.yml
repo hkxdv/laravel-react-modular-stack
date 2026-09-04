@@ -49,6 +49,8 @@ jobs:
       - name: Build frontend assets
         working-directory: frontend
         run: bun run build
+      - name: Create SQLite test database
+        run: touch database/database.sqlite
       - name: Run Pest
         working-directory: backend
         run: ./vendor/bin/pest --ci

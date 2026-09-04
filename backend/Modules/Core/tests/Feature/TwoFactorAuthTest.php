@@ -104,15 +104,7 @@ it('challenge rechaza un TOTP inválido (verifier directo)', function (): void {
     // Inválido -> false.
     expect($verifier->verify($secret, '000000'))->toBeFalse();
 
-    // Válido -> true. Probamos el código del step actual y los adyacentes
-    // (cubre cualquier cruce de ventana entre generación y verificación).
-    $valid = false;
-    foreach ([-1, 0, 1] as $offset) {
-        if ($verifier->verify($secret, totpForSecret($secret, $offset))) {
-            $valid = true;
-            break;
-        }
-    }
+    $valid = array_any([-1, 0, 1], fn(int $offset) => $verifier->verify($secret, totpForSecret($secret, $offset)));
 
     expect($valid)->toBeTrue();
 });

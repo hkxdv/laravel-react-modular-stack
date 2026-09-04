@@ -47,7 +47,8 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Generate Wayfinder routes
-        run: php backend/artisan wayfinder:generate --path=../frontend/src
+        working-directory: backend
+        run: php artisan wayfinder:generate --path=../frontend/src
 
       - name: Run TypeScript check
         working-directory: frontend
