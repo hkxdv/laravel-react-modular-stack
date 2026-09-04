@@ -27,7 +27,7 @@ function skipIfNoLoginRoute(): void
 /**
  * TOTP RFC-6238 para un secreto base32 conocido (espejo del verifier de Core).
  */
-function totpForSecret(string $base32Secret): string
+function totpForSecret(string $base32Secret, int $stepOffset = 0): string
 {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $map = array_flip(mb_str_split($alphabet));
@@ -45,7 +45,7 @@ function totpForSecret(string $base32Secret): string
         $secret .= chr((int) bindec($chunk));
     }
 
-    $counter = (int) floor(\Illuminate\Support\Facades\Date::now()->getTimestamp() / 30);
+    $counter = (int) floor(\Illuminate\Support\Facades\Date::now()->getTimestamp() / 30) + $stepOffset;
     $hash = hash_hmac('sha1', pack('N*', 0, $counter), $secret, true);
     $offset = ord(mb_substr($hash, -1)) & 0x0F;
     $value = unpack('N', mb_substr($hash, $offset, 4));
@@ -100,9 +100,21 @@ it('challenge rechaza un TOTP inválido (verifier directo)', function (): void {
 
     // Secreto base32 conocido: JBSWY3DPEHPK3PXP
     $secret = 'JBSWY3DPEHPK3PXP';
-    expect($verifier->verify($secret, '000000'))->toBeFalse()
-        // Regenerar justo antes de verificar (evita flakiness de ventana 30s)
-        ->and($verifier->verify($secret, totpForSecret($secret)))->toBeTrue();
+
+    // Inválido -> false.
+    expect($verifier->verify($secret, '000000'))->toBeFalse();
+
+    // Válido -> true. Probamos el código del step actual y los adyacentes
+    // (cubre cualquier cruce de ventana entre generación y verificación).
+    $valid = false;
+    foreach ([-1, 0, 1] as $offset) {
+        if ($verifier->verify($secret, totpForSecret($secret, $offset))) {
+            $valid = true;
+            break;
+        }
+    }
+
+    expect($valid)->toBeTrue();
 });
 
 it('recovery code se canjea una sola vez (use-case VerifyLoginChallenge)', function (): void {
