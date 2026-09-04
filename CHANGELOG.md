@@ -16,12 +16,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Challenge de 2FA durante el login: 2FA TOTP propio de Core completado (staging en `AbstractLoginRequest`, use-case `VerifyLoginChallenge` con TOTP o recovery code de un solo uso, página `auth/two-factor-challenge`, middleware `2fa` con policy por guard `core.guards.{guard}.two_factor_required`, default `false`).
 - Passkeys (WebAuthn) para el guard `staff` vía `laravel/passkeys` standalone: `StaffUser` implementa `PasskeyUser`, hook `authorizeLoginUsing` con checks de seguridad (cuenta activa + blocklist/attempts por IP) antes de establecer sesión, endpoint `.well-known/passkey-endpoints`, login "Iniciar sesión con passkey" y gestión en seguridad (registro/lista/eliminación).
 - Fuentes vía `laravel-vite-plugin/fonts` (`bunny('Instrument Sans', [400,500,600])`) reemplazando las fuentes locales de `backend/public/fonts`; los `@font-face` se inyectan en build.
+- Tests de 2FA y passkeys en Core (`TwoFactorAuthTest`, `PasskeyAuthTest`): staging en login, challenge TOTP, recovery code single-use, middleware por guard y hook `authorizeLoginUsing` (cuenta activa + IP blocklist).
 
 ### Changed
 
 - `inertiajs/inertia-laravel` a `^3.0`.
 - Nombres de rutas 2FA renombrados: `security.2fa.*` → `security.two-factor.*` (URLs intactas; evita bug del generador con segmentos numéricos).
 - `internal.staff.index.redirect` → `internal.staff.root.redirect` (evita self-import en generador).
+- Skill `wayfinder-development` extendida con patrones del monorepo (generación `--path=../frontend/src`, `resolveRoute`, pitfalls del generador).
+
+### Fixed
+
+- `resolveRoute()` rompía al recibir URLs relativas (`/internal/...`) desde el backend en la navegación — ahora las URLs ya resueltas pasan intactas y solo se resuelven nombres punteados.
+- TOTP en tests: el helper ahora usa `Date::now()` (mismo reloj que el verifier) eliminando flakiness de ventana de 30s en suite.
 
 ### Removed
 
