@@ -45,7 +45,7 @@ function totpForSecret(string $base32Secret): string
         $secret .= chr((int) bindec($chunk));
     }
 
-    $counter = (int) floor(time() / 30);
+    $counter = (int) floor(\Illuminate\Support\Facades\Date::now()->getTimestamp() / 30);
     $hash = hash_hmac('sha1', pack('N*', 0, $counter), $secret, true);
     $offset = ord(mb_substr($hash, -1)) & 0x0F;
     $value = unpack('N', mb_substr($hash, $offset, 4));
