@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { dashboard as staffDashboard } from '@/routes/internal/staff';
 import { welcome } from '@/routes';
+import { dashboard as staffDashboard } from '@/routes/internal/staff';
 import { type PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {

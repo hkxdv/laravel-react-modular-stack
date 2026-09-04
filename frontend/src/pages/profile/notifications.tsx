@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
-import { update as notificationsUpdate } from '@/routes/internal/staff/notifications';
 import AppLayout from '@/layouts/app-layout';
 import ProfileLayout from '@/layouts/profile-layout';
+import { update as notificationsUpdate } from '@/routes/internal/staff/notifications';
 import type { BreadcrumbItem, NavItemDefinition } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import type { PageProps } from '@inertiajs/core';

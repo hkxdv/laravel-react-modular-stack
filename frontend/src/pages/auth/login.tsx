@@ -1,14 +1,14 @@
+import {
+  index as passkeyLoginOptions,
+  store as passkeyLoginStore,
+} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyLoginController';
+import PasskeyVerify from '@/components/auth/passkey-verify';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
-import {
-  index as passkeyLoginOptions,
-  store as passkeyLoginStore,
-} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyLoginController';
-import PasskeyVerify from '@/components/auth/passkey-verify';
 import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { request as passwordRequest } from '@/routes/password';

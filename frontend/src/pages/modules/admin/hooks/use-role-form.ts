@@ -45,9 +45,7 @@ export const useRoleForm = (initialRoleId?: number, initialPermissions?: string[
   const handleSubmit = (data: RoleFormData) => {
     const isEditing = !!initialRoleId;
     const method = isEditing ? 'put' : 'post';
-    const url = isEditing
-      ? update(initialRoleId).url
-      : store().url;
+    const url = isEditing ? update(initialRoleId).url : store().url;
 
     router[method](url, data, {
       onSuccess: () => {

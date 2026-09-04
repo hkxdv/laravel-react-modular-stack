@@ -364,7 +364,7 @@ final class AddonRegistryService implements AddonRegistryInterface
         User $user,
         ModuleInstance $module
     ): bool {
-        $moduleConfig = $this->getModuleConfig($module->getName());
+        $moduleConfig = $this->getModuleConfig(mb_strtolower($module->getName()));
 
         $canAccess = false;
 

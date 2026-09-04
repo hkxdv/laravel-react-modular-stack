@@ -51,7 +51,7 @@ require_once sprintf('%s/internal.php', __DIR__);
 require_once sprintf('%s/protect-assets.php', __DIR__);
 
 // Descubrimiento estándar de endpoints de passkeys.
-Route::get('.well-known/passkey-endpoints', fn(): JsonResponse => response()->json([
+Route::get('.well-known/passkey-endpoints', fn (): JsonResponse => response()->json([
     'enroll' => route('internal.staff.security.edit'),
     'manage' => route('internal.staff.security.edit'),
 ]))->name('well-known.passkeys');

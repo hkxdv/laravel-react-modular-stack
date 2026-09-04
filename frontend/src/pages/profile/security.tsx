@@ -1,3 +1,8 @@
+import {
+  destroy as passkeyDestroy,
+  index as passkeyRegisterOptions,
+  store as passkeyRegisterStore,
+} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -18,12 +23,6 @@ import AppLayout from '@/layouts/app-layout';
 import ProfileLayout from '@/layouts/profile-layout';
 import { revoke as sessionsRevoke } from '@/routes/internal/staff/security/sessions';
 import {
-  destroy as passkeyDestroy,
-  index as passkeyRegisterOptions,
-  store as passkeyRegisterStore,
-} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
-import { usePasskeyRegister } from '@laravel/passkeys/react';
-import {
   recoveryCodes,
   confirm as twoFactorConfirm,
   disable as twoFactorDisable,
@@ -33,6 +32,7 @@ import type { BreadcrumbItem, NavItemDefinition } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -253,8 +253,8 @@ export default function SecurityPage() {
             <CardHeader>
               <CardTitle>Passkeys</CardTitle>
               <CardDescription>
-                Inicia sesión sin contraseña usando tu dispositivo (Face ID, Touch ID, llave
-                de seguridad).
+                Inicia sesión sin contraseña usando tu dispositivo (Face ID, Touch ID, llave de
+                seguridad).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -363,7 +363,13 @@ function PasskeyManager({ passkeys }: Readonly<{ passkeys: PasskeyInfo[] }>) {
             disabled={isLoading}
           />
         </div>
-        <Button type="button" onClick={() => register(name.trim() || 'Mi dispositivo')} disabled={isLoading}>
+        <Button
+          type="button"
+          onClick={() => {
+            void register(name.trim() || 'Mi dispositivo');
+          }}
+          disabled={isLoading}
+        >
           {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
           {isLoading ? 'Registrando…' : 'Registrar passkey'}
         </Button>
@@ -383,7 +389,14 @@ function PasskeyManager({ passkeys }: Readonly<{ passkeys: PasskeyInfo[] }>) {
                   <div className="text-muted-foreground text-xs">Registrada el {pk.created_at}</div>
                 )}
               </div>
-              <Button type="button" variant="destructive" size="sm" onClick={() => remove(pk)}>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  remove(pk);
+                }}
+              >
                 Eliminar
               </Button>
             </li>

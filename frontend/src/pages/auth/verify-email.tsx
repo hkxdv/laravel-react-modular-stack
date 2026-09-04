@@ -1,9 +1,9 @@
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
+import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { send } from '@/routes/verification';
-import AuthLayout from '@/layouts/auth-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import React from 'react';

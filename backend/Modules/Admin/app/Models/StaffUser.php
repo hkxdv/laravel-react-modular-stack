@@ -48,6 +48,7 @@ final class StaffUser extends AbstractDomainUser implements MustVerifyEmail, Pas
 {
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
+
     use PasskeyAuthenticatable;
 
     /**

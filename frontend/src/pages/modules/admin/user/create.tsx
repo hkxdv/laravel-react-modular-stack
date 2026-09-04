@@ -1,8 +1,8 @@
 import { useFlashToasts } from '@/hooks/use-flash-toasts';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
-import { index, store } from '@/routes/internal/staff/admin/users';
 import AppLayout from '@/layouts/app-layout';
+import { index, store } from '@/routes/internal/staff/admin/users';
 import type { Role } from '@/types';
 import { extractUserData } from '@/utils/user-data';
 import { Head, router, usePage } from '@inertiajs/react';

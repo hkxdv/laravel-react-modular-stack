@@ -1,5 +1,5 @@
-import { type NavItemDefinition, type ProcessedNavItem, type User } from '@/types';
 import { resolveRoute } from '@/lib/routing';
+import { type NavItemDefinition, type ProcessedNavItem, type User } from '@/types';
 import { getLucideIcon } from '@/utils/lucide-icons';
 
 import { userHasPermission } from './permission-checker';

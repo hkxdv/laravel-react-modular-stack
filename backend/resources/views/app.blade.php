@@ -9,29 +9,34 @@
   <meta name="description" content="">
   <meta name="referrer" content="same-origin">
   <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="{{ ($appearance ?? 'light') == 'dark' ? '#1a1a1a' : '#ffffff' }}">
   <link rel="icon" href="{{ asset('laravel-logo.min.svg') }}" type="image/svg+xml">
-  <title inertia>
-    {{ $page['props']['pageTitle'] ?? $page['props']['title'] ?? config('app.name') }}
-  </title>
-  @routes
+  <script>
+      (function() {
+          const appearance = '{{ $appearance ?? "system" }}';
+          if (appearance === 'system') {
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if (prefersDark) {
+                  document.documentElement.classList.add('dark');
+              }
+          }
+      })();
+  </script>
+  @fonts
   @viteReactRefresh
   @vite(['src/app.tsx', "src/pages/{$page['component']}.tsx"])
-  @inertiaHead
-
+  <x-inertia::head>
+      <title>{{ $page['props']['title'] ?? config('app.name') }}</title>
+  </x-inertia::head>
 </head>
 
 <body class="font-sans antialiased">
   <noscript>
-    <div style="padding: 2rem; text-align: center; background-color: #fff; color: #000;"
-      class="dark:bg-gray-900 dark:text-white">
+    <div style="padding: 2rem; text-align: center; background-color: #fff; color: #000;" class="dark:bg-gray-900 dark:text-white">
       <h1>JavaScript es requerido</h1>
-      <p>Esta aplicación requiere JavaScript para funcionar. Por favor, habilita JavaScript en tu navegador e
-        intenta nuevamente.</p>
+      <p>Esta aplicación requiere JavaScript para funcionar. Por favor, habilita JavaScript en tu navegador e intenta nuevamente.</p>
     </div>
   </noscript>
-  @inertia
-
+  <x-inertia::app />
 </body>
 
 </html>

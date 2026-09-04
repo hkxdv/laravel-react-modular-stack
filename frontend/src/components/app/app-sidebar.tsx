@@ -1,7 +1,6 @@
 import { NavFooter } from '@/components/app/nav/nav-footer';
 import { NavMain } from '@/components/app/nav/nav-main';
 import { NavUser } from '@/components/app/nav/nav-user';
-import { dashboard as staffDashboard } from '@/routes/internal/staff';
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { dashboard as staffDashboard } from '@/routes/internal/staff';
 import { type NavItemDefinition, type User } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';

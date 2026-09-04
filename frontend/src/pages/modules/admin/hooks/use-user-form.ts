@@ -118,9 +118,7 @@ export const useUserForm = (
   const handleSubmit = (data: UserFormData) => {
     const isEditing = !!initialUser;
     const method = isEditing ? 'put' : 'post';
-    const url = isEditing
-      ? update(initialUser.id).url
-      : store().url;
+    const url = isEditing ? update(initialUser.id).url : store().url;
 
     // Convertir IDs de roles a nombres de roles antes de enviar
     const formData = {

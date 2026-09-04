@@ -6,8 +6,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { edit as profileEdit } from '@/routes/internal/staff/profile';
 import { logout } from '@/routes';
+import { edit as profileEdit } from '@/routes/internal/staff/profile';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';

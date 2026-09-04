@@ -44,11 +44,7 @@ export function PublicHeader() {
               : 'border border-transparent',
           )}
         >
-          <Link
-            href={welcome.url()}
-            className="flex items-center gap-2 pl-4"
-            aria-label="Inicio"
-          >
+          <Link href={welcome.url()} className="flex items-center gap-2 pl-4" aria-label="Inicio">
             <img src="/logo.svg" alt="Logo" className="h-5 w-auto" />
             <span className="text-sm font-medium">ModularStack</span>
           </Link>

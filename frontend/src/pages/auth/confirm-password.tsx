@@ -1,8 +1,8 @@
-import { store as confirmPasswordStore } from '@/routes/password/confirm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { store as confirmPasswordStore } from '@/routes/password/confirm';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import React, { type SubmitEventHandler } from 'react';

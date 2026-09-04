@@ -110,6 +110,7 @@ final readonly class TwoFactorCodeVerifier
             if (mb_strlen($chunk) < 8) {
                 break;
             }
+
             $bytes .= chr((int) bindec($chunk));
         }
 
