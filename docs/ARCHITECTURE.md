@@ -1,7 +1,7 @@
 # Arquitectura (alto nivel)
 
 > **Estado:** Desarrollo activo (alpha)  
-> **Última actualización:** 2026-08-24
+> **Última actualización:** 2026-08-27
 
 Este documento describe la arquitectura actual a un nivel alto. La intención es que sirva como “mapa mental” para encontrar dónde vive cada cosa y cuáles son los límites importantes del sistema.
 
@@ -42,7 +42,7 @@ El backend usa Laravel 13.29.0 sobre PHP 8.4/8.5. La suite de pruebas usa Pest 5
     - `src/Contracts/`: interfaces de comunicación cross-module (`ModuleConfigInterface`, `PermissionRegistryInterface`, `AddonRegistryInterface`, etc.).
     - `src/Application/{Auth,Permissions,Menu,...}/`: casos de uso (`BuildAddonMenu`, `BuildContextualMenu`, `BuildBreadcrumbs`, ...).
     - `src/Infrastructure/Laravel/{Services,Providers,Facades,Console/Commands}/`: adapters Laravel. Incluye `ModuleConfigRegistry`, `ModuleConfigValidator`, `PermissionRegistryAggregator` y los comandos `modules:validate-config` / `permissions:sync-registry`.
-  - `Admin`: módulo de administración. Contiene el CRUD de roles/permisos, Policies de Laravel, `Domain/Filters/StaffUserFilter` (DTO de filtrado), y `PermissionRegistry`. `StaffUserManagerInterface` retorna `DomainUser` (no `StaffUser` Eloquent) en operaciones de lectura.
+  - `Admin`: módulo de administración. Contiene el CRUD de roles/permisos, Policies de Laravel, `Domain/Filters/StaffUserFilter` (DTO de filtrado), y `PermissionRegistry`. `StaffUserManagerInterface` opera con el modelo Eloquent `StaffUser`; la presentación tipada al frontend se delega en DTOs de presentación (ver §"Tipado del usuario desde Core").
   - `Examples`: módulo de ejemplo con guard `tenant` y `ExampleTenantUser` (validación multi-usuario).
 - `backend/app/Providers/TypeScriptTransformerServiceProvider.php`: configuración de `spatie/laravel-typescript-transformer` (genera `.d.ts` desde los DTOs de Core hacia `frontend/src/types/generated/`).
 
@@ -75,12 +75,14 @@ El backend usa Laravel 13.29.0 sobre PHP 8.4/8.5. La suite de pruebas usa Pest 5
 - `StaffUser` (Eloquent) vive en `Modules/Admin/App/Models`; `ExampleTenantUser` en `Modules/Examples`.
 - Sesiones polimórficas (`authenticatable_type` + `authenticatable_id`) con morph map (`'staff-user'`, `'tenant-user'`).
 - `StaffUserLoginInfo` usa relación polimórfica (`loginable_type` + `loginable_id`) — soporta login info para múltiples tipos de usuario.
-- `DomainUser` (entidad de dominio genérica en Core) con `#[TypeScript]` — `StaffUserManagerInterface` retorna `DomainUser` en reads (no `StaffUser` Eloquent); `syncRoles` mantiene acoplamiento Eloquent (Spatie requiere `HasRoles`).
+- `DomainUser` (entidad de dominio genérica en Core) — `StaffUserManagerInterface` opera con el modelo Eloquent `StaffUser`; la transferencia tipada al frontend se hace mediante DTOs de presentación generados desde Core (ver §"Tipado del usuario desde Core").
 - RBAC granular con Spatie: 22 permisos `recurso.accion` declarados vía `PermissionRegistryInterface` + comando `permissions:sync-registry`.
 - Policies de Laravel (`StaffUserPolicy`, `RolePolicy`, `PermissionPolicy`) con autorización por permiso granular; los controladores usan `$this->authorize()`.
 - Bypass de superuser vía permiso `system.bypass` (data auditable, no hardcoded role check).
 - CRUD admin de roles (4 controllers VerbEntity) y lista de permisos read-only (desde `PermissionRegistryAggregator`) en `Modules/Admin`, con middleware granular por acción.
-- Unión discriminada `User = StaffUser | TenantUser` en frontend con type guards por `user_type`.
+- Unión discriminada `AuthUser = StaffUserDto | TenantUserDto` en frontend (generada desde Core) con type guards por `user_type`; `auth.user` y `staff` en `AuthPageProps` usan esta unión.
+- **2FA (TOTP)**: implementación propia en Core (`Application/AccountSecurity` + `TwoFactorCodeVerifier`), guard-agnostic sobre `AbstractDomainUser`. El login con 2FA confirmado hace staging en `AbstractLoginRequest` (`two_factor_login_pending`) y redirige al challenge (`auth/two-factor-challenge`); el use-case `VerifyLoginChallenge` valida TOTP o recovery code de un solo uso. Policy por guard en `core.guards.{guard}.two_factor_required` (default `false`; fallback env `STAFF_2FA_REQUIRED`), aplicada por el middleware `2fa` (alias en `bootstrap/modules/middleware.php`).
+- **Passkeys (WebAuthn)**: `laravel/passkeys` standalone para el guard `staff`. `StaffUser` implementa `PasskeyUser`; `AppServiceProvider::bootstrapPasskeys()` fija `Passkeys::useUserModel(StaffUser::class)` y el hook `authorizeLoginUsing` (cuenta activa + IP blocklist) ANTES de establecer sesión. Rutas del paquete + `.well-known/passkey-endpoints`; UI de login y gestión en `frontend/src/components/auth/passkey-verify.tsx` y la página de seguridad. **Limitación**: la tabla de passkeys es `BelongsTo` por `user_id` (no polimórfica) → single-user-model por app.
 
 ## Contrato de configuración de módulos (ModuleConfig)
 
