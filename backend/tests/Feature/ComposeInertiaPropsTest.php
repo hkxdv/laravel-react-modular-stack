@@ -7,11 +7,39 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Modules\Admin\Database\Factories\StaffUsersFactory;
+use Modules\Core\Application\View\AuthPageProps;
 use Modules\Core\Application\View\ComposeInertiaProps;
+use Modules\Core\Domain\User\DTO\UserDto;
 use Modules\Examples\Database\Factories\ExampleTenantUserFactory;
+use ReflectionProperty;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
+
+// ── AUTC-S3: AuthPageProps.user se amplía a UserDto|null ──
+
+it('auth props user property type is widened to UserDto|null (AUTC-S3)', function (): void {
+    $type = (new ReflectionProperty(AuthPageProps::class, 'user'))->getType();
+
+    expect((string) $type)->toBe('?Modules\Core\Domain\User\DTO\UserDto');
+});
+
+it('auth props user is an instance of UserDto for staff (widened contract)', function (): void {
+    $staffRole = Role::query()->create(['name' => 'staff', 'guard_name' => 'staff']);
+    $user = StaffUsersFactory::new()->create();
+    $user->assignRole($staffRole);
+
+    $request = Request::create('/test', 'GET');
+    $request->setLaravelSession(app('session')->driver());
+    $request->setUserResolver(function ($guard = null) use ($user) {
+        return $guard === 'staff' ? $user : null;
+    });
+
+    $props = app(ComposeInertiaProps::class)->execute($request);
+
+    expect($props->auth->user)->toBeInstanceOf(UserDto::class)
+        ->and($props->auth->user->user_type)->toBe('staff');
+});
 
 it('staff guard produces auth props with staff user_type', function (): void {
     $staffRole = Role::query()->create(['name' => 'staff', 'guard_name' => 'staff']);

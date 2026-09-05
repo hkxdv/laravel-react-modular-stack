@@ -103,8 +103,8 @@ export type BaseUser = BaseEntity;
 // Generated DTO types from backend (typescript:transformer — source of truth)
 // Reference via Modules namespace from generated.d.ts
 export type Role = Modules.Core.Domain.User.DTO.RoleDto;
-export type StaffUser = Modules.Core.Domain.User.DTO.StaffUserDto;
-export type TenantUser = Modules.Core.Domain.User.DTO.TenantUserDto;
+export type StaffUser = Modules.Admin.App.DTO.StaffUserDto;
+export type TenantUser = Modules.Examples.App.DTO.TenantUserDto;
 export type UserDto = Modules.Core.Domain.User.DTO.UserDto;
 
 /** Unión discriminada por `user_type` para todos los tipos de usuario soportados. */

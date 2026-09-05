@@ -129,10 +129,6 @@ final readonly class ComposeInertiaProps
             ? $presenter->present($user)
             : null;
 
-        // Los presentadores registrados producen solo StaffUserDto|TenantUserDto
-        // (alias `PresentedUserDto` en phpstan.neon: Core no declara tipos de
-        // módulos concretos, REQ-A12). S3 amplía AuthPageProps a UserDto|null.
-        /** @var PresentedUserDto|null $transformedUser */
         $transformedUser = $presented;
 
         $isImpersonating = $user && $request->session()->has('impersonated_by');
