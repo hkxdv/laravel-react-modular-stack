@@ -31,27 +31,28 @@ final class EnsureUserIsActive
         $authGuard = Auth::guard($guard);
 
         if ($authGuard->guest()) {
-            return $this->handleUnauthenticated($request);
+            $response = $this->handleUnauthenticated($request);
+        } else {
+            $user = $authGuard->user();
+
+            if ($user === null) {
+                $response = $this->handleUnauthenticated($request);
+            } else {
+                // Verificar si el usuario está activo
+                /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
+                $isInactive = $user instanceof AbstractDomainUser && ! $user->isActive();
+
+                // Verificar si el usuario ha sido eliminado (soft delete)
+                /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
+                $isDeleted = $user instanceof AbstractDomainUser && $user->trashed();
+
+                $response = $isInactive || $isDeleted
+                    ? $this->handleInactiveUser($request, $guard)
+                    : $next($request);
+            }
         }
 
-        $user = $authGuard->user();
-        if ($user === null) {
-            return $this->handleUnauthenticated($request);
-        }
-
-        // Verificar si el usuario está activo
-        /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
-        if ($user instanceof AbstractDomainUser && ! $user->isActive()) {
-            return $this->handleInactiveUser($request, $guard);
-        }
-
-        // Verificar si el usuario ha sido eliminado (soft delete)
-        /** @phpstan-ignore instanceof.alwaysTrue (runtime guard: auth guard may return non-AbstractDomainUser) */
-        if ($user instanceof AbstractDomainUser && $user->trashed()) {
-            return $this->handleInactiveUser($request, $guard);
-        }
-
-        return $next($request);
+        return $response;
     }
 
     /**

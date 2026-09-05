@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use LogicException;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -26,47 +28,48 @@ final class ValidateSessionIntegrity
     public function handle(Request $request, Closure $next, ?string $guard = null): Response
     {
         $authGuard = Auth::guard($guard);
+        $response = null;
 
         // Solo validar para usuarios autenticados
         if ($authGuard->guest()) {
-            return $next($request);
-        }
+            $response = $next($request);
+        } else {
+            $user = $authGuard->user();
+            $sessionKey = 'session_integrity_'.$guard;
 
-        $user = $authGuard->user();
-        $sessionKey = 'session_integrity_'.$guard;
+            // Obtener información actual de la sesión
+            $currentFingerprint = $this->generateSessionFingerprint($request);
 
-        // Obtener información actual de la sesión
-        $currentFingerprint = $this->generateSessionFingerprint($request);
-        /**
-         * @var array{
-         *   user_agent: string|null,
-         *   ip_network: string|null,
-         *   accept_language: string|null,
-         *   accept_encoding: string|null
-         * }|null $storedFingerprint
-         */
-        $storedFingerprint = $request->session()->get($sessionKey);
+            /**
+             * @var array{
+             *   user_agent: string|null,
+             *   ip_network: string|null,
+             *   accept_language: string|null,
+             *   accept_encoding: string|null
+             * }|null $storedFingerprint
+             */
+            $storedFingerprint = $request->session()->get($sessionKey);
 
-        // Si es la primera vez, almacenar el fingerprint
-        if (! is_array($storedFingerprint)) {
-            $request->session()->put($sessionKey, $currentFingerprint);
-
-            return $next($request);
-        }
-
-        // Verificar si el fingerprint ha cambiado sospechosamente
-        if (! $this->validateFingerprint($currentFingerprint, $storedFingerprint)) {
-            if (! $user instanceof \Illuminate\Contracts\Auth\Authenticatable) {
-                return $next($request);
+            if (
+                ! is_array($storedFingerprint)
+            ) {
+                $request->session()->put($sessionKey, $currentFingerprint);
+                $response = $next($request);
+            } elseif (
+                ! $this->validateFingerprint($currentFingerprint, $storedFingerprint)
+                && $user instanceof Authenticatable
+            ) {
+                $response = $this->handleSuspiciousActivity($request, $user, $guard);
+            } else {
+                // Actualizar timestamp de última actividad
+                $request->session()->put($sessionKey.'_last_activity', now()->timestamp);
+                $response = $next($request);
             }
-
-            return $this->handleSuspiciousActivity($request, $user, $guard);
         }
 
-        // Actualizar timestamp de última actividad
-        $request->session()->put($sessionKey.'_last_activity', now()->timestamp);
+        throw_unless($response instanceof Response, LogicException::class, 'Middleware response was not created.'); // @phpstan-ignore instanceof.alwaysTrue (runtime guard: branch sets Response; verify for safety)
 
-        return $next($request);
+        return $response;
     }
 
     /**
@@ -143,7 +146,7 @@ final class ValidateSessionIntegrity
      */
     private function handleSuspiciousActivity(
         Request $request,
-        \Illuminate\Contracts\Auth\Authenticatable $user,
+        Authenticatable $user,
         ?string $guard
     ): Response {
         // Log de la actividad sospechosa
