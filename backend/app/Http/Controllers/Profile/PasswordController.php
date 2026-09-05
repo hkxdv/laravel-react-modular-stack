@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
+namespace App\Http\Controllers\Profile;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +40,7 @@ final class PasswordController extends AbstractProfileController
         ]);
 
         // Actualizar la contraseña y registrar fecha de cambio
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
 
         $updatePassword->handle($user, $validated['password']);
 

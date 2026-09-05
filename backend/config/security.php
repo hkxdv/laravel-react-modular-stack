@@ -47,6 +47,11 @@ return [
         |--------------------------------------------------------------------------
         */
         'passwords' => [
+            /**
+             * @deprecated Usar core.guards.<guard>.password_max_age_days (S1).
+             *             Este bloque se conserva como fallback BC una ventana
+             *             de release; no añadir nuevas claves aquí.
+             */
             'staff' => [
                 'min_length' => env('STAFF_PASSWORD_MIN_LENGTH', 12),
                 'require_uppercase' => env('STAFF_PASSWORD_REQUIRE_UPPERCASE', true),
@@ -66,6 +71,11 @@ return [
     |--------------------------------------------------------------------------
     */
     'two_factor' => [
+        /**
+         * @deprecated Usar core.guards.<guard>.two_factor.* (S1).
+         *             Este bloque se conserva como fallback BC una ventana
+         *             de release; no añadir nuevas claves aquí.
+         */
         'staff' => [
             'required' => env('STAFF_2FA_REQUIRED', false),
             'methods' => ['totp', 'sms', 'email'],

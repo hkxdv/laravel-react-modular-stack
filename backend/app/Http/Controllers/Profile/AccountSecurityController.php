@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
+namespace App\Http\Controllers\Profile;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +37,7 @@ final class AccountSecurityController extends AbstractProfileController
      */
     public function edit(Request $request): Response
     {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
 
         $breadcrumbs = $this->buildBreadcrumbs('security.edit');
 
@@ -135,7 +135,7 @@ final class AccountSecurityController extends AbstractProfileController
         RevokeOtherSessionsInterface $revokeOtherSessions,
         Request $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
         $currentSessionId = $request->hasSession()
             ? $request->session()->getId() : null;
 
@@ -162,7 +162,7 @@ final class AccountSecurityController extends AbstractProfileController
         SetupTwoFactorAuthInterface $setupTwoFactorAuth,
         Request $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
         $setup = $setupTwoFactorAuth->handle($user);
 
         return back()->with('twoFactorSetup', $setup);
@@ -175,7 +175,7 @@ final class AccountSecurityController extends AbstractProfileController
         ConfirmTwoFactorAuthInterface $confirmTwoFactorAuth,
         Request $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
         /** @var array{code:string} $validated */
         $validated = $request->validate([
             'code' => ['required', 'string'],
@@ -196,7 +196,7 @@ final class AccountSecurityController extends AbstractProfileController
         DisableTwoFactorAuthInterface $disableTwoFactorAuth,
         Request $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
         $disableTwoFactorAuth->handle($user);
 
         return back()->with('success', '2FA deshabilitado correctamente.');
@@ -211,7 +211,7 @@ final class AccountSecurityController extends AbstractProfileController
         RegenerateTwoFactorRecoveryCodesInterface $regenerateTwoFactorRecoveryCodes,
         Request $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
 
         $confirmedAt = $user->getAttribute('two_factor_confirmed_at');
         if ($confirmedAt === null) {

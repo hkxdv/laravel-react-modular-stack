@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Requests\Profile;
+namespace App\Http\Requests\Profile;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
+namespace App\Http\Controllers\Profile;
 
+use App\Http\Requests\Profile\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Core\Application\Profile\UpdateProfile;
-use Modules\Core\Infrastructure\Laravel\Http\Requests\Profile\ProfileUpdateRequest;
 
 final class ProfileController extends AbstractProfileController
 {
@@ -20,7 +20,7 @@ final class ProfileController extends AbstractProfileController
      */
     public function edit(Request $request): Response
     {
-        $this->requireStaffUser($request);
+        $this->requireProfileUser($request);
 
         $breadcrumbs = $this->buildBreadcrumbs('profile.edit');
 
@@ -40,7 +40,7 @@ final class ProfileController extends AbstractProfileController
         UpdateProfile $updateProfile,
         ProfileUpdateRequest $request
     ): RedirectResponse {
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
         $updateProfile->handle($user, $request->validated());
 
         return to_route('internal.staff.profile.edit');
@@ -55,7 +55,7 @@ final class ProfileController extends AbstractProfileController
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = $this->requireStaffUser($request);
+        $user = $this->requireProfileUser($request);
 
         Log::channel('domain_profile')->info('Perfil eliminado', [
             'user_id' => $user->getAuthIdentifier(),

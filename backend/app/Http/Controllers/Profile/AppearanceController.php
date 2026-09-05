@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
+namespace App\Http\Controllers\Profile;
 
 use Inertia\Inertia;
 use Inertia\Response;

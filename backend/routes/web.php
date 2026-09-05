@@ -46,9 +46,14 @@ Route::get(
 |--------------------------------------------------------------------------
 | Carga de Archivos de Rutas Adicionales
 |--------------------------------------------------------------------------
+|
+| Se usa `require` y no `require_once`: web.php se vuelve a incluir en cada
+| re-bootstrap de la aplicación (tests/Pest), y `require_once` devolvería
+| `true` sin re-registrar las rutas (ver nota en bootstrap/app.php).
 */
-require_once sprintf('%s/internal.php', __DIR__);
-require_once sprintf('%s/protect-assets.php', __DIR__);
+require sprintf('%s/internal.php', __DIR__);
+require sprintf('%s/protect-assets.php', __DIR__);
+require sprintf('%s/profile.php', __DIR__);
 
 // Descubrimiento estándar de endpoints de passkeys.
 Route::get('.well-known/passkey-endpoints', fn (): JsonResponse => response()->json([

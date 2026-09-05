@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
+namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Facades\Addon;
 use Modules\Core\Infrastructure\Laravel\Facades\Menu;
+
+use function Foundry\Helpers\configString;
 
 /**
  * Controlador base para las páginas de perfil.
@@ -35,6 +38,10 @@ abstract class AbstractProfileController extends Controller
 
     /**
      * Resuelve el guard de autenticación desde el usuario autenticado en la petición.
+     *
+     * La aplicación no usa el guard por defecto para sesiones reales (staff y
+     * tenant son guards explícitos), por eso se consultan ambos; ante un usuario
+     * no resuelto se cae al guard por defecto de la aplicación.
      */
     protected function resolveGuardFromRequest(): string
     {
@@ -42,7 +49,23 @@ abstract class AbstractProfileController extends Controller
 
         return $user instanceof AbstractDomainUser
             ? $user->getAuthGuard()
-            : 'staff';
+            : configString('auth.defaults.guard');
+    }
+
+    /**
+     * Obtiene el usuario autenticado del perfil o aborta con 403.
+     *
+     * Resuelve desde los guards activos de la aplicación (staff/tenant); las
+     * rutas de perfil están protegidas por `auth:<guard>`, por lo que en la
+     * práctica siempre es un AbstractDomainUser.
+     */
+    protected function requireProfileUser(Request $request): AbstractDomainUser
+    {
+        $user = $request->user('tenant') ?? $request->user('staff');
+
+        abort_unless($user instanceof AbstractDomainUser, 403, __('Usuario no autenticado'));
+
+        return $user;
     }
 
     /**
