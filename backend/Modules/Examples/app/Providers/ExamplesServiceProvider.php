@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Examples\App\Providers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Contracts\StatsServiceInterface;
 use Modules\Examples\App\Http\Controllers\AbstractExamplesController;
 use Modules\Examples\App\Http\Controllers\ExamplesDashboardController;
 use Modules\Examples\App\Http\Controllers\TenantAuthController;
+use Modules\Examples\App\Models\ExampleTenantUser;
 use Modules\Examples\App\ModuleConfig\ExamplesModuleConfig;
 use Modules\Examples\App\PermissionRegistry\ExamplesPermissionRegistry;
+use Modules\Examples\App\Policies\TenantUserPolicy;
 use Modules\Examples\App\Services\ExamplesStatsService;
 use Modules\Examples\App\Services\TenantUserPresenter;
 
@@ -67,6 +70,8 @@ final class ExamplesServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(ExampleTenantUser::class, TenantUserPolicy::class);
+
         $this->registerConfig();
     }
 

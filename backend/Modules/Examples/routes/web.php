@@ -14,6 +14,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Examples\App\Http\Controllers\ExamplesDashboardController;
 use Modules\Examples\App\Http\Controllers\TenantAuthController;
+use Modules\Examples\App\Models\ExampleTenantUser;
 
 /*
 | Login tenant (públicas)
@@ -31,6 +32,7 @@ Route::middleware('guest:tenant')->prefix('internal/tenant')->name('tenant.')->g
 Route::middleware([
     'auth:tenant',
     'throttle:60,1',
+    'can:dashboard,'.ExampleTenantUser::class,
 ])->prefix('internal/tenant/examples')->name('internal.tenant.examples.')->group(
     function (): void {
         Route::get(
@@ -43,6 +45,9 @@ Route::middleware([
 /*
 | Logout tenant
 */
-Route::middleware('auth:tenant')->post('internal/tenant/logout', [
+Route::middleware([
+    'auth:tenant',
+    'can:logout,'.ExampleTenantUser::class,
+])->post('internal/tenant/logout', [
     TenantAuthController::class, 'destroy',
 ])->name('tenant.logout');
