@@ -7,9 +7,9 @@ namespace Modules\Core\Application\Auth;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
 
 /**
- * Caso de uso: cerrar sesión de usuario staff.
+ * Caso de uso: cerrar sesión del usuario autenticado.
  */
-final readonly class LogoutStaffUser
+final readonly class LogoutUser
 {
     public function __construct(
         private AuthenticatesUsersInterface $auth

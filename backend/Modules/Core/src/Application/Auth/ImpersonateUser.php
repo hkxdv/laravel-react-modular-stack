@@ -8,9 +8,9 @@ use App\Interfaces\AuthenticatableUser;
 use Modules\Core\Contracts\Auth\ImpersonatesUsersInterface;
 
 /**
- * Caso de uso: suplantación de usuario staff.
+ * Caso de uso: suplantación de identidad de un usuario del sistema.
  */
-final readonly class ImpersonateStaffUser
+final readonly class ImpersonateUser
 {
     public function __construct(
         private ImpersonatesUsersInterface $impersonator

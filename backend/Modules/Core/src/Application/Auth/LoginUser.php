@@ -7,9 +7,9 @@ namespace Modules\Core\Application\Auth;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
 
 /**
- * Caso de uso: iniciar sesión de usuario staff.
+ * Caso de uso: iniciar sesión de un usuario del sistema.
  */
-final readonly class LoginStaffUser
+final readonly class LoginUser
 {
     public function __construct(
         private AuthenticatesUsersInterface $auth
