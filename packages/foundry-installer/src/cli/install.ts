@@ -156,6 +156,13 @@ export const installProject = async (options: InstallerOptions) => {
     // 5. Verificar SQLite
     cleanupSqliteArtifacts(projectDir);
 
+    // 5.5. Generar tipos TypeScript (spatie/laravel-typescript-transformer)
+    // Debe correr tras `bun run i:all` (tipos de vendor disponibles) y tras
+    // las migraciones (modelos booteables), antes de Wayfinder.
+    spinner.start(chalk.gray('Generando tipos TypeScript...'));
+    runCommand('php backend/artisan typescript:transform', 'Transformación de tipos TypeScript', projectDir);
+    spinner.succeed(chalk.gray('Tipos TypeScript generados'));
+
     // 6. Rutas (Wayfinder)
     spinner.start(chalk.gray('Generando rutas (Wayfinder)...'));
     runCommand('bun run be wayfinder', 'Generación de rutas', projectDir);
