@@ -19,10 +19,7 @@ declare namespace Modules {
     namespace Application {
       namespace View {
         export type AuthPageProps = {
-          readonly user:
-            | Modules.Admin.App.DTO.StaffUserDto
-            | Modules.Examples.App.DTO.TenantUserDto
-            | null;
+          readonly user: Modules.Core.Domain.User.DTO.UserDto | null;
           readonly impersonate: boolean;
           readonly can: Record<string, boolean>;
         };
