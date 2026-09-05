@@ -51,10 +51,11 @@ it('authservice forguard returns self', function (): void {
     expect($guard)->toBe('staff');
 });
 
-it('container resolution resolves the guard from the active user (D1)', function (): void {
+it('container resolution uses the backoffice guard with a web-default user (D1)', function (): void {
     $user = StaffUsersFactory::new()->createOne();
 
-    // El closure usa auth()->user(): el guard por defecto de la app.
+    // El bind del AuthService está fijado al guard administrativo ('staff') en
+    // el punto de composición (Infrastructure); no deriva de auth()->user().
     Auth::guard(configString('auth.defaults.guard', 'web'))->setUser($user);
 
     $auth = resolve(AuthService::class);
@@ -64,12 +65,12 @@ it('container resolution resolves the guard from the active user (D1)', function
     expect($guard)->toBe('staff');
 });
 
-it('container resolution falls back to the default guard without a user (D1)', function (): void {
+it('container resolution pins the backoffice guard without a user (D1)', function (): void {
     $auth = resolve(AuthService::class);
 
     $guard = new ReflectionClass(AuthService::class)->getProperty('guard')->getValue($auth);
 
-    expect($guard)->toBe(configString('auth.defaults.guard', 'web'));
+    expect($guard)->toBe('staff');
 });
 
 it('getavailableguards reads from config for any domain user', function (): void {

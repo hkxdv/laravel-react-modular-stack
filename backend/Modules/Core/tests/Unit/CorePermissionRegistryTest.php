@@ -5,25 +5,23 @@ declare(strict_types=1);
 use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use PHPUnit\Framework\Assert;
 
-use function Foundry\Helpers\configString;
+// ── CorePermissionRegistry: default guard is the backoffice ('staff') ──
+// SECURITY: the default is pinned to the administrative guard, NOT to
+// config('auth.defaults.guard') (the app default is 'web' and would register
+// system permissions for the wrong guard), and never to all `core.guards`.
+// A module can pass an explicit guard via the constructor (testable capability).
 
-// ── AUTC-S1 / D2: CorePermissionRegistry publishes to the default guard ──
-// SECURITY: publishes to `config('auth.defaults.guard')` ONLY when no explicit
-// guard is given; it must NOT publish to all `core.guards`.
-
-it('emits system permissions with the default guard when guard is not set', function (): void {
+it('emits system permissions with the backoffice guard by default', function (): void {
     $registry = new CorePermissionRegistry();
 
     $permissions = $registry->permissions();
-
-    $defaultGuard = configString('auth.defaults.guard', 'web');
 
     expect($permissions)->toHaveCount(2)
         ->and($permissions[0]['name'])->toBe('system.bypass')
         ->and($permissions[1]['name'])->toBe('permissions.sync');
 
-    Assert::assertSame($defaultGuard, $permissions[0]['guard']);
-    Assert::assertSame($defaultGuard, $permissions[1]['guard']);
+    Assert::assertSame('staff', $permissions[0]['guard']);
+    Assert::assertSame('staff', $permissions[1]['guard']);
 });
 
 it('emits exactly one guard per permission (no publish-to-all-guards)', function (): void {
@@ -32,7 +30,7 @@ it('emits exactly one guard per permission (no publish-to-all-guards)', function
     $permissions = $registry->permissions();
 
     foreach ($permissions as $permission) {
-        Assert::assertSame(configString('auth.defaults.guard', 'web'), $permission['guard']);
+        Assert::assertSame('staff', $permission['guard']);
     }
 });
 

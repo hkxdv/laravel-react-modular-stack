@@ -6,17 +6,18 @@ namespace Modules\Core\Infrastructure\Laravel\Services;
 
 use Modules\Core\Contracts\PermissionRegistryInterface;
 
-use function Foundry\Helpers\configString;
-
 /**
  * Registra los permisos granulares del módulo Core.
  */
 final readonly class CorePermissionRegistry implements PermissionRegistryInterface
 {
     public function __construct(
-        // D2 (security): sin guard se publica SOLO al guard por defecto de la
-        // app (config('auth.defaults.guard')), nunca a todos los core.guards.
-        private ?string $guard = null,
+        // El guard por defecto es el del backoffice ('staff'), fijo en el punto
+        // de composición (Infrastructure). NO derivar de config('auth.defaults.guard')
+        // porque la app usa 'web' por defecto y los permisos sistémicos deben
+        // registrarse para el guard administrativo. Un módulo puede pasar otro
+        // guard explícito en el constructor (capacidad testeable).
+        private string $guard = 'staff',
     ) {
         //
     }
@@ -26,7 +27,7 @@ final readonly class CorePermissionRegistry implements PermissionRegistryInterfa
      */
     public function permissions(): array
     {
-        $guardName = $this->guard ?? configString('auth.defaults.guard', 'web');
+        $guardName = $this->guard;
 
         return [
             [

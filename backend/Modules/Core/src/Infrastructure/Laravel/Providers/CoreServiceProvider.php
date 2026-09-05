@@ -36,7 +36,6 @@ use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferences
 use Modules\Core\Contracts\PermissionRegistryInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
-use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\PermissionsSyncRegistry;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\SyncGuardPermissionsCommand;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\ValidateModuleConfig;
@@ -56,8 +55,6 @@ use Modules\Core\Infrastructure\Laravel\Services\PermissionRegistryAggregator;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionService;
 use Modules\Core\Infrastructure\Laravel\Services\SecurityAuditService;
 use Modules\Core\Infrastructure\Laravel\Services\ViewComposerService;
-
-use function Foundry\Helpers\configString;
 
 /**
  * Provider principal del módulo Core.
@@ -98,18 +95,14 @@ final class CoreServiceProvider extends ServiceProvider
             $this->app->singleton($abstract, $concrete);
         }
 
-        // AuthService: factory closure (bind, not singleton) — each resolution
-        // resolves the guard from the active user; CLI/queue (sin usuario) usa
-        // el guard por defecto de la app. AuthService es hoja: sin recursión.
-        $this->app->bind(AuthService::class, function (): AuthService {
-            $user = auth()->user();
-
-            $guard = $user instanceof AbstractDomainUser
-                ? $user->getAuthGuard()
-                : configString('auth.defaults.guard', 'web');
-
-            return AuthService::forGuard($guard);
-        });
+        // AuthService: factory closure (bind, not singleton). El guard por
+        // defecto del backoffice se resuelve aquí, en el punto de composición
+        // (Infrastructure). NO derivar de auth()->user(): el guard por defecto
+        // de la app es 'web' y no refleja el guard autenticado de la request,
+        // lo que rompería login/impersonación para guards no-default.
+        // TODO(core): hacer el bind guard-agnóstico por request cuando el flujo
+        // multi-guard lo requiera (deuda G2 conocida).
+        $this->app->bind(AuthService::class, fn (): AuthService => AuthService::forGuard('staff'));
 
         // Map interface => concrete binds
         $binds = [
