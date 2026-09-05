@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Core\Application\View;
 
-use Modules\Core\Domain\User\DTO\StaffUserDto;
-use Modules\Core\Domain\User\DTO\TenantUserDto;
+use Modules\Admin\App\DTO\StaffUserDto;
+use Modules\Examples\App\DTO\TenantUserDto;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
@@ -22,7 +22,6 @@ final readonly class AuthPageProps
      */
     public function __construct(
         public StaffUserDto|TenantUserDto|null $user,
-        public StaffUserDto|TenantUserDto|null $staff,
         public bool $impersonate,
         public array $can = [],
     ) {

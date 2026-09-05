@@ -21,6 +21,8 @@ final class TypeScriptTransformerServiceProvider extends BaseTypeScriptTransform
             ->transformDirectories(
                 dirname(__DIR__, 2).'/Modules/Core/src/Domain',
                 dirname(__DIR__, 2).'/Modules/Core/src/Application/View',
+                dirname(__DIR__, 2).'/Modules/Admin/app/DTO',
+                dirname(__DIR__, 2).'/Modules/Examples/app/DTO',
             )
             ->writer(new GlobalNamespaceWriter('generated.d.ts'));
     }

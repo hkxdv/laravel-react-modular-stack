@@ -12,7 +12,7 @@ beforeEach(function (): void {
     app()->make(Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
-it('syncs all 22 granular permissions from registries', function (): void {
+it('syncs all declared granular permissions from registries', function (): void {
     $registries = [
         new CorePermissionRegistry(),
         new AdminPermissionRegistry(),
@@ -41,12 +41,19 @@ it('syncs all 22 granular permissions from registries', function (): void {
         );
     }
 
-    // Verify total count (16 staff + 4 tenant = 20)
-    $staffCount = Permission::query()->where('guard_name', 'staff')->count();
-    $tenantCount = Permission::query()->where('guard_name', 'tenant')->count();
+    // Cuenta por guard derivada de lo declarado en los registries (D2: el
+    // default de CorePermissionRegistry es config('auth.defaults.guard')).
+    $expectedByGuard = [];
+    foreach ($registries as $registry) {
+        foreach ($registry->permissions() as $perm) {
+            $expectedByGuard[$perm['guard']] = ($expectedByGuard[$perm['guard']] ?? 0) + 1;
+        }
+    }
 
-    expect($staffCount)->toBe(15)
-        ->and($tenantCount)->toBe(4);
+    foreach ($expectedByGuard as $guard => $count) {
+        expect(Permission::query()->where('guard_name', $guard)->count())
+            ->toBe($count, sprintf("Permisos inesperados para guard '%s'", $guard));
+    }
 });
 
 it('does not contain broad permissions from old seeder', function (): void {

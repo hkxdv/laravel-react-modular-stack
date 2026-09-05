@@ -24,6 +24,12 @@ parameters:
 
     level: max
 
+    # Aliasado del DTO de auth presentado por módulos (Admin/Examples) para que
+    # Core pueda declarar el tipo sin acoplarse a módulos concretos (REQ-A12).
+    # S3 (AUTC-S3) amplía AuthPageProps a UserDto|null y simplifica esto.
+    typeAliases:
+        PresentedUserDto: 'Modules\Admin\App\DTO\StaffUserDto|Modules\Examples\App\DTO\TenantUserDto'
+
     tmpDir: bootstrap/cache/phpstan
 
     scanFiles:

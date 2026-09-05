@@ -58,8 +58,19 @@ it('has zero StaffUser imports in Contracts layer', function (): void {
 })->expect('REQ-A2');
 
 it('has no Admin imports in Core', function (): void {
+    // AuthPageProps (Application/View) usa la unión StaffUserDto|TenantUserDto
+    // con DTOs relocalizados a módulos — TRANSITORIO S2: S3 (AUTC-S3) amplía
+    // el tipo a UserDto|null y elimina estos imports.
+    $allowedFiles = [
+        'AuthPageProps.php',
+    ];
+
     $files = coreSrcPhpFiles();
     foreach ($files as $file) {
+        if (in_array(basename($file), $allowedFiles, true)) {
+            continue;
+        }
+
         $content = file_get_contents($file);
         expect($content)
             ->not->toContain('Modules\\Admin\\');

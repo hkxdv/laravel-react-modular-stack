@@ -47,8 +47,8 @@ function totpForSecret(string $base32Secret, int $stepOffset = 0): string
 
     $counter = (int) floor(\Illuminate\Support\Facades\Date::now()->getTimestamp() / 30) + $stepOffset;
     $hash = hash_hmac('sha1', pack('N*', 0, $counter), $secret, true);
-    $offset = ord(mb_substr($hash, -1)) & 0x0F;
-    $value = unpack('N', mb_substr($hash, $offset, 4));
+    $offset = ord(mb_substr($hash, -1, 1, '8bit')) & 0x0F;
+    $value = unpack('N', mb_substr($hash, $offset, 4, '8bit'));
     $rawValue = is_array($value) ? ($value[1] ?? null) : null;
     $raw = is_numeric($rawValue) ? (int) $rawValue : 0;
     $code = ($raw & 0x7FFFFFFF) % 1000000;
@@ -104,9 +104,41 @@ it('challenge rechaza un TOTP inválido (verifier directo)', function (): void {
     // Inválido -> false.
     expect($verifier->verify($secret, '000000'))->toBeFalse();
 
-    $valid = array_any([-1, 0, 1], fn(int $offset) => $verifier->verify($secret, totpForSecret($secret, $offset)));
+    $valid = array_any([-1, 0, 1], fn (int $offset) => $verifier->verify($secret, totpForSecret($secret, $offset)));
 
     expect($valid)->toBeTrue();
+});
+
+it('verifier acepta una ventana por llamada (windowSeconds param)', function (): void {
+    $verifier = resolve(TwoFactorCodeVerifier::class);
+    $secret = 'JBSWY3DPEHPK3PXP';
+
+    // Con la ventana por defecto (30s = 1 step a cada lado) un código a 2 steps falla.
+    expect($verifier->verify($secret, totpForSecret($secret, 2)))->toBeFalse();
+
+    // Con ventana explícita de 90s (3 steps) el mismo código pasa.
+    expect($verifier->verify($secret, totpForSecret($secret, 2), 90))->toBeTrue();
+});
+
+it('confirm two factor pasa la ventana per-guard al verifier', function (): void {
+    config()->set('core.guards.staff.two_factor.totp_window', 90);
+
+    /** @var \Modules\Admin\App\Models\StaffUser $user */
+    $user = StaffUsersFactory::new()->create([
+        'email' => sprintf('staff-%s@laravel.com', bin2hex(random_bytes(4))),
+        'two_factor_secret' => Crypt::encryptString('JBSWY3DPEHPK3PXP'),
+        'two_factor_confirmed_at' => null,
+    ]);
+
+    /** @var \Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface $confirm */
+    $confirm = resolve(\Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface::class);
+
+    // 2 steps fuera de la ventana default (30s) pero dentro de la per-guard (90s).
+    expect($confirm->handle($user, totpForSecret('JBSWY3DPEHPK3PXP', 2)))->toBeTrue();
+
+    $user->refresh();
+
+    expect($user->two_factor_confirmed_at)->not->toBeNull();
 });
 
 it('recovery code se canjea una sola vez (use-case VerifyLoginChallenge)', function (): void {

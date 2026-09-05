@@ -6,7 +6,6 @@ namespace App\Providers;
 
 use App\Interfaces\ApiResponseFormatterInterface;
 use App\Services\ApiResponseService;
-use App\Services\AuthUserPresenterResolver;
 use App\Services\JsonbQueryService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +18,6 @@ use Laravel\Passkeys\Passkey;
 use Laravel\Passkeys\Passkeys;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\AccountSecurity\LoginAttemptInterface;
-use Modules\Core\Contracts\Auth\AuthUserPresenterResolverInterface;
 use Modules\Examples\App\Models\ExampleTenantUser;
 
 /**
@@ -52,13 +50,6 @@ final class AppServiceProvider extends ServiceProvider
             ApiResponseService::class
         );
         $this->app->singleton(JsonbQueryService::class);
-
-        // Resolución de presenter de usuario según guard, implementada en el
-        // shell app/ (puente entre módulos que Core no debe conocer).
-        $this->app->singleton(
-            AuthUserPresenterResolverInterface::class,
-            AuthUserPresenterResolver::class
-        );
     }
 
     /**

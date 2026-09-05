@@ -27,7 +27,10 @@ final readonly class SetupTwoFactorAuth implements SetupTwoFactorAuthInterface
     public function handle(AbstractDomainUser $user): array
     {
         $secret = $this->generateBase32Secret(20);
-        $count = configInt('security.two_factor.staff.backup_codes_count', 10);
+        $count = configInt(
+            'core.guards.'.$user->getAuthGuard().'.two_factor.backup_codes_count',
+            configInt('security.two_factor.'.$user->getAuthGuard().'.backup_codes_count', 10)
+        );
         $recoveryCodes = $this->generateRecoveryCodes($count);
 
         $user->forceFill([

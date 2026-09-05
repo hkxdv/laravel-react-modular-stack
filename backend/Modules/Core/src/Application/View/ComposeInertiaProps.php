@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Core\Application\View;
 
+use DateTimeImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
-use Modules\Core\Contracts\Auth\AuthUserPresenterResolverInterface;
+use Modules\Core\Contracts\Auth\AuthUserPresenterRegistryInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
+use Modules\Core\Contracts\User\SupportsPasswordAge;
+use Modules\Core\Contracts\User\SupportsTwoFactor;
 use Modules\Core\Domain\Menu\ResolvedBreadcrumbItem;
 use Modules\Core\Domain\Menu\ResolvedNavItem;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
@@ -26,7 +29,7 @@ final readonly class ComposeInertiaProps
     public function __construct(
         private AddonRegistryInterface $moduleRegistry,
         private MenuBuilderInterface $navigationBuilder,
-        private AuthUserPresenterResolverInterface $presenterResolver,
+        private AuthUserPresenterRegistryInterface $presenterRegistry,
     ) {
         //
     }
@@ -38,10 +41,11 @@ final readonly class ComposeInertiaProps
      */
     public function execute(Request $request): GlobalPageProps
     {
-        $presenter = $this->presenterResolver->resolve($request);
+        $resolved = $this->presenterRegistry->resolve($request);
 
-        /** @var AbstractDomainUser|null $user */
-        $user = $request->user('staff') ?? $request->user('tenant');
+        $presenter = $resolved?->presenter;
+
+        $user = $resolved?->user instanceof AbstractDomainUser ? $resolved->user : null;
 
         $navProps = $this->composeNavigationProps($user);
         $authDto = $this->composeAuthProps($user, $request, $presenter);
@@ -121,23 +125,20 @@ final readonly class ComposeInertiaProps
         Request $request,
         ?AuthUserPresenterInterface $presenter,
     ): AuthPageProps {
-        /** @var \Modules\Core\Domain\User\DTO\StaffUserDto|\Modules\Core\Domain\User\DTO\TenantUserDto|array<never, never>|null $presented */
         $presented = $user instanceof AbstractDomainUser && $presenter instanceof AuthUserPresenterInterface
-          ? $presenter->present($user) : null;
+            ? $presenter->present($user)
+            : null;
 
-        // Presenter returns [] for unsupported user types; treat as null
-        if (is_array($presented) && $presented === []) {
-            $presented = null;
-        }
-
-        /** @var \Modules\Core\Domain\User\DTO\StaffUserDto|\Modules\Core\Domain\User\DTO\TenantUserDto|null */
+        // Los presentadores registrados producen solo StaffUserDto|TenantUserDto
+        // (alias `PresentedUserDto` en phpstan.neon: Core no declara tipos de
+        // módulos concretos, REQ-A12). S3 amplía AuthPageProps a UserDto|null.
+        /** @var PresentedUserDto|null $transformedUser */
         $transformedUser = $presented;
 
         $isImpersonating = $user && $request->session()->has('impersonated_by');
 
         return new AuthPageProps(
             user: $transformedUser,
-            staff: $transformedUser,
             impersonate: $isImpersonating,
             can: ['impersonate' => $isImpersonating],
         );
@@ -150,22 +151,32 @@ final readonly class ComposeInertiaProps
     {
         if (! $user instanceof AbstractDomainUser) {
             return new SecurityPageProps(
-                twoFactorRequired: (bool) config('security.two_factor.staff.required', false),
+                twoFactorRequired: false,
                 twoFactorEnabled: false,
                 twoFactorPending: false,
             );
         }
 
-        $secretEncrypted = $user->getAttribute('two_factor_secret');
-        $confirmedAt = $user->getAttribute('two_factor_confirmed_at');
+        $guard = $user->getAuthGuard();
+
+        $twoFactorRequired = (bool) config(
+            'core.guards.'.$guard.'.two_factor_required',
+            config('security.two_factor.'.$guard.'.required', false)
+        );
+
+        // Capacidad de 2FA: solo los usuarios que la implementan exponen
+        // columnas reales; el resto se resuelve a false/null.
+        $capable = $user instanceof SupportsTwoFactor ? $user : null;
+        $secretEncrypted = $capable?->twoFactorSecret();
+        $confirmedAt = $capable?->twoFactorConfirmedAt();
 
         $pending = is_string($secretEncrypted)
           && $secretEncrypted !== ''
-          && $confirmedAt === null;
+          && ! $confirmedAt instanceof DateTimeImmutable;
 
         return new SecurityPageProps(
-            twoFactorRequired: (bool) config('security.two_factor.staff.required', false),
-            twoFactorEnabled: $confirmedAt !== null,
+            twoFactorRequired: $twoFactorRequired,
+            twoFactorEnabled: $confirmedAt instanceof DateTimeImmutable,
             twoFactorPending: $pending,
         );
     }
@@ -199,18 +210,25 @@ final readonly class ComposeInertiaProps
 
     /**
      * Verifica si se requiere cambio de contraseña.
+     *
+     * Solo aplica a usuarios con la capacidad SupportsPasswordAge; la política
+     * de antigüedad se lee por guard desde `core.guards.<guard>.password_max_age_days`
+     * con fallback BC a `security.authentication.passwords.<guard>.max_age_days`.
      */
     private function checkPasswordChangeRequired(AbstractDomainUser $user): bool
     {
+        if (! $user instanceof SupportsPasswordAge) {
+            return false;
+        }
+
         $maxAgeDays = configInt(
-            'security.authentication.passwords.staff.max_age_days',
-            90
+            'core.guards.'.$user->getAuthGuard().'.password_max_age_days',
+            configInt('security.authentication.passwords.'.$user->getAuthGuard().'.max_age_days', 90)
         );
 
-        /** @var \Illuminate\Support\Carbon|string|null $passwordChangedAt */
-        $passwordChangedAt = $user->getAttribute('password_changed_at');
+        $passwordChangedAt = $user->passwordChangedAt();
 
-        if ($passwordChangedAt) {
+        if ($passwordChangedAt instanceof DateTimeImmutable) {
             $passwordAge = Date::parse($passwordChangedAt)
                 ->diffInDays(Date::now());
 

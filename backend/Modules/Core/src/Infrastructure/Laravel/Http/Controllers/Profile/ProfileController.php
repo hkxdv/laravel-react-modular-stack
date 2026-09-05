@@ -71,7 +71,7 @@ final class ProfileController extends AbstractProfileController
             ])
             ->log('Eliminación perfil de usuario');
 
-        FacadesAuth::guard('staff')->logout();
+        FacadesAuth::guard($this->resolveGuardFromRequest())->logout();
 
         $user->delete();
 

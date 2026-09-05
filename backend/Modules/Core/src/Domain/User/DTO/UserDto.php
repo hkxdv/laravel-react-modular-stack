@@ -11,9 +11,11 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * DTO base para usuarios autenticados.
  *
  * Representa los campos comunes a todos los tipos de usuario del sistema.
+ * Los DTOs de módulo (Admin/Examples) lo extienden con sus campos específicos.
+ * Excluido de `final_class` en pint.json por diseño (D4): extensible.
  */
 #[TypeScript]
-final readonly class UserDto implements JsonSerializable
+readonly class UserDto implements JsonSerializable
 {
     public function __construct(
         public int $id,

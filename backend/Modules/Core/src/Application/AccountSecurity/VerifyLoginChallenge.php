@@ -45,7 +45,7 @@ final readonly class VerifyLoginChallenge implements VerifyLoginChallengeInterfa
             }
         }
 
-        $guard = Auth::guard('staff');
+        $guard = Auth::guard($user->getAuthGuard());
         if (! $guard->loginUsingId($user->getAuthIdentifier(), $remember)) {
             return false;
         }

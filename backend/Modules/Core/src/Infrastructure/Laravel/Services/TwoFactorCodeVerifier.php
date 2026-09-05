@@ -6,8 +6,6 @@ namespace Modules\Core\Infrastructure\Laravel\Services;
 
 use Illuminate\Support\Facades\Date;
 
-use function Foundry\Helpers\configInt;
-
 /**
  * Verificador TOTP RFC-6238 compartido (confirmación de setup y challenge de login).
  *
@@ -23,8 +21,9 @@ final readonly class TwoFactorCodeVerifier
      *
      * @param  string  $base32Secret  Secreto en base32 (ya desencriptado).
      * @param  string  $code  Código de 6 dígitos (se normalizan espacios).
+     * @param  int  $windowSeconds  Ventana de tolerancia en segundos (default 30).
      */
-    public function verify(string $base32Secret, string $code): bool
+    public function verify(string $base32Secret, string $code, int $windowSeconds = 30): bool
     {
         $code = preg_replace('/\s+/', '', $code) ?? '';
         if (! preg_match('/^\d{6}$/', $code)) {
@@ -36,7 +35,6 @@ final readonly class TwoFactorCodeVerifier
             return false;
         }
 
-        $windowSeconds = configInt('security.two_factor.staff.totp_window', 30);
         $windowSteps = max(0, (int) floor($windowSeconds / self::STEP_SECONDS));
 
         $now = Date::now()->getTimestamp();
@@ -59,8 +57,10 @@ final readonly class TwoFactorCodeVerifier
         $counter = max($counter, 0);
         $binCounter = pack('N*', 0, $counter);
         $hash = hash_hmac('sha1', $binCounter, $secret, true);
-        $offset = ord(mb_substr($hash, -1)) & 0x0F;
-        $segment = mb_substr($hash, $offset, 4);
+        // '8bit': el hash es binario; mb_substr en UTF-8 puede truncar el
+        // segmento cuando un byte multibyte queda al final del hash.
+        $offset = ord(mb_substr($hash, -1, 1, '8bit')) & 0x0F;
+        $segment = mb_substr($hash, $offset, 4, '8bit');
         $value = unpack('N', $segment);
         $unpacked = 0;
         if (is_array($value)) {

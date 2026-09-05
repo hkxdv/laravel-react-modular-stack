@@ -64,6 +64,9 @@ final class AdminServiceProvider extends ServiceProvider
             ->needs(AuthUserPresenterInterface::class)
             ->give(StaffUserPresenter::class);
 
+        // Tag para el registry central de presenters en Core (auth-user-presenter)
+        $this->app->tag(StaffUserPresenter::class, 'auth-user-presenter');
+
         $this->app->when(AdminDashboardController::class)
             ->needs(StatsServiceInterface::class)
             ->give(AdminStatsService::class);

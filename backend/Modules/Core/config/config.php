@@ -3,36 +3,49 @@
 declare(strict_types=1);
 
 return [
-    'functional_name' => 'Core',
-    'description' => 'Funciones transversales del área interna',
-    'module_slug' => 'core',
-    'auth_guard' => 'staff',
-    'inertia_view_directory' => 'core',
-    'base_permission' => null,
-
     'guards' => [
         'staff' => [
             'login_route' => 'login',
             'redirect_route' => 'login',
             'provider' => 'staff',
             'two_factor_required' => env('STAFF_2FA_REQUIRED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig (config de módulo; env legítimo en config)
+            'two_factor' => [
+                'totp_window' => 30,
+                'backup_codes_count' => 10,
+            ],
+            'password_max_age_days' => (int) env('STAFF_PASSWORD_MAX_AGE_DAYS', 90), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig (config de módulo; env legítimo en config)
         ],
         'tenant' => [
             'login_route' => 'tenant.login',
             'redirect_route' => 'tenant.login',
             'provider' => 'tenant',
             'two_factor_required' => false,
+            'two_factor' => [
+                'totp_window' => 30,
+                'backup_codes_count' => 10,
+            ],
+            'password_max_age_days' => 90,
         ],
         'web' => [
             'login_route' => 'login',
             'redirect_route' => 'welcome',
             'provider' => 'web',
             'two_factor_required' => false,
+            'two_factor' => [
+                'totp_window' => 30,
+                'backup_codes_count' => 10,
+            ],
+            'password_max_age_days' => 90,
         ],
         'sanctum' => [
             'login_route' => 'login',
             'redirect_route' => 'welcome',
             'provider' => 'sanctum',
+            'two_factor' => [
+                'totp_window' => 30,
+                'backup_codes_count' => 10,
+            ],
+            'password_max_age_days' => 90,
         ],
     ],
 

@@ -25,6 +25,8 @@ use Modules\Core\Contracts\AccountSecurity\VerifyLoginChallengeInterface;
 use Modules\Core\Contracts\AddonRegistryInterface;
 use Modules\Core\Contracts\AuditTrailInterface;
 use Modules\Core\Contracts\Auth\AuthenticatesUsersInterface;
+use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
+use Modules\Core\Contracts\Auth\AuthUserPresenterRegistryInterface;
 use Modules\Core\Contracts\Auth\ImpersonatesUsersInterface;
 use Modules\Core\Contracts\MenuBuilderInterface;
 use Modules\Core\Contracts\ModuleConfigInterface;
@@ -34,12 +36,14 @@ use Modules\Core\Contracts\NotificationPreferences\UpdateNotificationPreferences
 use Modules\Core\Contracts\PermissionRegistryInterface;
 use Modules\Core\Contracts\PermissionVerifierInterface;
 use Modules\Core\Contracts\ViewComposerInterface;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\PermissionsSyncRegistry;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\SyncGuardPermissionsCommand;
 use Modules\Core\Infrastructure\Laravel\Console\Commands\ValidateModuleConfig;
 use Modules\Core\Infrastructure\Laravel\Services\AddonRegistryService;
 use Modules\Core\Infrastructure\Laravel\Services\AuditTrailService;
 use Modules\Core\Infrastructure\Laravel\Services\AuthService;
+use Modules\Core\Infrastructure\Laravel\Services\AuthUserPresenterRegistry;
 use Modules\Core\Infrastructure\Laravel\Services\CoreModuleConfig;
 use Modules\Core\Infrastructure\Laravel\Services\CorePermissionRegistry;
 use Modules\Core\Infrastructure\Laravel\Services\LoginAttemptService;
@@ -52,6 +56,8 @@ use Modules\Core\Infrastructure\Laravel\Services\PermissionRegistryAggregator;
 use Modules\Core\Infrastructure\Laravel\Services\PermissionService;
 use Modules\Core\Infrastructure\Laravel\Services\SecurityAuditService;
 use Modules\Core\Infrastructure\Laravel\Services\ViewComposerService;
+
+use function Foundry\Helpers\configString;
 
 /**
  * Provider principal del módulo Core.
@@ -92,8 +98,18 @@ final class CoreServiceProvider extends ServiceProvider
             $this->app->singleton($abstract, $concrete);
         }
 
-        // AuthService: factory closure (not singleton) — each guard gets its own instance
-        $this->app->singleton(AuthService::class, fn (): AuthService => AuthService::forGuard('staff'));
+        // AuthService: factory closure (bind, not singleton) — each resolution
+        // resolves the guard from the active user; CLI/queue (sin usuario) usa
+        // el guard por defecto de la app. AuthService es hoja: sin recursión.
+        $this->app->bind(AuthService::class, function (): AuthService {
+            $user = auth()->user();
+
+            $guard = $user instanceof AbstractDomainUser
+                ? $user->getAuthGuard()
+                : configString('auth.defaults.guard', 'web');
+
+            return AuthService::forGuard($guard);
+        });
 
         // Map interface => concrete binds
         $binds = [
@@ -119,6 +135,13 @@ final class CoreServiceProvider extends ServiceProvider
         // PermissionRegistryAggregator: singleton que agrupa todos los registries taggeados
         $this->app->singleton(PermissionRegistryAggregator::class);
 
+        // AuthUserPresenterRegistry: singleton que agrupa los presentadores taggeados
+        // 'auth-user-presenter' (los módulos Admin/Examples registran su presenter aquí)
+        $this->app->singleton(
+            AuthUserPresenterRegistryInterface::class,
+            AuthUserPresenterRegistry::class
+        );
+
         // Module config: tag + registry
         $this->app->tag(CoreModuleConfig::class, 'module-config');
         $this->app->singleton(ModuleConfigRegistry::class);
@@ -136,6 +159,15 @@ final class CoreServiceProvider extends ServiceProvider
         foreach ($this->app->tagged('permission-registry') as $registry) {
             if ($registry instanceof PermissionRegistryInterface) {
                 $aggregator->register($registry);
+            }
+        }
+
+        // AuthUserPresenterRegistry: populate from 'auth-user-presenter' tagged
+        // instances (todos los providers ya registraron; orden = orden de tags)
+        $presenterRegistry = $this->app->make(AuthUserPresenterRegistryInterface::class);
+        foreach ($this->app->tagged('auth-user-presenter') as $presenter) {
+            if ($presenter instanceof AuthUserPresenterInterface) {
+                $presenterRegistry->register($presenter);
             }
         }
 

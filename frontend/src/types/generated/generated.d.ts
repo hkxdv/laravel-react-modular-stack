@@ -1,15 +1,27 @@
 declare namespace Modules {
+  namespace Admin {
+    namespace App {
+      namespace DTO {
+        export type StaffUserDto = {
+          readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
+          readonly permissions: string[];
+          readonly email_verified_at: string | null;
+          readonly avatar: string | null;
+          readonly id: number;
+          readonly name: string;
+          readonly email: string;
+          readonly user_type: string;
+        };
+      }
+    }
+  }
   namespace Core {
     namespace Application {
       namespace View {
         export type AuthPageProps = {
           readonly user:
-            | Modules.Core.Domain.User.DTO.StaffUserDto
-            | Modules.Core.Domain.User.DTO.TenantUserDto
-            | null;
-          readonly staff:
-            | Modules.Core.Domain.User.DTO.StaffUserDto
-            | Modules.Core.Domain.User.DTO.TenantUserDto
+            | Modules.Admin.App.DTO.StaffUserDto
+            | Modules.Examples.App.DTO.TenantUserDto
             | null;
           readonly impersonate: boolean;
           readonly can: Record<string, boolean>;
@@ -128,26 +140,6 @@ declare namespace Modules {
             readonly name: string;
             readonly description: string | null;
           };
-          export type StaffUserDto = {
-            readonly id: number;
-            readonly name: string;
-            readonly email: string;
-            readonly email_verified_at: string | null;
-            readonly user_type: string;
-            readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
-            readonly permissions: string[];
-            readonly avatar: string | null;
-          };
-          export type TenantUserDto = {
-            readonly id: number;
-            readonly name: string;
-            readonly email: string;
-            readonly user_type: string;
-            readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
-            readonly permissions: string[];
-            readonly avatar: string | null;
-            readonly email_verified_at: string | null;
-          };
           export type UserDto = {
             readonly id: number;
             readonly name: string;
@@ -155,6 +147,22 @@ declare namespace Modules {
             readonly user_type: string;
           };
         }
+      }
+    }
+  }
+  namespace Examples {
+    namespace App {
+      namespace DTO {
+        export type TenantUserDto = {
+          readonly roles: Modules.Core.Domain.User.DTO.RoleDto[];
+          readonly permissions: string[];
+          readonly avatar: string | null;
+          readonly email_verified_at: string | null;
+          readonly id: number;
+          readonly name: string;
+          readonly email: string;
+          readonly user_type: string;
+        };
       }
     }
   }

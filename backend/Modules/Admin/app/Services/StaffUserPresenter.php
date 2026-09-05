@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Modules\Admin\App\Services;
 
 use App\Interfaces\AuthenticatableUser;
+use Modules\Admin\App\DTO\StaffUserDto;
 use Modules\Admin\App\Models\StaffUser;
 use Modules\Core\Contracts\Auth\AuthUserPresenterInterface;
 use Modules\Core\Domain\User\DTO\RoleDto;
-use Modules\Core\Domain\User\DTO\StaffUserDto;
+use Modules\Core\Domain\User\DTO\UserDto;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -21,12 +22,23 @@ use Spatie\Permission\Models\Role;
 final class StaffUserPresenter implements AuthUserPresenterInterface
 {
     /**
-     * @phpstan-return StaffUserDto|array<never, never>
+     * Devuelve el guard de autenticación que este presentador resuelve.
      */
-    public function present(AuthenticatableUser $user): object|array
+    public function guard(): string
+    {
+        return 'staff';
+    }
+
+    /**
+     * Presenta un usuario del staff como DTO de Inertia.
+     *
+     * @param  AuthenticatableUser  $user  Usuario autenticado.
+     * @return UserDto|null DTO del staff, o null si el usuario no es StaffUser.
+     */
+    public function present(AuthenticatableUser $user): ?UserDto
     {
         if (! $user instanceof StaffUser) {
-            return [];
+            return null;
         }
 
         $user->loadMissing('roles');
@@ -57,10 +69,10 @@ final class StaffUserPresenter implements AuthUserPresenterInterface
             id: $identifier,
             name: $displayName,
             email: $email,
-            email_verified_at: $user->email_verified_at?->toIso8601String(),
             user_type: 'staff',
             roles: $roleDtos,
             permissions: $permissions,
+            email_verified_at: $user->email_verified_at?->toIso8601String(),
             avatar: $avatar,
         );
     }

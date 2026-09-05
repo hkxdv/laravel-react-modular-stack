@@ -47,6 +47,9 @@ final class ExamplesServiceProvider extends ServiceProvider
             ->needs(AuthUserPresenterInterface::class)
             ->give(TenantUserPresenter::class);
 
+        // Tag para el registry central de presenters en Core (auth-user-presenter)
+        $this->app->tag(TenantUserPresenter::class, 'auth-user-presenter');
+
         // Contextual binding para evitar colisiones globales del contrato StatsServiceInterface
         $this->app->when(AbstractExamplesController::class)
             ->needs(StatsServiceInterface::class)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Admin\App\Models;
 
+use DateTimeImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Modules\Admin\Database\Factories\StaffUsersFactory;
+use Modules\Core\Contracts\User\SupportsPasswordAge;
+use Modules\Core\Contracts\User\SupportsTwoFactor;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Spatie\Activitylog\LogOptions;
 
@@ -27,6 +30,10 @@ use Spatie\Activitylog\LogOptions;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string|null $two_factor_secret
+ * @property string|null $two_factor_recovery_codes
+ * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
+ * @property \Illuminate\Support\Carbon|null $password_changed_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, StaffUserLoginInfo> $loginInfos
  *
  * @use HasFactory<StaffUsersFactory>
@@ -44,7 +51,7 @@ use Spatie\Activitylog\LogOptions;
     'two_factor_recovery_codes',
 ])]
 #[Table(name: 'staff_users')]
-final class StaffUser extends AbstractDomainUser implements MustVerifyEmail, PasskeyUser
+final class StaffUser extends AbstractDomainUser implements MustVerifyEmail, PasskeyUser, SupportsPasswordAge, SupportsTwoFactor
 {
     /** @use HasFactory<StaffUsersFactory> */
     use HasFactory;
@@ -80,6 +87,47 @@ final class StaffUser extends AbstractDomainUser implements MustVerifyEmail, Pas
     public function getAuthGuard(): string
     {
         return 'staff';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function twoFactorSecret(): ?string
+    {
+        return $this->two_factor_secret;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function twoFactorConfirmedAt(): ?DateTimeImmutable
+    {
+        return $this->two_factor_confirmed_at?->toImmutable();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function twoFactorEnabled(): bool
+    {
+        return $this->twoFactorConfirmedAt() instanceof DateTimeImmutable;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function twoFactorPending(): bool
+    {
+        return $this->two_factor_secret !== null
+            && ! $this->twoFactorConfirmedAt() instanceof DateTimeImmutable;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function passwordChangedAt(): ?DateTimeImmutable
+    {
+        return $this->password_changed_at?->toImmutable();
     }
 
     /**

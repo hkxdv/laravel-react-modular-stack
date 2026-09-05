@@ -115,7 +115,7 @@ final readonly class AuthService implements AuthenticatesUsersInterface, Imperso
         $originalUserId = session()->pull(self::IMPERSONATION_SESSION_KEY);
 
         /** @var class-string<\Illuminate\Database\Eloquent\Model> $userModelClass */
-        $userModelClass = configString('auth.providers.staff.model');
+        $userModelClass = configString('auth.providers.'.$this->guard.'.model');
 
         /** @var Authenticatable|null $originalUser */
         $originalUser = $userModelClass::query()->find($originalUserId);

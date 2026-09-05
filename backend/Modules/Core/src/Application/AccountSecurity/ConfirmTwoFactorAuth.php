@@ -10,6 +10,8 @@ use Modules\Core\Contracts\AccountSecurity\ConfirmTwoFactorAuthInterface;
 use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Services\TwoFactorCodeVerifier;
 
+use function Foundry\Helpers\configInt;
+
 /**
  * Caso de uso: confirmar el código de 2FA (TOTP) del usuario.
  *
@@ -35,7 +37,14 @@ final readonly class ConfirmTwoFactorAuth implements ConfirmTwoFactorAuthInterfa
         }
 
         $secret = Crypt::decryptString($secretEncrypted);
-        if (! $this->verifier->verify($secret, $code)) {
+        if (! $this->verifier->verify(
+            $secret,
+            $code,
+            configInt(
+                'core.guards.'.$user->getAuthGuard().'.two_factor.totp_window',
+                configInt('security.two_factor.'.$user->getAuthGuard().'.totp_window', 30)
+            )
+        )) {
             return false;
         }
 

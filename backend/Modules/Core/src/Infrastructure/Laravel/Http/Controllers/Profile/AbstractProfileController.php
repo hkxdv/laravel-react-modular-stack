@@ -6,6 +6,7 @@ namespace Modules\Core\Infrastructure\Laravel\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Modules\Core\Infrastructure\Eloquent\Models\AbstractDomainUser;
 use Modules\Core\Infrastructure\Laravel\Facades\Addon;
 use Modules\Core\Infrastructure\Laravel\Facades\Menu;
 
@@ -28,8 +29,20 @@ abstract class AbstractProfileController extends Controller
     protected function getProfileNavigationItems(): array
     {
         return Addon::getGlobalNavItems(
-            Auth::guard('staff')->user()
+            Auth::guard($this->resolveGuardFromRequest())->user()
         );
+    }
+
+    /**
+     * Resuelve el guard de autenticación desde el usuario autenticado en la petición.
+     */
+    protected function resolveGuardFromRequest(): string
+    {
+        $user = request()->user('tenant') ?? request()->user('staff');
+
+        return $user instanceof AbstractDomainUser
+            ? $user->getAuthGuard()
+            : 'staff';
     }
 
     /**

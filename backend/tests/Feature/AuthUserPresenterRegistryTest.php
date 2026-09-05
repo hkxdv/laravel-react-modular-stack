@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Services\AuthUserPresenterResolver;
-use Illuminate\Http\Request;
-use Modules\Admin\Database\Factories\StaffUsersFactory;
-use Modules\Examples\Database\Factories\ExampleTenantUserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Modules\Admin\App\Models\StaffUser;
+use Modules\Admin\Database\Factories\StaffUsersFactory;
+use Modules\Core\Contracts\Auth\AuthUserPresenterRegistryInterface;
+use Modules\Examples\App\Models\ExampleTenantUser;
+use Modules\Examples\Database\Factories\ExampleTenantUserFactory;
 
 uses(RefreshDatabase::class);
 
 it('returns staff presenter when staff user is authenticated', function (): void {
-    $resolver = app(AuthUserPresenterResolver::class);
+    $registry = app(AuthUserPresenterRegistryInterface::class);
     $user = StaffUsersFactory::new()->create();
 
     $request = Request::create('/test', 'GET');
@@ -21,14 +23,15 @@ it('returns staff presenter when staff user is authenticated', function (): void
         return $guard === 'staff' ? $user : null;
     });
 
-    $presenter = $resolver->resolve($request);
+    $resolved = $registry->resolve($request);
 
-    expect($presenter)->not->toBeNull()
-        ->and(get_class($presenter))->toContain('StaffUserPresenter');
+    expect($resolved)->not->toBeNull()
+        ->and($resolved->user)->toBeInstanceOf(StaffUser::class)
+        ->and(get_class($resolved->presenter))->toContain('StaffUserPresenter');
 });
 
 it('returns tenant presenter when only tenant user is authenticated', function (): void {
-    $resolver = app(AuthUserPresenterResolver::class);
+    $registry = app(AuthUserPresenterRegistryInterface::class);
     $user = ExampleTenantUserFactory::new()->create();
 
     $request = Request::create('/test', 'GET');
@@ -36,24 +39,25 @@ it('returns tenant presenter when only tenant user is authenticated', function (
         return $guard === 'tenant' ? $user : null;
     });
 
-    $presenter = $resolver->resolve($request);
+    $resolved = $registry->resolve($request);
 
-    expect($presenter)->not->toBeNull()
-        ->and(get_class($presenter))->toContain('TenantUserPresenter');
+    expect($resolved)->not->toBeNull()
+        ->and($resolved->user)->toBeInstanceOf(ExampleTenantUser::class)
+        ->and(get_class($resolved->presenter))->toContain('TenantUserPresenter');
 });
 
 it('returns null when no user is authenticated', function (): void {
-    $resolver = app(AuthUserPresenterResolver::class);
+    $registry = app(AuthUserPresenterRegistryInterface::class);
 
     $request = Request::create('/test', 'GET');
 
-    $presenter = $resolver->resolve($request);
+    $resolved = $registry->resolve($request);
 
-    expect($presenter)->toBeNull();
+    expect($resolved)->toBeNull();
 });
 
 it('prefers staff over tenant when both are authenticated', function (): void {
-    $resolver = app(AuthUserPresenterResolver::class);
+    $registry = app(AuthUserPresenterRegistryInterface::class);
     $staffUser = StaffUsersFactory::new()->create();
     $tenantUser = ExampleTenantUserFactory::new()->create();
 
@@ -66,8 +70,9 @@ it('prefers staff over tenant when both are authenticated', function (): void {
         return $guard === 'tenant' ? $tenantUser : null;
     });
 
-    $presenter = $resolver->resolve($request);
+    $resolved = $registry->resolve($request);
 
-    expect($presenter)->not->toBeNull()
-        ->and(get_class($presenter))->toContain('StaffUserPresenter');
+    expect($resolved)->not->toBeNull()
+        ->and($resolved->user)->toBeInstanceOf(StaffUser::class)
+        ->and(get_class($resolved->presenter))->toContain('StaffUserPresenter');
 });

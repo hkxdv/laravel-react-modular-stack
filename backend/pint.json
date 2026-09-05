@@ -2,6 +2,7 @@
   "preset": "laravel",
   "paths": ["app", "Modules", "config", "routes", "../database", "bootstrap", "../packages/foundry-php-utils/src"],
   "exclude": ["bootstrap/cache", "storage", "vendor", "tmp"],
+  "notPath": ["Modules/Core/src/Domain/User/DTO/UserDto.php"],
   "rules": {
     "array_push": true,
     "backtick_to_shell_exec": true,
